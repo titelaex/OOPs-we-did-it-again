@@ -18,16 +18,19 @@
     <ClInclude Include="Card.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resources.h">
+    <ClInclude Include="ResourceType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="linkingSymbols.h">
+    <ClInclude Include="LinkingSymbolType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="coinWorth.h">
+    <ClInclude Include="CoinWorthType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tradeRule.h">
+    <ClInclude Include="TradeRuleType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,16 +38,10 @@
     <ClCompile Include="Card.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Resources.cpp">
+    <ClCompile Include="ResourceType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="linkingSymbols.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="coinWorth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tradeRule.cpp">
+    <ClCompile Include="TradeRuleType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

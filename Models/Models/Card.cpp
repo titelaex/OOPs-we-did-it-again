@@ -1,63 +1,59 @@
 #include "Card.h"
-#include "coinWorth.h"
+#include <algorithm>
+
 using namespace Models;
-class Card
+
+const std::map<ResourceType, uint8_t>& Card::GetResourceCost() const { return m_resourceCost; }
+const std::map<ResourceType, uint8_t>& Card::GetResourceProduction() const { return m_resourceProduction; }
+uint8_t Card::GetVictoryPoints() const { return m_victoryPoints; }
+uint8_t Card::GetShieldPoints() const { return m_shieldPoints; }
+const std::array<uint8_t,7>& Card::GetScientificSymbols() const { return m_scientificSymbols; }
+LinkingSymbolType Card::GetHasLinkingSymbol() const { return m_hasLinkingSymbol; }
+LinkingSymbolType Card::GetRequiresLinkingSymbol() const { return m_requiresLinkingSymbol; }
+CoinWorthType Card::GetCoinWorth() const { return m_coinWorth; }
+uint8_t Card::GetCoinValue() const { return m_coinValue; }
+const std::map<TradeRuleType, bool>& Card::GetTradeRules() const { return m_tradeRules; }
+const std::string& Card::GetCaption() const { return m_caption; }
+ColorType Card::GetColor() const { return m_color; }
+bool Card::GetIsVisible() const { return m_isVisibile; }
+const std::string& Card::GetModelPath() const { return m_modelPath; }
+
+void Card::SetResourceCost(const std::map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
+void Card::SetResourceProduction(const std::map<ResourceType, uint8_t>& resourceProduction) { m_resourceProduction = resourceProduction; }
+void Card::SetVictoryPoints(uint8_t victoryPoints) { m_victoryPoints = victoryPoints; }
+void Card::SetShieldPoints(uint8_t shieldPoints) { m_shieldPoints = shieldPoints; }
+void Card::SetScientificSymbols(const std::array<uint8_t,7>& scientificSymbols) { m_scientificSymbols = scientificSymbols; }
+void Card::SetHasLinkingSymbol(LinkingSymbolType hasLinkingSymbol) { m_hasLinkingSymbol = hasLinkingSymbol; }
+void Card::SetRequiresLinkingSymbol(LinkingSymbolType requiresLinkingSymbol) { m_requiresLinkingSymbol = requiresLinkingSymbol; }
+void Card::SetCoinValue(uint8_t coinValue) { m_coinValue = coinValue; }
+void Card::SetTradeRules(const std::map<TradeRuleType, bool>& tradeRules) { m_tradeRules = tradeRules; }
+void Card::SetCoinWorth(CoinWorthType coinWorth)
 {
-private:
-	std::map<ResourceType, uint8_t> m_resourceCost;
-	std::map<ResourceType, uint8_t> m_resourceProduction;
-	uint8_t m_victoryPoints;
-	uint8_t m_shieldPoints;
-	std::array<uint8_t, 7> m_scientificSymbols = { 0, 0, 0, 0, 0, 0, 0 };
-	linkingSymbolType m_hasLinkingSymbol = linkingSymbolType::NO_SYMBOL;
-	linkingSymbolType m_requiresLinkingSymbol = linkingSymbolType::NO_SYMBOL;
-	coinWorthType m_coinWorth = coinWorthType::VALUE;
-	uint8_t m_coinValue = 0;
-
-public:
-	const std::map<ResourceType, uint8_t>& GetResourceCost() const { return m_resourceCost; }
-	const std::map<ResourceType, uint8_t>& GetResourceProduction() const { return m_resourceProduction; }
-	uint8_t GetVictoryPoints() const { return m_victoryPoints; }
-	uint8_t GetShieldPoints() const { return m_shieldPoints; }
-	const std::array<uint8_t, 7>& GetScientificSymbols() const { return m_scientificSymbols; }
-	linkingSymbolType GetHasLinkingSymbol() const { return m_hasLinkingSymbol; }
-	linkingSymbolType GetRequiresLinkingSymbol() const { return m_requiresLinkingSymbol; }
-	coinWorthType GetCoinWorth() const { return m_coinWorth; }
-	uint8_t GetCoinValue() const { return m_coinValue; }
-
-	void SetResourceCost(const std::map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
-	void SetResourceProduction(const std::map<ResourceType, uint8_t>& resourceProduction) { m_resourceProduction = resourceProduction; }
-	void SetVictoryPoints(uint8_t victoryPoints) { m_victoryPoints = victoryPoints; }
-	void SetShieldPoints(uint8_t shieldPoints) { m_shieldPoints = shieldPoints; }
-	void SetScientificSymbols(const std::array<uint8_t, 7>& scientificSymbols) { m_scientificSymbols = scientificSymbols; }
-	void SetHasLinkingSymbol(linkingSymbolType hasLinkingSymbol) { m_hasLinkingSymbol = hasLinkingSymbol; }
-	void SetRequiresLinkingSymbol(linkingSymbolType requiresLinkingSymbol) { m_requiresLinkingSymbol = requiresLinkingSymbol; }
-	void SetCoinValue(uint8_t coinValue) { m_coinValue = coinValue; }
-	void SetCoinWorth(coinWorthType coinWorth) 
-	{ 
-		m_coinWorth = coinWorth;
-		switch (coinWorth)
-		{
-		case Models::coinWorthType::VALUE:
-			break;
-		case Models::coinWorthType::WONDER:
-			SetCoinValue(2); // minunile au valoare de 2 monede
-			break;
-		case Models::coinWorthType::GREY:
-			SetCoinValue(3);
-			break;
-		case Models::coinWorthType::BROWN:
-			SetCoinValue(2);
-			break;
-		case Models::coinWorthType::YELLOW:
-			SetCoinValue(1);
-			break;
-		case Models::coinWorthType::RED:
-			SetCoinValue(1);
-			break;
-		default:
-			break;
-		}
+	m_coinWorth = coinWorth;
+	switch (coinWorth)
+	{
+	case CoinWorthType::VALUE:
+		break;
+	case CoinWorthType::WONDER:
+		SetCoinValue(2); // wonders worth2 coins
+		break;
+	case CoinWorthType::GREY:
+		SetCoinValue(3);
+		break;
+	case CoinWorthType::BROWN:
+		SetCoinValue(2);
+		break;
+	case CoinWorthType::YELLOW:
+		SetCoinValue(1);
+		break;
+	case CoinWorthType::RED:
+		SetCoinValue(1);
+		break;
+	default:
+		break;
 	}
-	
-};
+}
+void Card::SetCaption(const std::string& caption) { m_caption = caption; }
+void Card::SetColor(ColorType color) { m_color = color; }
+void Card::SetIsVisible(bool isVisible) { m_isVisibile = isVisible; }
+void Card::SetModelPath(const std::string& modelPath) { m_modelPath = modelPath; }

@@ -1,4 +1,4 @@
-#include "Resources.h"
+#include "ResourceType.h"
 
 std::string Models::ResourceTypeToString(ResourceType resource)
 {

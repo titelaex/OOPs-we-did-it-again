@@ -2,7 +2,7 @@
 #include <cstdint>
 namespace Models
 {
-	enum class coinWorthType:uint8_t
+	enum class CoinWorthType:uint8_t
 	{
 		VALUE,
 		WONDER,

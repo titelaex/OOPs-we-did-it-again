@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 namespace Models {
-	enum class linkingSymbolType:uint8_t
+	enum class LinkingSymbolType:uint8_t
 	{
 		NO_SYMBOL,
 		VESSEL,
