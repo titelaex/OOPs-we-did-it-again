@@ -24,6 +24,9 @@
     <ClInclude Include="linkingSymbols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="coinWorth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Card.cpp">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="linkingSymbols.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="coinWorth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

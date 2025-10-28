@@ -124,11 +124,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Card.h" />
+    <ClInclude Include="coinWorth.h" />
     <ClInclude Include="linkingSymbols.h" />
     <ClInclude Include="Resources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Card.cpp" />
+    <ClCompile Include="coinWorth.cpp" />
     <ClCompile Include="linkingSymbols.cpp" />
     <ClCompile Include="Resources.cpp" />
   </ItemGroup>
