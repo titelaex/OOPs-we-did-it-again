@@ -15,6 +15,7 @@ namespace Models
 		uint8_t m_shieldPoints : 1;
 		std::array<uint8_t, 7> m_scientificSymbols = { 0, 0, 0, 0, 0, 0, 0 }; 
 
+
 	public:
 		const std::map<ResourceType, uint8_t>& GetResourceCost() const;
 		const std::map<ResourceType, uint8_t>& GetResourceProduction() const;
