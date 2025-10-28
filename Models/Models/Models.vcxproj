@@ -127,12 +127,14 @@
     <ClInclude Include="coinWorth.h" />
     <ClInclude Include="linkingSymbols.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="tradeRule.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Card.cpp" />
     <ClCompile Include="coinWorth.cpp" />
     <ClCompile Include="linkingSymbols.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="tradeRule.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
