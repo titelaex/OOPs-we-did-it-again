@@ -123,19 +123,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Building.h" />
     <ClInclude Include="Card.h" />
     <ClInclude Include="CoinWorthType.h" />
     <ClInclude Include="ColorType.h" />
     <ClInclude Include="ICard.h" />
     <ClInclude Include="LinkingSymbolType.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="ResourceType.h" />
     <ClInclude Include="TradeRuleType.h" />
+    <ClInclude Include="Wonder.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Building.cpp" />
     <ClCompile Include="Card.cpp" />
     <ClCompile Include="ICard.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceType.cpp" />
     <ClCompile Include="TradeRuleType.cpp" />
+    <ClCompile Include="Wonder.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
