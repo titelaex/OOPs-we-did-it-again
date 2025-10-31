@@ -126,12 +126,14 @@
     <ClInclude Include="Card.h" />
     <ClInclude Include="CoinWorthType.h" />
     <ClInclude Include="ColorType.h" />
+    <ClInclude Include="ICard.h" />
     <ClInclude Include="LinkingSymbolType.h" />
     <ClInclude Include="ResourceType.h" />
     <ClInclude Include="TradeRuleType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Card.cpp" />
+    <ClCompile Include="ICard.cpp" />
     <ClCompile Include="ResourceType.cpp" />
     <ClCompile Include="TradeRuleType.cpp" />
   </ItemGroup>
