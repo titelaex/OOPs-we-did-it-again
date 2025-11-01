@@ -140,6 +140,7 @@
     <ClCompile Include="ICard.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceType.cpp" />
+    <ClCompile Include="Token.ixx" />
     <ClCompile Include="TradeRuleType.cpp" />
     <ClCompile Include="Wonder.cpp" />
   </ItemGroup>
