@@ -135,6 +135,7 @@
     <ClInclude Include="Wonder.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Card.cpp" />
     <ClCompile Include="ICard.cpp" />

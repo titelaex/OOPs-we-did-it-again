@@ -71,5 +71,8 @@
     <ClCompile Include="Token.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bank.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
