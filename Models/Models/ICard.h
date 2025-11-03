@@ -1,4 +1,5 @@
 #pragma once
+#include "Player.h"
 
 namespace Models
 {
@@ -7,9 +8,11 @@ namespace Models
 	public:
 		virtual ~ICard() = default;
 
-		virtual void dealCard() = 0;
+		virtual void dealCard(Player player) = 0;
+		//jucatorul ia cartea din vectorul de carti vizibile 
 		virtual void toggleVisibility() = 0;
-		virtual void playCard() = 0;
+		virtual void playCardWonder() = 0;
+		virtual void playCardBuilding() = 0;
 		virtual void burnCard() = 0;
 		virtual void displayCardInfo() = 0;
 	};

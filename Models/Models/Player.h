@@ -18,7 +18,6 @@ private:
 
 	int positionOnBoard = 0;
 
-	std::vector<Building> ownedBuildings; //Buildings needs to be its own class that inherits from Cards
 	std::vector<Wonder> ownedWonders; //Wonders needs to be its own class that inherits from Cards
 	std::vector<Card> ownedCards; ///maybe should be changed to AgeCards and create AgeCard class that inherits from Card???
 	/// vector de ownedTokens ?
@@ -26,7 +25,6 @@ private:
 
 	int remainingCoins = 7;
 
-	// Scoreboard class ???? - rules
 	int militaryVictoryPoints = 0;
 	int buildindgVictoryPoints = 0;
 	int wonderVictoryPoints = 0;
@@ -41,7 +39,6 @@ public:
 
 	void setPositionOnBoard(int position);
 
-	void addBuilding(const Building& building);
 	void addWonder(const Wonder& wonder);
 	void addCard(const Card& card);
 
@@ -59,7 +56,6 @@ public:
 	const std::string& getPassword() const;
 
 	int getPositionOnBoard() const;
-	const std::vector<Building>& getOwnedBuildings() const;
 	const std::vector<Wonder>& getOwnedWonders() const;
 	const std::vector<Card>& getOwnedCards() const;
 
