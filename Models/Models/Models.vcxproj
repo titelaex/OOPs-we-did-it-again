@@ -123,7 +123,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Building.h" />
     <ClInclude Include="Card.h" />
     <ClInclude Include="CoinWorthType.h" />
     <ClInclude Include="ColorType.h" />
@@ -138,7 +137,6 @@
     <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Card.cpp" />
-    <ClCompile Include="ICard.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceType.cpp" />
     <ClCompile Include="Token.ixx" />
