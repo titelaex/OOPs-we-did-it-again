@@ -102,6 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,10 +129,10 @@
     <ClInclude Include="ColorType.h" />
     <ClInclude Include="ICard.h" />
     <ClInclude Include="LinkingSymbolType.h" />
-    <ClInclude Include="Player.h" />
+    <ClInclude Include="Player.cppm" />
     <ClInclude Include="ResourceType.h" />
     <ClInclude Include="TradeRuleType.h" />
-    <ClInclude Include="Wonder.h" />
+    <ClInclude Include="Wonder.cppm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bank.ixx" />
