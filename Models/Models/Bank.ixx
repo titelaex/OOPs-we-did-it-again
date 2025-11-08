@@ -1,7 +1,7 @@
-export module Models.Bank;
+export module Bank;
 
 // Import the token module (you already created Models.Tokens)
-import Models.Tokens;
+import Tokens;
 
 import <vector>;
 import <random>;
