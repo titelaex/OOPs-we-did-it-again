@@ -1,12 +1,16 @@
 export module Player;
 
-import Card;
 import Wonder;
 import Token;
+import ResourceType;
+
+import Card; // de transformat in modul
+
 import <string>;
 import <vector>;
 import <tuple>;
 import <cstdint>;
+import <unordered_map>;
 
 namespace Models
 {
@@ -22,6 +26,11 @@ namespace Models
 		std::vector<Card> m_ownedCards; ///age cards + guilds
 		std::vector<Token> m_ownedTokens; //military tokens + progress tokens
 		bool m_hasConflictPawn = false;
+
+
+		std::unordered_map<ResourceType, uint8_t> m_ownedPermanentResources; //key: resource type, value: quantity
+		//toate resursele temporare, adica cele care provin din alegeri (spre ex. din cartile galbene) in fiecare runda
+		std::unordered_map<ResourceType, uint8_t> m_ownedTradingResources; //key: resource type, value: quantity produced per turn
 
 		std::tuple<uint8_t, uint8_t, uint8_t> m_remainingCoins; // 1 x coins of 1, 2 x coins of 3, 0 x coins of 6
 
@@ -71,6 +80,19 @@ namespace Models
 		{
 			m_ownedWonders.push_back(wonder);
 		}
+		void addToken(const Token& token)
+		{
+			m_ownedTokens.push_back(token);
+		}
+
+		void addPermanentResource(ResourceType resourceType, uint8_t quantity)
+		{
+			m_ownedPermanentResources[resourceType] += quantity;
+		}
+		void addTradingResource(ResourceType resourceType, uint8_t quantity)
+		{
+			m_ownedTradingResources[resourceType] += quantity;
+		}
 
 		void setHasConflictPawn(bool hasPawn)
 		{
@@ -111,6 +133,21 @@ namespace Models
 		const std::vector<Card>& getOwnedCards() const
 		{
 			return m_ownedCards;
+		}
+
+		const std::vector<Token>& getOwnedTokens() const
+		{
+			return m_ownedTokens;
+		}
+
+		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const
+		{
+			return m_ownedPermanentResources;
+		}
+
+		const std::unordered_map<ResourceType, uint8_t>& getOwnedTradingResources() const
+		{
+			return m_ownedTradingResources;
 		}
 
 		bool getHasConflictPawn() const

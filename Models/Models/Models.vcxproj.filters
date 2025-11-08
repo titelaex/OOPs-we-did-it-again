@@ -14,4 +14,7 @@
     <ClCompile Include="Wonder.ixx" />
     <ClCompile Include="Player.ixx" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Wonders.csv" />
+  </ItemGroup>
 </Project>
