@@ -125,9 +125,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Player.cppm" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Card.ixx" />
     <ClCompile Include="Building.ixx" />
@@ -135,12 +132,11 @@
     <ClCompile Include="ColorType.ixx" />
     <ClCompile Include="ICard.ixx" />
     <ClCompile Include="LinkingSymbolType.ixx" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Player.ixx" />
     <ClCompile Include="ResourceType.ixx" />
     <ClCompile Include="Token.ixx" />
     <ClCompile Include="TradeRuleType.ixx" />
-    <ClCompile Include="Wonder.cpp" />
-    <ClCompile Include="Wonder.cppm" />
+    <ClCompile Include="Wonder.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

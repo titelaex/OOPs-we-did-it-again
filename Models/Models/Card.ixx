@@ -1,4 +1,4 @@
-export module Models.Card; 
+export module Card; 
 import <array>; 
 import <cstdint>;
 import <unordered_map>;
@@ -10,6 +10,7 @@ import CoinWorthType;
 import ColorType;
 import ICard;
 import <iostream>;
+import Player;
 
 export namespace Models
 {
@@ -135,6 +136,16 @@ export namespace Models
 			{
 				std::cout << "  - " << static_cast<int>(rule) << ": " << (enabled ? "Enabled" : "Disabled") << "\n";
 			}
+		}
+		virtual void burnCard(Player&player) override
+		{
+			uint8_t yellowCards = player.countYellowCards();
+			uint8_t coinsEarned = 2 + yellowCards;
+
+			player.addCoins(coinsEarned);
+			m_isVisibile = false; // mark card as discarded
+			std::cout << "Card \"" << m_name << "\" discarded. Player \"" << player.getPlayerUsername()
+				<< "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
 		}
 	};
 }

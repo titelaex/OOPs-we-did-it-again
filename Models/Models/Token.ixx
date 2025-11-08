@@ -1,4 +1,4 @@
-export module Models.Tokens;
+export module Token;
 import <string>;
 import <vector>;
 import <cstdint>;
