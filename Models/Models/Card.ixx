@@ -1,18 +1,19 @@
 export module Models.Card; 
-
 import <array>; 
 import <cstdint>;
 import <unordered_map>;
 import <string>;
-import "ResourceType.h";
-import "LinkingSymbolType.h";
-import "TradeRuleType.h";
-import "CoinWorthType.h";
-import "ColorType.h";
+import ResourceType;
+import LinkingSymbolType;
+import TradeRuleType;
+import CoinWorthType;
+import ColorType;
+import ICard;
+import <iostream>;
 
 export namespace Models
 {
-	export class Card
+	export class Card : ICard
 	{
 	private:
 		std::string m_name;
@@ -88,5 +89,52 @@ export namespace Models
 		void SetColor(ColorType color) { m_color = color; }
 		void SetIsVisible(bool isVisible) { m_isVisibile = isVisible; }
 		void SetModelPath(const std::string& modelPath) { m_modelPath = modelPath; }
+
+		virtual void toggleVisibility() override
+		{
+			m_isVisibile = !m_isVisibile;
+		}
+		virtual void displayCardInfo() override
+		{
+			std::cout << "Card Name: " << m_name << "\n";
+			std::cout << "Color: " << static_cast<int>(m_color) << "\n";
+			std::cout << "Caption: " << m_caption << "\n";
+			std::cout << "Model Path: " << m_modelPath << "\n";
+			std::cout << "Visible: " << (m_isVisibile ? "Yes" : "No") << "\n";
+
+			std::cout << "Resource Cost:\n";
+			for (const auto& [resource, amount] : m_resourceCost)
+			{
+				std::cout << "  - " << static_cast<int>(resource) << ": " << static_cast<int>(amount) << "\n";
+			}
+
+			std::cout << "Resource Production:\n";
+			for (const auto& [resource, amount] : m_resourceProduction)
+			{
+				std::cout << "  - " << static_cast<int>(resource) << ": " << static_cast<int>(amount) << "\n";
+			}
+
+			std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << "\n";
+			std::cout << "Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
+
+			std::cout << "Scientific Symbols:\n";
+			for (size_t i = 0; i < m_scientificSymbols.size(); ++i)
+			{
+				if (m_scientificSymbols[i] > 0)
+					std::cout << "  - Symbol " << i << ": " << static_cast<int>(m_scientificSymbols[i]) << "\n";
+			}
+
+			std::cout << "Linking Symbol Provided: " << static_cast<int>(m_hasLinkingSymbol) << "\n";
+			std::cout << "Linking Symbol Required: " << static_cast<int>(m_requiresLinkingSymbol) << "\n";
+
+			std::cout << "Coin Worth Type: " << static_cast<int>(m_coinWorth) << "\n";
+			std::cout << "Coin Value: " << static_cast<int>(m_coinValue) << "\n";
+
+			std::cout << "Trade Rules:\n";
+			for (const auto& [rule, enabled] : m_tradeRules)
+			{
+				std::cout << "  - " << static_cast<int>(rule) << ": " << (enabled ? "Enabled" : "Disabled") << "\n";
+			}
+		}
 	};
 }
