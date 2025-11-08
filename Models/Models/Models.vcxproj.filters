@@ -18,7 +18,7 @@
     <ClInclude Include="Wonder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
+    <ClInclude Include="Player.cppm">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,11 +26,11 @@
     <ClCompile Include="Wonder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Token.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Bank.ixx">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Token.ixx">
+      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Card.ixx">
     <ClCompile Include="Player.cpp">

@@ -1,1 +1,1 @@
-#include "Wonder.h"
+module Models.Wonder;
