@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
     </ClCompile>
     <Link>
@@ -125,9 +125,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Player.cppm" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Card.ixx" />
     <ClCompile Include="Building.ixx" />
@@ -135,12 +132,14 @@
     <ClCompile Include="ColorType.ixx" />
     <ClCompile Include="ICard.ixx" />
     <ClCompile Include="LinkingSymbolType.ixx" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Player.ixx" />
     <ClCompile Include="ResourceType.ixx" />
     <ClCompile Include="Token.ixx" />
     <ClCompile Include="TradeRuleType.ixx" />
-    <ClCompile Include="Wonder.cpp" />
-    <ClCompile Include="Wonder.cppm" />
+    <ClCompile Include="Wonder.ixx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Wonders.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
