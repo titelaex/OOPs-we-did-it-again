@@ -2,7 +2,7 @@
 
 #include "Building.h";
 #include "Wonder.h";
-#include "Card.h";
+#include "Card.ixx";
 
 #include <string>
 #include <vector>
