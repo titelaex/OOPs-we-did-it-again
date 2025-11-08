@@ -1,10 +1,16 @@
 export module Player;
 
+#ifdef BUILDING_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
 import Wonder;
 import Token;
 import ResourceType;
 
-import Card; // de transformat in modul
+import Card; 
 
 import <string>;
 import <vector>;
@@ -14,7 +20,7 @@ import <unordered_map>;
 
 namespace Models
 {
-	export class Player
+	export class DLL_API Player
 	{
 	private:
 		const uint8_t kplayerId; //login info / to track turns
@@ -194,6 +200,17 @@ namespace Models
 					++count;
 			}
 			return count;
+		}
+
+		void burnCard(Card & card) 
+		{
+			uint8_t yellowCards = this->countYellowCards();
+			uint8_t coinsEarned = 2 + yellowCards;
+
+			this->addCoins(coinsEarned);
+			card.SetIsVisible(false); // mark card as discarded;
+			std::cout << "Card \"" << card.GetName() << "\" discarded. Player \"" << this->getPlayerUsername()
+				<< "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
 		}
 
 

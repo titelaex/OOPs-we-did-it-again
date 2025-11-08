@@ -1,12 +1,19 @@
+
 export module Wonder;
 
+#ifdef BUILDING_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
+import ResourceType;
 import <string>;
 import <vector>;
-import ResourceType;
 
 export namespace Models
 {
-	export class Wonder
+	export class DLL_API Wonder
 	{
 	private:
 		const std::string m_name;

@@ -11,8 +11,8 @@
     <ClCompile Include="ResourceType.ixx" />
     <ClCompile Include="Token.ixx" />
     <ClCompile Include="TradeRuleType.ixx" />
-    <ClCompile Include="Wonder.ixx" />
     <ClCompile Include="Player.ixx" />
+    <ClCompile Include="Wonder.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Wonders.csv" />

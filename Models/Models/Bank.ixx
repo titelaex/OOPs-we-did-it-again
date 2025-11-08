@@ -1,7 +1,13 @@
 export module Bank;
 
+#ifdef BUILDING_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
+import Token;
 // Import the token module (you already created Models.Tokens)
-import Tokens;
 
 import <vector>;
 import <random>;
@@ -16,7 +22,7 @@ export namespace Models
     // - Keeps a coin counter and a vector of Tokens acting as the token pool.
     // - DrawToken removes from the back (top of the deck). ReturnToken inserts at the front (bottom of the deck).
     // - ShuffleTokens uses an internal mt19937 RNG seeded in the ctor (deterministic if seed provided).
-    export class Bank
+    export class DLL_API Bank
     {
     public:
         // startingCoins: initial coin supply in the bank.

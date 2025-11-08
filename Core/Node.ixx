@@ -11,4 +11,4 @@ export namespace Core {
 		virtual ~Node() = default;
 		virtual void display() const = 0;
 	};
-}
+} 

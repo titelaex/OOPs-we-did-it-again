@@ -1,11 +1,18 @@
 export module Token;
+
+#ifdef BUILDING_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
 import <string>;
 import <vector>;
 import <cstdint>;
 
 export namespace Models
 {
-    export enum class TokenType : uint8_t
+    export enum class DLL_API TokenType : uint8_t
     {
         PROGRESS,
         VICTORY,
@@ -14,7 +21,7 @@ export namespace Models
         SCIENCE
     };
 
-    export class Token
+    export class DLL_API Token
     {
     public:
         Token() = delete;
@@ -36,7 +43,7 @@ export namespace Models
         uint8_t m_value = 0;
     };
 
-    export inline std::vector<Token> CreateDefaultTokenSet()
+    export inline DLL_API std::vector<Token> CreateDefaultTokenSet()
     {
         std::vector<Token> set;
         set.emplace_back(TokenType::PROGRESS, "progress_architecture", "Architecture", "Reduce structure cost", 0);
