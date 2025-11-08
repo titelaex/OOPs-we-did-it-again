@@ -10,6 +10,7 @@ import Token;
 // Import the token module (you already created Models.Tokens)
 
 import <vector>;
+import <tuple>;
 import <random>;
 import <algorithm>;
 import <chrono>;
@@ -19,18 +20,18 @@ import <utility>;
 export namespace Models
 {
     // Bank: responsible for coin supply and token pool management.
-    // - Keeps a coin counter and a vector of Tokens acting as the token pool.
+    // - Keeps a coin counter as tuple(ones, threes, sixes) and a vector of Tokens acting as the token pool.
     // - DrawToken removes from the back (top of the deck). ReturnToken inserts at the front (bottom of the deck).
     // - ShuffleTokens uses an internal mt19937 RNG seeded in the ctor (deterministic if seed provided).
     export class DLL_API Bank
     {
     public:
-        // startingCoins: initial coin supply in the bank.
+        // startingCoins: initial coin supply in the bank as tuple(ones, threes, sixes).
         // rngSeed: pass non-zero for deterministic shuffles (useful for tests).
-        explicit Bank(uint32_t startingCoins = 0, unsigned int rngSeed = 0)
+        explicit Bank(std::tuple<uint8_t,uint8_t,uint8_t> startingCoins = {0,0,0}, unsigned int rngSeed =0)
             : m_coins(startingCoins)
-        {
-            if (rngSeed == 0)
+        {       
+            if (rngSeed ==0)
             {
                 // Default: seed from high-resolution clock for non-deterministic behavior.
                 rngSeed = static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -40,22 +41,87 @@ export namespace Models
 
         // Coin operations --------------------------------------------------
 
-        // Returns current number of coins in the bank.
-        uint32_t GetCoins() const noexcept { return m_coins; }
+        // Returns current number of coins in the bank (weighted sum:1*ones +3*threes +6*sixes).
+        uint32_t GetCoins() const noexcept {
+            return static_cast<uint32_t>(std::get<0>(m_coins)) +
+                   static_cast<uint32_t>(std::get<1>(m_coins)) *3u +
+                   static_cast<uint32_t>(std::get<2>(m_coins)) *6u;
+        }
+
+        // Returns the breakdown of remaining coins as a tuple {ones, threes, sixes}.
+        // Order: {1,3,6} meaning the tuple elements are counts for1-coin,3-coin and6-coin respectively.
+       uint32_t GetRemainingCoins() const noexcept
+       {
+		   return std::get<0>(m_coins) * 1 + std::get<1>(m_coins) * 3 + std::get<2>(m_coins) * 6;
+       }
 
         // Try to withdraw `amount` coins. Returns true if the bank had enough coins
         // and the withdrawal succeeded; no partial withdrawals.
         // Note: not thread-safe; synchronize externally if used concurrently.
         bool TryWithdraw(uint32_t amount) noexcept
         {
-            if (amount == 0) return true;
-            if (m_coins < amount) return false;
-            m_coins -= amount;
-            return true;
+            if (amount ==0) return true;
+
+            const uint32_t total = GetCoins();
+            if (amount > total) return false;
+
+            // Available counts
+            uint8_t availableOnes = std::get<0>(m_coins);
+            uint8_t availableThrees = std::get<1>(m_coins);
+            uint8_t availableSixes = std::get<2>(m_coins);
+
+            // Try combinations of sixes and threes (small search space)
+            uint8_t maxSixes = static_cast<uint8_t>(std::min<uint32_t>(availableSixes, amount /6u));
+            for (int s = static_cast<int>(maxSixes); s >=0; --s)
+            {
+                uint32_t remAfterSix = amount - static_cast<uint32_t>(s) *6u;
+                uint8_t maxThrees = static_cast<uint8_t>(std::min<uint32_t>(availableThrees, remAfterSix /3u));
+                for (int t = static_cast<int>(maxThrees); t >=0; --t)
+                {
+                    uint32_t rem = remAfterSix - static_cast<uint32_t>(t) *3u;
+                    if (rem <= availableOnes)
+                    {
+                        // Found a valid combination: use s sixes, t threes and rem ones
+                        std::get<2>(m_coins) = static_cast<uint8_t>(availableSixes - s);
+                        std::get<1>(m_coins) = static_cast<uint8_t>(availableThrees - t);
+                        std::get<0>(m_coins) = static_cast<uint8_t>(availableOnes - rem);
+                        return true;
+                    }
+                }
+            }
+
+            // Shouldn't reach here because amount <= total, but in case exact change can't be made,
+            // return false (no partial withdrawals allowed).
+            return false;
         }
 
-        // Deposit `amount` coins into the bank.
-        void Deposit(uint32_t amount) noexcept { m_coins += amount; }
+        // Deposit `amount` coins into the bank. Splits amount into6/3/1 coins (greedy by largest denom).
+        void Deposit(uint32_t amount) noexcept {
+            if (amount ==0) return;
+            uint8_t& ones = std::get<0>(m_coins);
+            uint8_t& threes = std::get<1>(m_coins);
+            uint8_t& sixes = std::get<2>(m_coins);
+
+            uint32_t addSixes = amount /6u;
+            if (addSixes >0)
+            {
+                // clamp to uint8_t to avoid overflow; domain assumed small for game coins
+                sixes = static_cast<uint8_t>(sixes + static_cast<uint8_t>(addSixes));
+                amount -= addSixes *6u;
+            }
+
+            uint32_t addThrees = amount /3u;
+            if (addThrees >0)
+            {
+                threes = static_cast<uint8_t>(threes + static_cast<uint8_t>(addThrees));
+                amount -= addThrees *3u;
+            }
+
+            if (amount >0)
+            {
+                ones = static_cast<uint8_t>(ones + static_cast<uint8_t>(amount));
+            }
+        }
 
         // Token pool operations --------------------------------------------
 
@@ -89,7 +155,7 @@ export namespace Models
         {
             std::vector<Token> result;
             result.reserve(count);
-            while (count-- > 0 && !m_tokens.empty())
+            while (count-- >0 && !m_tokens.empty())
             {
                 result.push_back(std::move(m_tokens.back()));
                 m_tokens.pop_back();
@@ -108,8 +174,8 @@ export namespace Models
         void ClearTokens() noexcept { m_tokens.clear(); }
 
     private:
-        uint32_t m_coins = 0;
+        std::tuple<uint8_t,uint8_t,uint8_t> m_coins = {0,0,0}; // (ones, threes, sixes)
         std::vector<Token> m_tokens; // token pool; back() == top-of-deck
-        std::mt19937 m_rng;          // RNG used for shuffling; seeded in ctor
+        std::mt19937 m_rng; // RNG used for shuffling; seeded in ctor
     };
 }
