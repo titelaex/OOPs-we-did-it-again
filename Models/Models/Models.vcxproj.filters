@@ -39,9 +39,6 @@
     <ClInclude Include="Player.cppm">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Wonder.cppm">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Card.cpp">
@@ -56,17 +53,20 @@
     <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Building.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Wonder.cppm">
+      <Filter>Header Files</Filter>
+    </ClCompile>
     <ClCompile Include="Wonder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Token.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Bank.ixx">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Building.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Token.ixx">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Player.h"
+module Models.Player;
 
 namespace Models
 {

@@ -132,7 +132,6 @@
     <ClInclude Include="Player.cppm" />
     <ClInclude Include="ResourceType.h" />
     <ClInclude Include="TradeRuleType.h" />
-    <ClInclude Include="Wonder.cppm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bank.ixx" />
@@ -143,6 +142,7 @@
     <ClCompile Include="Token.ixx" />
     <ClCompile Include="TradeRuleType.cpp" />
     <ClCompile Include="Wonder.cpp" />
+    <ClCompile Include="Wonder.cppm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
