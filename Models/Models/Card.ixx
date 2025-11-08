@@ -1,14 +1,14 @@
-export module Models.Card; 
+export module Card; 
 
 import <array>; 
 import <cstdint>;
 import <unordered_map>;
 import <string>;
-import "ResourceType.h";
-import "LinkingSymbolType.h";
-import "TradeRuleType.h";
-import "CoinWorthType.h";
-import "ColorType.h";
+import ResourceType;
+import LinkingSymbolType;
+import TradeRuleType;
+import CoinWorthType;
+import ColorType;
 
 export namespace Models
 {

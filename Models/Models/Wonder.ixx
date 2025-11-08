@@ -1,4 +1,4 @@
-export module Models.Wonder;
+export module Wonder;
 
 //import Models.Card;
 

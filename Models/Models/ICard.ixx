@@ -1,7 +1,7 @@
 export module ICard;
 
 import <utility>;
-import Player; // requires Player module
+import Player;
 
 export namespace Models
 {
