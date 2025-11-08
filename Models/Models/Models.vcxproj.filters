@@ -15,41 +15,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ResourceType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LinkingSymbolType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoinWorthType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TradeRuleType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ColorType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ICard.h">
+    <ClInclude Include="Wonder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Wonder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ResourceType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TradeRuleType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Wonder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,10 +32,29 @@
     <ClCompile Include="Bank.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Building.cpp">
+    <ClCompile Include="Card.ixx">
+    <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Card.ixx">
+    <ClCompile Include="ResourceType.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TradeRuleType.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Building.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoinWorthType.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorType.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkingSymbolType.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ICard.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
