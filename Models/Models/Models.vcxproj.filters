@@ -13,6 +13,7 @@
     <ClCompile Include="TradeRuleType.ixx" />
     <ClCompile Include="Player.ixx" />
     <ClCompile Include="Wonder.ixx" />
+    <ClCompile Include="Age.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Wonders.csv" />

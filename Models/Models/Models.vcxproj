@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Age.ixx" />
     <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Card.ixx" />
     <ClCompile Include="Building.ixx" />
