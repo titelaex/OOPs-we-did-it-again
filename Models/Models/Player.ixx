@@ -185,6 +185,8 @@ namespace Models
 				--coinsToAdd;
 			}
 		}
+
+		
 		uint8_t countYellowCards() const
 		{
 			uint8_t count = 0;
