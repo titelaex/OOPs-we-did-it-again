@@ -1,6 +1,12 @@
 
 export module Wonder;
 
+#ifdef BUILDING_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
 import ResourceType;
 import Token;
 import Card;
@@ -14,19 +20,19 @@ import <iterator>;
 
 namespace Models
 {
-	export class Wonder : Card
+	export class DLL_API Wonder : Card
 	{
 	private:
 		//const std::string m_wonderName; already in Card base class as m_name
 		// const uint8_t m_VictoryPointsWorth;
-		const uint8_t m_playerReceivesMoney;
-		const uint8_t m_opponentLosesMoney;
+		const uint8_t kplayerReceivesMoney;
+		const uint8_t kopponentLosesMoney;
 		// const uint8_t ShieldPoints;
 		//const std::unordered_map<ResourceType, uint8_t> m_resourceProduction; //produced each turn
-		const bool m_playSecondTurn;
-		const bool m_drawProgressTokens;
-		const bool m_chooseAndConstructBuilding;
-		const bool m_discardBrownCardFromOpponent;
+		const bool kplaySecondTurn;
+		const bool kdrawProgressTokens;
+		const bool kchooseAndConstructBuilding;
+		const bool kdiscardBrownCardFromOpponent;
 	public:
 
 		void m_receiveMoneyAction(Player& player)

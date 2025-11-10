@@ -6,17 +6,17 @@ export module Player;
 #define DLL_API __declspec(dllimport)
 #endif
 
-import Wonder;
-import Token;
-import ResourceType;
-
-import Card; 
-
 import <string>;
 import <vector>;
 import <tuple>;
 import <cstdint>;
 import <unordered_map>;
+
+import Wonder;
+import Token;
+import ResourceType;
+import Card; 
+
 
 namespace Models
 {
