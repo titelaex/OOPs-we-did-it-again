@@ -4,6 +4,8 @@ import Wonder;
 import Card;
 import Player;
 import Token;
+import <iostream>;
+import <vector>;
 
 export namespace Core
 {
@@ -65,6 +67,56 @@ export namespace Core
 			}
 
 			std::cout << "Wonder \"" << wonder.GetName() << "\" constructed successfully.\n";
+		}
+		virtual void playCardBuilding(Card& card, Player& opponent)
+		{
+			if (!card.GetIsVisible())
+			{
+				std::cout << "Card \"" << card.GetName() << "\" is not accessible.\n";
+				return;
+			}
+
+			// Check for chain construction
+			if (card.GetRequiresLinkingSymbol() != LinkingSymbolType::NO_SYMBOL)
+			{
+				for (const auto& ownedCard : getOwnedCards())
+				{
+					if (ownedCard.GetHasLinkingSymbol() == card.GetRequiresLinkingSymbol())
+					{
+						addCard(card);
+						card.SetIsVisible(false);
+						std::cout << "Card \"" << card.GetName() << "\" constructed for free via chain.\n";
+						applyCardEffects(card);
+						return;
+					}
+				}
+			}
+
+			// Check if card is free
+			if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
+			{
+				addCard(card);
+				card.SetIsVisible(false);
+				std::cout << "Card \"" << card.GetName() << "\" constructed for free.\n";
+				applyCardEffects(card);
+				return;
+			}
+
+			// Check affordability
+			if (!canAffordCard(card, opponent))
+			{
+				std::cout << "Cannot afford to construct \"" << card.GetName() << "\".\n";
+				return;
+			}
+
+			// Pay cost
+			payForCard(card, opponent);
+
+			// Construct card
+			addCard(card);
+			card.SetIsVisible(false);
+			std::cout << "Card \"" << card.GetName() << "\" constructed.\n";
+			applyCardEffects(card);
 		}
 
 	private:
@@ -149,6 +201,94 @@ export namespace Core
 					}
 				}
 			}
+		}
+		bool canAffordCard(const Card& card, const Player& opponent)
+		{
+			// 1. Free card
+			if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
+				return true;
+
+			// 2. Chain construction
+			if (card.GetRequiresLinkingSymbol() != LinkingSymbolType::NO_SYMBOL)
+			{
+				for (const auto& ownedCard : getOwnedCards())
+				{
+					if (ownedCard.GetHasLinkingSymbol() == card.GetRequiresLinkingSymbol())
+						return true;
+				}
+			}
+
+			// 3. Resource cost
+			const auto& cost = card.GetResourceCost();
+			const auto& ownPermanent = getOwnedPermanentResources();
+			const auto& ownTrading = getOwnedTradingResources();
+			const auto& opponentProduction = opponent.getOwnedPermanentResources();
+
+			uint8_t availableCoins = totalCoins(getRemainingCoins());
+
+			for (const auto& [resource, requiredAmount] : cost)
+			{
+				uint8_t produced = 0;
+				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
+				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+
+				if (produced >= requiredAmount)
+					continue;
+
+				uint8_t missing = requiredAmount - produced;
+				uint8_t opponentAmount = opponentProduction.contains(resource) ? opponentProduction.at(resource) : 0;
+				uint8_t costPerUnit = 2 + opponentAmount;
+
+				uint8_t totalCost = costPerUnit * missing;
+				if (availableCoins < totalCost)
+					return false;
+
+				availableCoins -= totalCost;
+			}
+
+			// 4. Coin cost (if any)
+			if (card.GetCoinValue() > availableCoins)
+				return false;
+
+			return true;
+		}
+		void payForCard(const Card& card, const Player& opponent)
+		{
+			const auto& cost = card.GetResourceCost();
+			const auto& ownPermanent = getOwnedPermanentResources();
+			const auto& ownTrading = getOwnedTradingResources();
+			const auto& opponentProduction = opponent.getOwnedPermanentResources();
+
+			uint8_t totalCoinsToPay = 0;
+
+			// 1. Pay for missing resources via trading
+			for (const auto& [resource, requiredAmount] : cost)
+			{
+				uint8_t produced = 0;
+				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
+				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+
+				if (produced >= requiredAmount)
+					continue;
+
+				uint8_t missing = requiredAmount - produced;
+				uint8_t opponentAmount = opponentProduction.contains(resource) ? opponentProduction.at(resource) : 0;
+				uint8_t costPerUnit = 2 + opponentAmount;
+
+				totalCoinsToPay += costPerUnit * missing;
+			}
+
+			// 2. Add coin cost from the card itself
+			totalCoinsToPay += card.GetCoinValue();
+
+			// 3. Deduct coins from player
+			subtractCoins(totalCoinsToPay);
+
+			std::cout << "Paid " << static_cast<int>(totalCoinsToPay) << " coins to construct \"" << card.GetName() << "\".\n";
+		}
+		void applyCardEffects(Card&card)
+		{ 
+			//de implementat
 		}
 	};
 }

@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="Bank.ixx" />
     <ClCompile Include="Card.ixx" />
-    <ClCompile Include="Building.ixx" />
     <ClCompile Include="CoinWorthType.ixx" />
     <ClCompile Include="ColorType.ixx" />
     <ClCompile Include="ICard.ixx" />
