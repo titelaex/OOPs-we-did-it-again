@@ -1,11 +1,5 @@
 export module Card; 
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <array>; 
 import <cstdint>;
 import <unordered_map>;
@@ -21,7 +15,7 @@ import <iostream>;
 
 export namespace Models
 {
-	export class DLL_API Card : ICard
+	export class __declspec(dllexport) Card : ICard
 	{
 	private:
 		std::string m_name;

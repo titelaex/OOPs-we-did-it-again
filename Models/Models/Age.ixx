@@ -2,16 +2,10 @@ export module Age;
 import <string>;
 import <cstdint>;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
 
-
-export namespace Models
+export namespace  Models
 {
-	export enum class Age : uint8_t
+	export enum class __declspec(dllexport) Age : uint8_t
 	{
 		AGE_I = 1,
 		AGE_II = 2,

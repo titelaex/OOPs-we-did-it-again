@@ -1,15 +1,9 @@
 export module LinkingSymbolType;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <cstdint>;
 
 export namespace Models {
-	export enum class DLL_API LinkingSymbolType :uint8_t
+	export enum class __declspec(dllexport) LinkingSymbolType :uint8_t
 	{
 		NO_SYMBOL,
 		VESSEL,
