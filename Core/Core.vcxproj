@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Node.ixx" />
+    <ClCompile Include="Player.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\Models\Models.vcxproj">

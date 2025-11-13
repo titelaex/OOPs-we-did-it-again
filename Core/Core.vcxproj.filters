@@ -18,5 +18,8 @@
     <ClCompile Include="Node.ixx">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="Player.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
