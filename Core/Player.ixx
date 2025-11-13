@@ -21,7 +21,7 @@ export namespace Core
 				return;
 			}
 
-			// 2. Check affordability (you'll need to implement this logic)
+			// 2. Check affordability 
 			if (!canAffordWonder(wonder, opponent))
 			{
 				std::cout << "Cannot afford Wonder \"" << wonder.GetName() << "\".\n";
@@ -61,30 +61,94 @@ export namespace Core
 			++totalWondersBuilt;
 			if (totalWondersBuilt == 7)
 			{
-				discardRemainingWonder(); // implement this in your game engine
+				discardRemainingWonder();
 			}
 
 			std::cout << "Wonder \"" << wonder.GetName() << "\" constructed successfully.\n";
 		}
 
 	private:
-		// Placeholder for affordability check
-		bool canAffordWonder(const Models::Wonder& wonder, const Player& opponent)
+
+		bool canAffordWonder(const Wonder& wonder, const Player& opponent)
 		{
-			// Implement resource + coin check logic here
+			const auto& cost = wonder.GetResourceCost();
+			const auto& ownPermanent = getOwnedPermanentResources();
+			const auto& ownTrading = getOwnedTradingResources();
+			const auto& opponentPermanent = opponent.getOwnedPermanentResources();
+
+			uint8_t totalAvailableCoins = totalCoins(getRemainingCoins());
+
+			for (const auto& [resource, requiredAmount] : cost)
+			{
+				uint8_t produced = 0;
+				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
+				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+
+				if (produced >= requiredAmount)
+					continue;
+
+				uint8_t missing = requiredAmount - produced;
+				uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
+				uint8_t costPerUnit = 2 + opponentProduction;
+				uint8_t totalCost = costPerUnit * missing;
+
+				if (totalAvailableCoins < totalCost)
+					return false;
+
+				totalAvailableCoins -= totalCost;
+			}
 			return true;
 		}
-
-		// Placeholder for payment logic
-		void payForWonder(const Models::Wonder& wonder, const Player& opponent)
+		
+		void payForWonder(const Wonder& wonder, const Player& opponent)
 		{
-			// Implement resource deduction or coin trading logic here
+			const auto& cost = wonder.GetResourceCost();
+			const auto& ownPermanent = getOwnedPermanentResources();
+			const auto& ownTrading = getOwnedTradingResources();
+			const auto& opponentPermanent = opponent.getOwnedPermanentResources();
+
+			uint8_t totalCoinsToPay = 0;
+
+			for (const auto& [resource, requiredAmount] : cost)
+			{
+				uint8_t produced = 0;
+				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
+				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+
+				if (produced >= requiredAmount)
+					continue;
+
+				uint8_t missing = requiredAmount - produced;
+				uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
+				uint8_t costPerUnit = 2 + opponentProduction;
+
+				totalCoinsToPay += costPerUnit * missing;
+			}
+
+			subtractCoins(totalCoinsToPay);
 		}
 
-		// Placeholder for discarding the 8th Wonder
-		void discardRemainingWonder()
+		void discardRemainingWonder(std::vector<Wonder>& allWonders)
 		{
-			// Implement logic to remove the last unbuilt Wonder from the game
+			uint8_t builtCount = 0;
+			for (const auto& wonder : allWonders)
+			{
+				if (wonder.GetIsVisible())
+					++builtCount;
+			}
+
+			if (builtCount >= 7)
+			{
+				for (auto& wonder : allWonders)
+				{
+					if (!wonder.GetIsVisible())
+					{
+						wonder.SetIsVisible(false); // Mark as discarded
+						std::cout << "Wonder \"" << wonder.GetName() << "\" discarded as the 8th unbuilt Wonder.\n";
+						break;
+					}
+				}
+			}
 		}
 	};
 }
