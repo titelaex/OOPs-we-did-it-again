@@ -16,6 +16,7 @@ import TradeRuleType;
 import CoinWorthType;
 import ColorType;
 import ICard;
+import Age;
 import <iostream>;
 
 export namespace Models
@@ -38,6 +39,7 @@ export namespace Models
 		ColorType m_color{};
 		bool m_isVisibile = false;
 		std::string m_modelPath = "UI path placeholder";
+		Age m_age;
 
 	public:
 		const std::string& GetName() const { return m_name; }
@@ -96,6 +98,8 @@ export namespace Models
 		void SetColor(ColorType color) { m_color = color; }
 		void SetIsVisible(bool isVisible) { m_isVisibile = isVisible; }
 		void SetModelPath(const std::string& modelPath) { m_modelPath = modelPath; }
+		void SetAge(const Age& age) { m_age = age; }
+		
 
 		virtual void toggleVisibility() override
 		{

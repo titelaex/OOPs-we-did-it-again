@@ -1,4 +1,4 @@
-export module Models.Age;
+export module Age;
 import <string>;
 import <cstdint>;
 

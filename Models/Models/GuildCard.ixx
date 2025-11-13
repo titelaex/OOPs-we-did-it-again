@@ -14,12 +14,13 @@ export module GuildCard;
 // force GuildCard to reimplement a lot of Card behaviour or to duplicate data.
 
 import Card; // imports the Card module (provides Models::Card)
-import Models.Age; // used to set card age to AGE_III
+import Age; // used to set card age to AGE_III
 
 import <string>;
 import <vector>;
 import <utility>;
 import <iostream>; // only for displayCardInfo override
+
 
 export namespace Models
 {
@@ -29,7 +30,7 @@ export namespace Models
 	 // Default ctor: ensure the card age is Age III (guilds belong to Age III)
 	 GuildCard()
 	 {
-		 SetAge(Age::AGE_III);
+		 m_age = Age::AGE_III;
 	 }
 
 	 // Construct from guild metadata
@@ -37,7 +38,7 @@ export namespace Models
 		 : m_guildName(guildName), m_scoringRules(scoringRules)
 	 {
 		 // Ensure Age is set to Age III for guild cards
-		 SetAge(Age::AGE_III);
+		 m_age = Age::AGE_III;
 	 }
 
 	 // Rule of Five: explicitly define special members so ownership and polymorphic
@@ -112,6 +113,7 @@ export namespace Models
  // You may later replace scoring rules with a structured rule object or callback
  // that applies points to a Player; strings are a simple first step.
  std::string m_guildName;
+ Age m_age;
  std::vector<std::string> m_scoringRules;
  };
 }

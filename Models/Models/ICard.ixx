@@ -1,5 +1,7 @@
 export module ICard;
 
+import Age;
+
 export namespace Models
 {
 	export class ICard
@@ -11,5 +13,6 @@ export namespace Models
 		//virtual void playCardWonder() = 0; should be moved in Player in Core?
 		//virtual void playCardBuilding() = 0; should be moved in Player in Core?
 		virtual void displayCardInfo() = 0;
+		virtual void setAge(Age age) = 0;
 	};
 }
