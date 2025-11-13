@@ -6,17 +6,17 @@ export module Player;
 #define DLL_API __declspec(dllimport)
 #endif
 
-import Wonder;
-import Token;
-import ResourceType;
-
-import Card; 
-
 import <string>;
 import <vector>;
 import <tuple>;
 import <cstdint>;
 import <unordered_map>;
+
+import Wonder;
+import Token;
+import ResourceType;
+import Card; 
+
 
 namespace Models
 {
@@ -191,6 +191,59 @@ namespace Models
 				--coinsToAdd;
 			}
 		}
+
+		void subtractCoins(uint8_t coinsToSubtract)
+		{
+			auto& [ones, threes, sixes] = m_remainingCoins;
+			uint8_t totalCoins = totalCoins(m_remainingCoins);
+			if (coinsToSubtract > totalCoins)
+
+			{
+				// Not enough coins to subtract
+				ones = threes = sixes = 0;
+				return;
+			}
+			while (coinsToSubtract >= 6 && sixes > 0)
+			{
+				--sixes;
+				coinsToSubtract -= 6;
+			}
+			while (coinsToSubtract >= 3 && threes > 0)
+			{
+				--threes;
+				coinsToSubtract -= 3;
+			}
+			while (coinsToSubtract > 0 && ones > 0)
+
+			{
+				--ones;
+				--coinsToSubtract;
+			}
+
+			// If there are still coins to subtract, break down higher denominations
+
+			while (coinsToSubtract > 0)
+			{
+				if (sixes > 0)
+				{
+					--sixes;
+					addCoins(6 - coinsToSubtract);
+					coinsToSubtract = 0;
+
+				}
+				else if (threes > 0)
+				{
+					--threes;
+					addCoins(3 - coinsToSubtract);
+					coinsToSubtract = 0;
+				}
+				else
+				{
+					break; // Should not reach here due to initial check
+				}
+			}
+		}
+
 		uint8_t countYellowCards() const
 		{
 			uint8_t count = 0;
