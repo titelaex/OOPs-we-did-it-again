@@ -37,6 +37,9 @@ export namespace Models
 		Age m_age;
 
 	public:
+		Card(Card&& other) noexcept = default;
+		Card& operator=(Card&& other) noexcept = default;
+
 		const std::string& GetName() const { return m_name; }
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceCost() const { return m_resourceCost; }
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceProduction() const { return m_resourceProduction; }
