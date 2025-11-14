@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{de5a64fb-c35e-457c-bf64-1483d65e7928}</ProjectGuid>
-    <RootNamespace>Core</RootNamespace>
+    <ProjectGuid>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</ProjectGuid>
+    <RootNamespace>ModelsDLL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -46,7 +46,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -102,7 +105,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,25 +120,29 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableModules>true</EnableModules>
-      <AdditionalModuleDependencies>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models\x64\$(IntDir);%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Models.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Node.ixx" />
-    <ClCompile Include="Player.ixx" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
-      <Project>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\Models\Age.ixx" />
+    <ClCompile Include="..\Models\Bank.ixx" />
+    <ClCompile Include="..\Models\Building.ixx" />
+    <ClCompile Include="..\Models\Card.ixx" />
+    <ClCompile Include="..\Models\CoinWorthType.ixx" />
+    <ClCompile Include="..\Models\ColorType.ixx" />
+    <ClCompile Include="..\Models\GuildCard.ixx" />
+    <ClCompile Include="..\Models\ICard.ixx" />
+    <ClCompile Include="..\Models\LinkingSymbolType.ixx" />
+    <ClCompile Include="..\Models\Player.ixx" />
+    <ClCompile Include="..\Models\ResourceType.ixx" />
+    <ClCompile Include="..\Models\Token.ixx" />
+    <ClCompile Include="..\Models\TradeRuleType.ixx" />
+    <ClCompile Include="..\Models\Wonder.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

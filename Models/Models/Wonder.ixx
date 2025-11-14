@@ -1,12 +1,6 @@
 
 export module Wonder;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import ResourceType;
 import Token;
 import Card;
@@ -20,7 +14,7 @@ import <iterator>;
 
 namespace Models
 {
-	export class DLL_API Wonder : Card
+	export class __declspec(dllexport) Wonder : Card
 	{
 	private:
 		//const std::string m_wonderName; already in Card base class as m_name

@@ -2,17 +2,11 @@
 
 export module ResourceType;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <cstdint>;
 import <string>;
 
 export namespace Models {
-    export enum class DLL_API ResourceType : uint8_t {
+    export enum class __declspec(dllexport) ResourceType : uint8_t {
         CLAY,
         WOOD,
         STONE,
@@ -22,7 +16,7 @@ export namespace Models {
         CONDITION_MANUFACTURED_GOODS
     };
 
-    export DLL_API std::string ResourceTypeToString(ResourceType resource);
+    export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource);
     
     export std::string ResourceTypeToString(ResourceType resource) {
         switch (resource) {

@@ -1,17 +1,11 @@
 export module TradeRuleType;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <cstdint>;
 import <string>;
 
 export namespace Models
 {
-	export enum class DLL_API TradeRuleType : uint8_t
+	export enum class __declspec(dllexport) TradeRuleType : uint8_t
 	{
 		CLAY, //raw good
 		WOOD, //raw good
@@ -20,7 +14,7 @@ export namespace Models
 		PAPYRUS, //manufactured good
 	};
 
-	export DLL_API std::string tradeRuleTypeToString(TradeRuleType tradeRule);
+	export __declspec(dllexport) std::string tradeRuleTypeToString(TradeRuleType tradeRule);
 
 	export std::string tradeRuleTypeToString(TradeRuleType tradeRule)
 	{

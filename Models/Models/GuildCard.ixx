@@ -1,11 +1,5 @@
 export module GuildCard;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 // GuildCard module: a concrete Card subtype representing Guild cards (Age III)
 // Design notes (why derive from Card and not ICard):
 // - Guild cards are a specialized kind of Card with additional fields (guild name, scoring rules).
@@ -24,7 +18,7 @@ import <iostream>; // only for displayCardInfo override
 
 export namespace Models
 {
- export class DLL_API GuildCard : public Card
+ export class __declspec(dllexport) GuildCard : public Card
  {
  public:
 	 // Default ctor: ensure the card age is Age III (guilds belong to Age III)

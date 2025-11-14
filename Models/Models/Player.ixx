@@ -1,11 +1,5 @@
 export module Player;
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <string>;
 import <vector>;
 import <tuple>;
@@ -20,7 +14,7 @@ import Card;
 
 namespace Models
 {
-	export class DLL_API Player
+	export class __declspec(dllexport) Player
 	{
 	private:
 		const uint8_t kplayerId; //login info / to track turns

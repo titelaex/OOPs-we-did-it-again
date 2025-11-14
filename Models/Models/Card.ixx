@@ -1,11 +1,5 @@
 export module Card; 
 
-#ifdef BUILDING_DLL
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-
 import <array>; 
 import <cstdint>;
 import <unordered_map>;
@@ -21,7 +15,7 @@ import <iostream>;
 
 export namespace Models
 {
-	export class DLL_API Card : ICard
+	export class __declspec(dllexport) Card : ICard
 	{
 	private:
 		std::string m_name;
@@ -29,6 +23,7 @@ export namespace Models
 		std::unordered_map<ResourceType, uint8_t> m_resourceProduction;
 		uint8_t m_victoryPoints{};
 		uint8_t m_shieldPoints{};
+		uint8_t coinCost{};
 		std::array<uint8_t, 7> m_scientificSymbols = { 0, 0, 0, 0, 0, 0, 0 };
 		LinkingSymbolType m_hasLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
 		LinkingSymbolType m_requiresLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
@@ -42,11 +37,15 @@ export namespace Models
 		Age m_age;
 
 	public:
+		Card(Card&& other) noexcept = default;
+		Card& operator=(Card&& other) noexcept = default;
+
 		const std::string& GetName() const { return m_name; }
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceCost() const { return m_resourceCost; }
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceProduction() const { return m_resourceProduction; }
 		uint8_t GetVictoryPoints() const { return m_victoryPoints; }
 		uint8_t GetShieldPoints() const { return m_shieldPoints; }
+		uint8_t GetCoinCost() const { return coinCost; }
 		const std::array<uint8_t, 7>& GetScientificSymbols() const { return m_scientificSymbols; }
 		LinkingSymbolType GetHasLinkingSymbol() const { return m_hasLinkingSymbol; }
 		LinkingSymbolType GetRequiresLinkingSymbol() const { return m_requiresLinkingSymbol; }
@@ -63,6 +62,7 @@ export namespace Models
 		void SetResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_resourceProduction = resourceProduction; }
 		void SetVictoryPoints(uint8_t victoryPoints) { m_victoryPoints = victoryPoints; }
 		void SetShieldPoints(uint8_t shieldPoints) { m_shieldPoints = shieldPoints; }
+		void SetCoinCost(uint8_t cost) { coinCost = cost; }
 		void SetScientificSymbols(const std::array<uint8_t, 7>& scientificSymbols) { m_scientificSymbols = scientificSymbols; }
 		void SetHasLinkingSymbol(LinkingSymbolType hasLinkingSymbol) { m_hasLinkingSymbol = hasLinkingSymbol; }
 		void SetRequiresLinkingSymbol(LinkingSymbolType requiresLinkingSymbol) { m_requiresLinkingSymbol = requiresLinkingSymbol; }
