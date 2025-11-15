@@ -1,11 +1,16 @@
+
 id,type,name,description,value
 progress_architecture,PROGRESS,Architecture,"Reduce structure cost (progress token)",0
 progress_law,PROGRESS,Law,"Reduce science cost (progress token)",0
 progress_strategy,PROGRESS,Strategy,"Military bonus (progress token)",0
 progress_construction,PROGRESS,Construction,"Lower building cost (progress token)",0
+progress_economy,PROGRESS,Economy,"Gain trade/coin benefits (progress token)",0
+science_clock,SCIENCE,Clock,"Science symbol bonus (clock)",0
+science_math,SCIENCE,Mathematics,"Science symbol bonus (mathematics)",0
+science_geometry,SCIENCE,Geometry,"Science symbol bonus (geometry)",0
+military_loss,MILITARY,Military Loss,"Immediate military effect (loss of shields)",0
+military_victory,MILITARY,Military Victory,"Immediate military benefit (gain shields)",0
+coin_6,COIN,Coin +6,"Immediate gain of6 coins",6
+coin_3,COIN,Coin +3,"Immediate gain of3 coins",3
 victory_3,VICTORY,Victory +3,"Gives3 victory points at end",3
 victory_5,VICTORY,Victory +5,"Gives5 victory points at end",5
-coin_6,COIN,Coin +6,"Immediate gain of6 coins",6
-military_loss,MILITARY,Military Loss,"Immediate military effect (loss of shields)",0
-science_clock,SCIENCE,Clock,"Science symbol bonus",0
-science_math,SCIENCE,Mathematics,"Science symbol bonus",0
