@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AgeCards.csv" />
+    <None Include="Guilds.csv" />
     <None Include="Tokens.csv" />
     <None Include="Wonders.csv" />
   </ItemGroup>
