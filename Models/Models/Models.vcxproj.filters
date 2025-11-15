@@ -18,5 +18,6 @@
   <ItemGroup>
     <None Include="Wonders.csv" />
     <None Include="AgeCards.csv" />
+    <None Include="Tokens.csv" />
   </ItemGroup>
 </Project>
