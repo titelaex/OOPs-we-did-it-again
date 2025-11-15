@@ -14,7 +14,9 @@ import <string>;
 import <vector>;
 import <utility>;
 import <iostream>; // only for displayCardInfo override
-
+import <fstream>;
+import <sstream>;
+import <stdexcept>;
 
 export namespace Models
 {
@@ -110,4 +112,69 @@ export namespace Models
  Age m_age;
  std::vector<std::string> m_scoringRules;
  };
+
+ // Load guild cards from a CSV file. Expected header: guild_name,scoring_rules,description
+ // scoring_rules are semicolon-separated; description is optional and ignored by loader currently.
+ export inline std::vector<GuildCard> LoadGuildCardsFromCSV(const std::string& path)
+ {
+ std::ifstream ifs(path);
+ if (!ifs.is_open())
+ throw std::runtime_error("Unable to open guild CSV file: " + path);
+
+ std::string header;
+ if (!std::getline(ifs, header))
+ throw std::runtime_error("Empty guild CSV file: " + path);
+
+ std::vector<GuildCard> cards;
+ std::string line;
+ while (std::getline(ifs, line))
+ {
+ if (line.empty()) continue;
+ std::istringstream ss(line);
+ std::string name, rulesField, desc;
+
+ // parse name
+ if (!std::getline(ss, name, ',')) continue;
+
+ // parse rules (may be quoted and contain commas/semicolons)
+ if (ss.peek() == '"')
+ {
+ char ch; ss.get(ch); // consume '"'
+ std::getline(ss, rulesField, '"');
+ if (ss.peek() == ',') ss.get(ch);
+ }
+ else
+ {
+ if (!std::getline(ss, rulesField, ',')) rulesField.clear();
+ }
+
+ // remaining is description (ignored)
+ if (!std::getline(ss, desc)) desc.clear();
+
+ // trim helper
+ auto trim = [](std::string& s){
+ size_t a = s.find_first_not_of(" \t\r\n");
+ size_t b = s.find_last_not_of(" \t\r\n");
+ if (a == std::string::npos) { s.clear(); return; }
+ s = s.substr(a, b - a +1);
+ };
+ trim(name);
+ trim(rulesField);
+
+ // split rulesField by ';' into vector<string>
+ std::vector<std::string> rules;
+ std::istringstream rs(rulesField);
+ std::string token;
+ while (std::getline(rs, token, ';'))
+ {
+ trim(token);
+ if (!token.empty()) rules.push_back(token);
+ }
+
+ if (name.empty()) continue;
+ cards.emplace_back(name, rules);
+ }
+
+ return cards;
+ }
 }
