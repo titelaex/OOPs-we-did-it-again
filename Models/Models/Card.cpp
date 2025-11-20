@@ -42,10 +42,9 @@ void Card::SetColor(ColorType color) { m_color = color; }
 void Card::SetIsVisible(bool isVisible) { m_isVisibile = isVisible; }
 void Card::SetModelPath(const std::string& modelPath) { m_modelPath = modelPath; }
 void Card::SetAge(const Age& age) { m_age = age; }
-void Card::setAge(Age age) { m_age = age; }
 
 void Card::toggleVisibility() { m_isVisibile = !m_isVisibile; }
-
+void Card::toggleAccessibility() { m_isAccessible = !m_isAccessible; }
 void Card::displayCardInfo()
 {
 	std::cout << "Card: " << m_name << " (Age " << static_cast<int>(m_age) << ")\n";

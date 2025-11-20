@@ -13,27 +13,27 @@ namespace Models
 {
 	export class __declspec(dllexport) Wonder : public Card
 	{
-	protected:
-		uint8_t kplayerReceivesMoney = 0;
-		uint8_t kopponentLosesMoney = 0;
-		bool kplaySecondTurn = false;
-		bool kdrawProgressTokens = false;
-		bool kchooseAndConstructBuilding = false;
-		bool kdiscardBrownCardFromOpponent = false;
+	private:
+		uint8_t m_playerReceivesMoney;
+		uint8_t m_opponentLosesMoney;
+		bool m_playSecondTurn = false;
+		bool m_drawProgressTokens = false;
+		bool m_chooseAndConstructBuilding = false;
+		bool m_discardBrownCardFromOpponent = false;
 	public:
-		uint8_t PlayerReceivesMoney() const { return kplayerReceivesMoney; }
-		uint8_t OpponentLosesMoney() const { return kopponentLosesMoney; }
-		bool PlaySecondTurn() const { return kplaySecondTurn; }
-		bool DrawProgressTokens() const { return kdrawProgressTokens; }
-		bool ChooseAndConstructBuilding() const { return kchooseAndConstructBuilding; }
-		bool DiscardBrownCardFromOpponent() const { return kdiscardBrownCardFromOpponent; }
+		uint8_t getPlayerReceivesMoney() const { return m_playerReceivesMoney; }
+		uint8_t getOpponentLosesMoney() const { return m_opponentLosesMoney; }
+		bool getPlaySecondTurn() const { return m_playSecondTurn; }
+		bool getDrawProgressTokens() const { return m_drawProgressTokens; }
+		bool getChooseAndConstructBuilding() const { return m_chooseAndConstructBuilding; }
+		bool getDiscardBrownCardFromOpponent() const { return m_discardBrownCardFromOpponent; }
 
-		void m_receiveMoneyAction(class Player& player);
+		/*void m_receiveMoneyAction(class Player& player);
 		void m_opponentLosesMoneyAction(class Player& opponent);
 		void m_playSecondTurnAction(class Player& player);
 		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens);
 		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens);
 		void m_chooseAndConstructBuildingAction(const std::vector<Card>& discardedCards);
-		void m_discardBrownCardFromOpponentAction(class Player& opponent);
+		void m_discardBrownCardFromOpponentAction(class Player& opponent);*/
 	};
 }

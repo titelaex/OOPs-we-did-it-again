@@ -81,5 +81,8 @@
     <ClCompile Include="..\Models\Age.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScientificSymbolType.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

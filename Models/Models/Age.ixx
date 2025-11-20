@@ -11,5 +11,5 @@ export namespace  Models
 		AGE_III = 3
 	};
 
-	export std::string AgeToString(Age a); // moved implementation to Age.cpp
+	export std::string AgeToString(Age a);
 }

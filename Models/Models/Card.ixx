@@ -11,6 +11,7 @@ import Models.CoinWorthType;
 import Models.ColorType;
 import Models.ICard;
 import Models.Age;
+import Models.ScientificSymbolType;
 import <iostream>;
 
 export namespace Models
@@ -23,25 +24,25 @@ export namespace Models
 		std::unordered_map<ResourceType, uint8_t> m_resourceProduction;
 		uint8_t m_victoryPoints{};
 		uint8_t m_shieldPoints{};
-		uint8_t coinCost{};
-		std::array<uint8_t, 7> m_scientificSymbols = { 0, 0, 0, 0, 0, 0, 0 };
+		ScientificSymbolType m_scientificSymbols=ScientificSymbolType::NO_SYMBOL;
 		LinkingSymbolType m_hasLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
 		LinkingSymbolType m_requiresLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
 		CoinWorthType m_coinWorth = CoinWorthType::VALUE;
-		uint8_t m_coinValue = 0;
+		uint8_t m_coinReward = 0;
 		std::unordered_map<TradeRuleType, bool> m_tradeRules;
 		std::string m_caption;
 		ColorType m_color{};
 		bool m_isVisibile = false;
+		bool m_isAccessible = false;
 		std::string m_modelPath = "UI path placeholder";
 		Age m_age{};
 
 	public:
 		Card() = default;
 		Card(const Card& other) = default;
-		Card& operator=(const Card& other) = default;
+		virtual Card& operator=(const Card& other) = default;
 		Card(Card&& other) noexcept;
-		Card& operator=(Card&& other) noexcept;
+		virtual Card& operator=(Card&& other) noexcept;
 		virtual ~Card() = default;
 
 		const std::string& GetName() const;
@@ -77,10 +78,10 @@ export namespace Models
 		void SetColor(ColorType color);
 		void SetIsVisible(bool isVisible);
 		void SetModelPath(const std::string& modelPath);
-		void SetAge(const Age& age); // convenience naming
-		virtual void setAge(Age age) override; // interface override
+		void SetAge(const Age& age);
 		
 		virtual void toggleVisibility() override;
+		virtual void toggleAccessibility() override;
 		virtual void displayCardInfo() override;
 	};
 }

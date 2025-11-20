@@ -9,7 +9,6 @@ import <stdexcept>;
 
 export namespace Models
 {
-    // TokenType describes the kind of token. __declspec(dllexport) kept for DLL boundary.
     export enum class __declspec(dllexport) TokenType : uint8_t
     {
         PROGRESS,

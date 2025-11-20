@@ -8,7 +8,7 @@ import Models.GuildCard;
 using namespace Models;
 
 GuildCard::GuildCard() { setAge(Age::AGE_III); }
-GuildCard::GuildCard(const std::string& guildName, const std::vector<std::string>& scoringRules)
+GuildCard::GuildCard( const std::vector<std::string>& scoringRules)
 	: m_guildName(guildName), m_scoringRules(scoringRules) { setAge(Age::AGE_III); }
 GuildCard::GuildCard(const GuildCard& other)
 	: Card(other), m_guildName(other.m_guildName), m_scoringRules(other.m_scoringRules) {}

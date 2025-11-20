@@ -10,12 +10,10 @@ uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + 
 
 Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), kplayerUsername(username)
 {
-	positionOnBoard = 0;
-	m_remainingCoins = std::make_tuple(1, 2, 0);
 	m_playerPoints = { 0,0,0,0 };
 }
 
-void Player::setPositionOnBoard(uint8_t position) { positionOnBoard = position; }
+
 void Player::addCard(const Card& card) { m_ownedCards.push_back(card); }
 void Player::addWonder(const Wonder& wonder) { m_ownedWonders.push_back(wonder); }
 void Player::addToken(const Token& token) { m_ownedTokens.push_back(token); }
@@ -26,7 +24,6 @@ void Player::setRemainingCoins(std::tuple<uint8_t,uint8_t,uint8_t> remainingCoin
 void Player::setPoints(Points playerPoints) { m_playerPoints = playerPoints; }
 const uint8_t Player::getkPlayerId() const { return kplayerId; }
 const std::string& Player::getPlayerUsername() const { return kplayerUsername; }
-int Player::getPositionOnBoard() const { return positionOnBoard; }
 const std::vector<Wonder>& Player::getOwnedWonders() const { return m_ownedWonders; }
 const std::vector<Card>& Player::getOwnedCards() const { return m_ownedCards; }
 const std::vector<Token>& Player::getOwnedTokens() const { return m_ownedTokens; }

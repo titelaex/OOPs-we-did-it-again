@@ -7,9 +7,9 @@ import Models.Player; // ensure Player available for action methods
 
 using namespace Models;
 
-void Wonder::m_receiveMoneyAction(Player& player) { player.addCoins(kplayerReceivesMoney); }
-void Wonder::m_opponentLosesMoneyAction(Player& opponent) { opponent.subtractCoins(static_cast<uint8_t>(-kopponentLosesMoney)); }
-void Wonder::m_playSecondTurnAction(Player& /*player*/) { /* game engine hook */ }
+void Wonder::receiveMoneyAction(Player& player) { player.addCoins(kplayerReceivesMoney); }
+void Wonder::opponentLosesMoneyAction(Player& opponent) { opponent.subtractCoins(static_cast<uint8_t>(-kopponentLosesMoney)); }
+void Wonder::playSecondTurnAction(Player& /*player*/) { /* game engine hook */ }
 
 std::vector<Token> Wonder::randomTokenSelector(std::vector<Token>& discardedTokens)
 {
