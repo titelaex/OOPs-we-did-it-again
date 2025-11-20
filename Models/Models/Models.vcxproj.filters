@@ -14,6 +14,15 @@
     <ClCompile Include="Wonder.ixx" />
     <ClCompile Include="Age.ixx" />
     <ClCompile Include="GuildCard.ixx" />
+    <ClCompile Include="GuildCard.cpp" />
+    <ClCompile Include="Age.cpp" />
+    <ClCompile Include="ResourceType.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="TradeRuleType.cpp" />
+    <ClCompile Include="Token.cpp" />
+    <ClCompile Include="Bank.cpp" />
+    <ClCompile Include="Card.cpp" />
+    <ClCompile Include="Wonder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Wonders.csv" />

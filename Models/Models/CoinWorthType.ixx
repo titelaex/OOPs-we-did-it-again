@@ -1,4 +1,4 @@
-export module CoinWorthType;
+export module Models.CoinWorthType;
 
 import <cstdint>;
 

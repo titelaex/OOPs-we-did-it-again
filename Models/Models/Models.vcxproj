@@ -127,18 +127,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Age.cpp" />
     <ClCompile Include="Age.ixx" />
+    <ClCompile Include="Bank.cpp" />
     <ClCompile Include="Bank.ixx" />
+    <ClCompile Include="Card.cpp" />
     <ClCompile Include="Card.ixx" />
     <ClCompile Include="CoinWorthType.ixx" />
     <ClCompile Include="ColorType.ixx" />
+    <ClCompile Include="GuildCard.cpp" />
     <ClCompile Include="GuildCard.ixx" />
     <ClCompile Include="ICard.ixx" />
     <ClCompile Include="LinkingSymbolType.ixx" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Player.ixx" />
+    <ClCompile Include="ResourceType.cpp" />
     <ClCompile Include="ResourceType.ixx" />
+    <ClCompile Include="Token.cpp" />
     <ClCompile Include="Token.ixx" />
+    <ClCompile Include="TradeRuleType.cpp" />
     <ClCompile Include="TradeRuleType.ixx" />
+    <ClCompile Include="Wonder.cpp" />
     <ClCompile Include="Wonder.ixx" />
   </ItemGroup>
   <ItemGroup>

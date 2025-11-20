@@ -1,4 +1,4 @@
-export module ColorType;
+export module Models.ColorType;
 
 import <cstdint>;
 

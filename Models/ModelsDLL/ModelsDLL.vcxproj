@@ -129,19 +129,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Models\Age.cpp" />
     <ClCompile Include="..\Models\Age.ixx" />
+    <ClCompile Include="..\Models\Bank.cpp" />
     <ClCompile Include="..\Models\Bank.ixx" />
-    <ClCompile Include="..\Models\Building.ixx" />
+    <ClCompile Include="..\Models\Card.cpp" />
     <ClCompile Include="..\Models\Card.ixx" />
     <ClCompile Include="..\Models\CoinWorthType.ixx" />
     <ClCompile Include="..\Models\ColorType.ixx" />
+    <ClCompile Include="..\Models\GuildCard.cpp" />
     <ClCompile Include="..\Models\GuildCard.ixx" />
     <ClCompile Include="..\Models\ICard.ixx" />
     <ClCompile Include="..\Models\LinkingSymbolType.ixx" />
+    <ClCompile Include="..\Models\Player.cpp" />
     <ClCompile Include="..\Models\Player.ixx" />
+    <ClCompile Include="..\Models\ResourceType.cpp" />
     <ClCompile Include="..\Models\ResourceType.ixx" />
+    <ClCompile Include="..\Models\Token.cpp" />
     <ClCompile Include="..\Models\Token.ixx" />
+    <ClCompile Include="..\Models\TradeRuleType.cpp" />
     <ClCompile Include="..\Models\TradeRuleType.ixx" />
+    <ClCompile Include="..\Models\Wonder.cpp" />
     <ClCompile Include="..\Models\Wonder.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

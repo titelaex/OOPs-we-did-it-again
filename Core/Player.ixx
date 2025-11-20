@@ -1,11 +1,15 @@
-export module Player;
+export module Core.Player;
 
-import Wonder;
-import Card;
-import Player;
-import Token;
+import Models.Wonder;
+import Models.Card;
+import Models.Player; // concrete player from Models
+import Models.Token;
+import Models.LinkingSymbolType;
+import Models.ResourceType; // added for ResourceType in unordered_map declarations
 import <iostream>;
 import <vector>;
+import <unordered_map>;
+import <tuple>;
 
 export namespace Core
 {
@@ -16,59 +20,45 @@ export namespace Core
 			std::vector<Models::Token>& discardedTokens, std::vector<Models::Card>& discardedCards,
 			uint8_t& totalWondersBuilt)
 		{
-			// 1. Check if Wonder is already built
 			if (wonder.GetIsVisible())
 			{
 				std::cout << "Wonder \"" << wonder.GetName() << "\" is already constructed.\n";
 				return;
 			}
 
-			// 2. Check affordability 
 			if (!canAffordWonder(wonder, opponent))
 			{
 				std::cout << "Cannot afford Wonder \"" << wonder.GetName() << "\".\n";
 				return;
 			}
 
-			// 3. Pay cost (resources + coins)
 			payForWonder(wonder, opponent);
+			ageCard.toggleVisibility();
 
-			// 4. Use Age card to build Wonder
-			ageCard.toggleVisibility(); // mark as discarded
-
-			// 5. Trigger Wonder effects
-			if (wonder.kplayerReceivesMoney > 0)
-				wonder.m_receiveMoneyAction(*this);
-
-			if (wonder.kopponentLosesMoney > 0)
-				wonder.m_opponentLosesMoneyAction(opponent);
-
-			if (wonder.kplaySecondTurn)
-				wonder.m_playSecondTurnAction(*this);
-
-			if (wonder.kdrawProgressTokens)
+			if (wonder.PlayerReceivesMoney() > 0)
+				wonder.m_receiveMoneyAction(reinterpret_cast<Models::Player&>(*this));
+			if (wonder.OpponentLosesMoney() > 0)
+				wonder.m_opponentLosesMoneyAction(reinterpret_cast<Models::Player&>(opponent));
+			if (wonder.PlaySecondTurn())
+				wonder.m_playSecondTurnAction(reinterpret_cast<Models::Player&>(*this));
+			if (wonder.DrawProgressTokens())
 				wonder.m_drawProgressTokenAction(discardedTokens);
-
-			if (wonder.kchooseAndConstructBuilding)
+			if (wonder.ChooseAndConstructBuilding())
 				wonder.m_chooseAndConstructBuildingAction(discardedCards);
+			if (wonder.DiscardBrownCardFromOpponent())
+				wonder.m_discardBrownCardFromOpponentAction(reinterpret_cast<Models::Player&>(opponent));
 
-			if (wonder.kdiscardBrownCardFromOpponent)
-				wonder.m_discardBrownCardFromOpponentAction(opponent);
-
-			// 6. Add Wonder to player's built list
 			addWonder(wonder);
-			wonder.SetIsVisible(true); // mark as constructed
-
-			// 7. Check if 7 Wonders have been built
+			wonder.SetIsVisible(true);
 			++totalWondersBuilt;
 			if (totalWondersBuilt == 7)
 			{
-				discardRemainingWonder();
+				// placeholder for discardRemainingWonder
 			}
-
 			std::cout << "Wonder \"" << wonder.GetName() << "\" constructed successfully.\n";
 		}
-		virtual void playCardBuilding(Card& card, Player& opponent)
+
+		virtual void playCardBuilding(Models::Card& card, Player& opponent)
 		{
 			if (!card.GetIsVisible())
 			{
@@ -76,8 +66,7 @@ export namespace Core
 				return;
 			}
 
-			// Check for chain construction
-			if (card.GetRequiresLinkingSymbol() != LinkingSymbolType::NO_SYMBOL)
+			if (card.GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
 			{
 				for (const auto& ownedCard : getOwnedCards())
 				{
@@ -92,7 +81,6 @@ export namespace Core
 				}
 			}
 
-			// Check if card is free
 			if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
 			{
 				addCard(card);
@@ -102,17 +90,13 @@ export namespace Core
 				return;
 			}
 
-			// Check affordability
 			if (!canAffordCard(card, opponent))
 			{
 				std::cout << "Cannot afford to construct \"" << card.GetName() << "\".\n";
 				return;
 			}
 
-			// Pay cost
 			payForCard(card, opponent);
-
-			// Construct card
 			addCard(card);
 			card.SetIsVisible(false);
 			std::cout << "Card \"" << card.GetName() << "\" constructed.\n";
@@ -120,175 +104,19 @@ export namespace Core
 		}
 
 	private:
+		bool canAffordWonder(const Models::Wonder& wonder, const Player& opponent);
+		void payForWonder(const Models::Wonder& wonder, const Player& opponent);
+		bool canAffordCard(const Models::Card& card, const Player& opponent);
+		void payForCard(const Models::Card& card, const Player& opponent);
+		void applyCardEffects(Models::Card& card);
 
-		bool canAffordWonder(const Wonder& wonder, const Player& opponent)
-		{
-			const auto& cost = wonder.GetResourceCost();
-			const auto& ownPermanent = getOwnedPermanentResources();
-			const auto& ownTrading = getOwnedTradingResources();
-			const auto& opponentPermanent = opponent.getOwnedPermanentResources();
-
-			uint8_t totalAvailableCoins = totalCoins(getRemainingCoins());
-
-			for (const auto& [resource, requiredAmount] : cost)
-			{
-				uint8_t produced = 0;
-				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
-
-				if (produced >= requiredAmount)
-					continue;
-
-				uint8_t missing = requiredAmount - produced;
-				uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
-				uint8_t costPerUnit = 2 + opponentProduction;
-				uint8_t totalCost = costPerUnit * missing;
-
-				if (totalAvailableCoins < totalCost)
-					return false;
-
-				totalAvailableCoins -= totalCost;
-			}
-			return true;
-		}
-		
-		void payForWonder(const Wonder& wonder, const Player& opponent)
-		{
-			const auto& cost = wonder.GetResourceCost();
-			const auto& ownPermanent = getOwnedPermanentResources();
-			const auto& ownTrading = getOwnedTradingResources();
-			const auto& opponentPermanent = opponent.getOwnedPermanentResources();
-
-			uint8_t totalCoinsToPay = 0;
-
-			for (const auto& [resource, requiredAmount] : cost)
-			{
-				uint8_t produced = 0;
-				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
-
-				if (produced >= requiredAmount)
-					continue;
-
-				uint8_t missing = requiredAmount - produced;
-				uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
-				uint8_t costPerUnit = 2 + opponentProduction;
-
-				totalCoinsToPay += costPerUnit * missing;
-			}
-
-			subtractCoins(totalCoinsToPay);
-		}
-
-		void discardRemainingWonder(std::vector<Wonder>& allWonders)
-		{
-			uint8_t builtCount = 0;
-			for (const auto& wonder : allWonders)
-			{
-				if (wonder.GetIsVisible())
-					++builtCount;
-			}
-
-			if (builtCount >= 7)
-			{
-				for (auto& wonder : allWonders)
-				{
-					if (!wonder.GetIsVisible())
-					{
-						wonder.SetIsVisible(false); // Mark as discarded
-						std::cout << "Wonder \"" << wonder.GetName() << "\" discarded as the 8th unbuilt Wonder.\n";
-						break;
-					}
-				}
-			}
-		}
-		bool canAffordCard(const Card& card, const Player& opponent)
-		{
-			// 1. Free card
-			if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
-				return true;
-
-			// 2. Chain construction
-			if (card.GetRequiresLinkingSymbol() != LinkingSymbolType::NO_SYMBOL)
-			{
-				for (const auto& ownedCard : getOwnedCards())
-				{
-					if (ownedCard.GetHasLinkingSymbol() == card.GetRequiresLinkingSymbol())
-						return true;
-				}
-			}
-
-			// 3. Resource cost
-			const auto& cost = card.GetResourceCost();
-			const auto& ownPermanent = getOwnedPermanentResources();
-			const auto& ownTrading = getOwnedTradingResources();
-			const auto& opponentProduction = opponent.getOwnedPermanentResources();
-
-			uint8_t availableCoins = totalCoins(getRemainingCoins());
-
-			for (const auto& [resource, requiredAmount] : cost)
-			{
-				uint8_t produced = 0;
-				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
-
-				if (produced >= requiredAmount)
-					continue;
-
-				uint8_t missing = requiredAmount - produced;
-				uint8_t opponentAmount = opponentProduction.contains(resource) ? opponentProduction.at(resource) : 0;
-				uint8_t costPerUnit = 2 + opponentAmount;
-
-				uint8_t totalCost = costPerUnit * missing;
-				if (availableCoins < totalCost)
-					return false;
-
-				availableCoins -= totalCost;
-			}
-
-			// 4. Coin cost (if any)
-			if (card.GetCoinValue() > availableCoins)
-				return false;
-
-			return true;
-		}
-		void payForCard(const Card& card, const Player& opponent)
-		{
-			const auto& cost = card.GetResourceCost();
-			const auto& ownPermanent = getOwnedPermanentResources();
-			const auto& ownTrading = getOwnedTradingResources();
-			const auto& opponentProduction = opponent.getOwnedPermanentResources();
-
-			uint8_t totalCoinsToPay = 0;
-
-			// 1. Pay for missing resources via trading
-			for (const auto& [resource, requiredAmount] : cost)
-			{
-				uint8_t produced = 0;
-				if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-				if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
-
-				if (produced >= requiredAmount)
-					continue;
-
-				uint8_t missing = requiredAmount - produced;
-				uint8_t opponentAmount = opponentProduction.contains(resource) ? opponentProduction.at(resource) : 0;
-				uint8_t costPerUnit = 2 + opponentAmount;
-
-				totalCoinsToPay += costPerUnit * missing;
-			}
-
-			// 2. Add coin cost from the card itself
-			totalCoinsToPay += card.GetCoinValue();
-
-			// 3. Deduct coins from player
-			subtractCoins(totalCoinsToPay);
-
-			std::cout << "Paid " << static_cast<int>(totalCoinsToPay) << " coins to construct \"" << card.GetName() << "\".\n";
-		}
-		void applyCardEffects(Card&card)
-		{ 
-			//de implementat
-		}
+		virtual const std::vector<Models::Card>& getOwnedCards() const = 0;
+		virtual const std::unordered_map<Models::ResourceType,uint8_t>& getOwnedPermanentResources() const = 0;
+		virtual const std::unordered_map<Models::ResourceType,uint8_t>& getOwnedTradingResources() const = 0;
+		virtual std::tuple<uint8_t,uint8_t,uint8_t> getRemainingCoins() const = 0;
+		virtual uint8_t totalCoins(std::tuple<uint8_t,uint8_t,uint8_t>) const = 0;
+		virtual void subtractCoins(uint8_t) = 0;
+		virtual void addCard(const Models::Card&) = 0;
+		virtual void addWonder(const Models::Wonder&) = 0;
 	};
 }

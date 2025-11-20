@@ -1,4 +1,4 @@
-export module LinkingSymbolType;
+export module Models.LinkingSymbolType;
 
 import <cstdint>;
 

@@ -1,6 +1,6 @@
-export module ICard;
+export module Models.ICard;
 
-import Age;
+import Models.Age;
 
 export namespace Models
 {
@@ -8,10 +8,7 @@ export namespace Models
 	{
 	public:
 		virtual ~ICard() = default;
-			//jucatorul ia cartea din vectorul de carti vizibile 
 		virtual void toggleVisibility() = 0;
-		//virtual void playCardWonder() = 0; should be moved in Player in Core?
-		//virtual void playCardBuilding() = 0; should be moved in Player in Core?
 		virtual void displayCardInfo() = 0;
 		virtual void setAge(Age age) = 0;
 	};

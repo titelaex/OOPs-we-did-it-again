@@ -1,6 +1,6 @@
 // ResourceType.ixx
 
-export module ResourceType;
+export module Models.ResourceType;
 
 import <cstdint>;
 import <string>;
@@ -16,18 +16,5 @@ export namespace Models {
         CONDITION_MANUFACTURED_GOODS
     };
 
-    export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource);
-    
-    export std::string ResourceTypeToString(ResourceType resource) {
-        switch (resource) {
-        case ResourceType::CLAY: return "Clay";
-        case ResourceType::WOOD: return "Wood";
-        case ResourceType::STONE: return "Stone";
-        case ResourceType::GLASS: return "Glass";
-        case ResourceType::PAPYRUS: return "Papyrus";
-        case ResourceType::CONDITION_RAW_GOODS: return "Raw Good Condition Placeholder";
-        case ResourceType::CONDITION_MANUFACTURED_GOODS: return "Manufactured Good Condition Placeholder";
-        default: return {};
-        }
-    }
+    export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource); // implementation moved to ResourceType.cpp
 }

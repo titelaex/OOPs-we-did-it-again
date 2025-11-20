@@ -1,11 +1,8 @@
+export module Models.Wonder;
 
-export module Wonder;
-
-import ResourceType;
-import Token;
-import Card;
-import Player;
-
+import Models.ResourceType;
+import Models.Token;
+import Models.Card;
 import <string>;
 import <vector>;
 import <random>;
@@ -14,110 +11,29 @@ import <iterator>;
 
 namespace Models
 {
-	export class __declspec(dllexport) Wonder : Card
+	export class __declspec(dllexport) Wonder : public Card
 	{
-	private:
-		//const std::string m_wonderName; already in Card base class as m_name
-		// const uint8_t m_VictoryPointsWorth;
-		const uint8_t kplayerReceivesMoney;
-		const uint8_t kopponentLosesMoney;
-		// const uint8_t ShieldPoints;
-		//const std::unordered_map<ResourceType, uint8_t> m_resourceProduction; //produced each turn
-		const bool kplaySecondTurn;
-		const bool kdrawProgressTokens;
-		const bool kchooseAndConstructBuilding;
-		const bool kdiscardBrownCardFromOpponent;
+	protected:
+		uint8_t kplayerReceivesMoney = 0;
+		uint8_t kopponentLosesMoney = 0;
+		bool kplaySecondTurn = false;
+		bool kdrawProgressTokens = false;
+		bool kchooseAndConstructBuilding = false;
+		bool kdiscardBrownCardFromOpponent = false;
 	public:
+		uint8_t PlayerReceivesMoney() const { return kplayerReceivesMoney; }
+		uint8_t OpponentLosesMoney() const { return kopponentLosesMoney; }
+		bool PlaySecondTurn() const { return kplaySecondTurn; }
+		bool DrawProgressTokens() const { return kdrawProgressTokens; }
+		bool ChooseAndConstructBuilding() const { return kchooseAndConstructBuilding; }
+		bool DiscardBrownCardFromOpponent() const { return kdiscardBrownCardFromOpponent; }
 
-		void m_receiveMoneyAction(Player& player)
-		{
-			///add m_playerReceivesMoney to the player's coin count
-			player.addCoins(m_playerReceivesMoney);
-		}
-
-		void m_opponentLosesMoneyAction(Player& opponent)
-		{
-			///subtract m_opponentLosesMoney from the opponent's coin count
-			opponent.subtractCoins(static_cast<uint8_t>(-m_opponentLosesMoney));
-		}
-
-		void m_playSecondTurnAction(Player& player)
-		{
-			///allow the player to play an additional turn immediately
-			///this can be implemented by setting a flag in the game engine that allows the player to take another turn
-		}
-
-
-		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens)
-		{
-			const uint8_t tokensToSelect = 3;
-
-			if (discardedTokens.size() <= tokensToSelect)
-			{
-				return discardedTokens;
-			}
-
-			std::vector<Token> selectedTokens;
-
-			std::random_device seed;
-			std::mt19937 generator(seed());
-
-			std::sample(discardedTokens.begin(), discardedTokens.end(),
-				std::back_inserter(selectedTokens),
-				tokensToSelect,
-				generator);
-
-			return selectedTokens;
-
-		}
-
-		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens)
-		{
-			///randomly Select 3 Tokens
-			
-			std::vector<Token> selectedTokens = randomTokenSelector(discardedTokens);
-
-			///show them to the player - displayToken() (to be implemented in Token.ixx)
-			
-			/// player chooses one 
-			
-			Token chosenToken; /* get player choice from UI */;
-
-			/// return the other two and eliminate the chosen one from the discardedTokens vector
-			
-			auto new_end = std::remove(discardedTokens.begin(), discardedTokens.end(), chosenToken);
-
-			/// play the chosen token effect - playToken() (to be implemented in Token.ixx)
-
-		}
-		
-		void m_chooseAndConstructBuildingAction(const std::vector<Card>& discardedCards)
-		{
-			///show the discarded cards to the player (CARDS DISCARDED DURING THE SETUP NOT INCLUDED)
-			
-			
-			///player chooses one and builds it for free
-			
-			Card chosenCard; /* get player choice from UI */;
-
-			/// eliminate the chosen card from the discardedCards vector and add it to the player's owned cards
-		
-			auto new_end = std::remove(discardedCards.begin(), discardedCards.end(), chosenCard);
-		}
-
-		void m_discardBrownCardFromOpponentAction(Player& opponent)
-		{
-			///show the brown cards owned by the opponent to the player
-		
-			///player chooses one to discard
-			
-			Card chosenCard; /* get player choice from UI */;
-
-			///remove the chosen card from the opponent's owned cards and add it to the discarded pile
-		
-			auto new_end = std::remove(opponent.getOwnedCards().begin(), opponent.getOwnedCards().end(), chosenCard);
-
-		}
-
+		void m_receiveMoneyAction(class Player& player);
+		void m_opponentLosesMoneyAction(class Player& opponent);
+		void m_playSecondTurnAction(class Player& player);
+		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens);
+		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens);
+		void m_chooseAndConstructBuildingAction(const std::vector<Card>& discardedCards);
+		void m_discardBrownCardFromOpponentAction(class Player& opponent);
 	};
 }
