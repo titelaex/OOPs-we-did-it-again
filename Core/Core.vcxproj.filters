@@ -21,5 +21,8 @@
     <ClCompile Include="Player.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CardCsvParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

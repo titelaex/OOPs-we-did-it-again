@@ -5,13 +5,9 @@ import <cstdint>;
 import <unordered_map>;
 import <string>;
 import Models.ResourceType;
-import Models.LinkingSymbolType;
-import Models.TradeRuleType;
 import Models.CoinWorthType;
 import Models.ColorType;
 import Models.ICard;
-import Models.Age;
-import Models.ScientificSymbolType;
 import <iostream>;
 
 export namespace Models
@@ -21,21 +17,14 @@ export namespace Models
 	private:
 		std::string m_name;
 		std::unordered_map<ResourceType, uint8_t> m_resourceCost;
-		std::unordered_map<ResourceType, uint8_t> m_resourceProduction;
 		uint8_t m_victoryPoints{};
-		uint8_t m_shieldPoints{};
-		ScientificSymbolType m_scientificSymbols=ScientificSymbolType::NO_SYMBOL;
-		LinkingSymbolType m_hasLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
-		LinkingSymbolType m_requiresLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
 		CoinWorthType m_coinWorth = CoinWorthType::VALUE;
 		uint8_t m_coinReward = 0;
-		std::unordered_map<TradeRuleType, bool> m_tradeRules;
 		std::string m_caption;
 		ColorType m_color{};
 		bool m_isVisibile = false;
 		bool m_isAccessible = false;
 		std::string m_modelPath = "UI path placeholder";
-		Age m_age{};
 
 	public:
 		Card() = default;

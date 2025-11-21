@@ -1,2 +1,0 @@
-export module Models.ScientificSymbolsType;
-

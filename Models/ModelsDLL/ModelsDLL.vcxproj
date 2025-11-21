@@ -132,29 +132,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Models\Age.cpp" />
-    <ClCompile Include="..\Models\Age.ixx" />
-    <ClCompile Include="..\Models\Bank.cpp" />
-    <ClCompile Include="..\Models\Bank.ixx" />
-    <ClCompile Include="..\Models\Card.cpp" />
-    <ClCompile Include="..\Models\Card.ixx" />
-    <ClCompile Include="..\Models\CoinWorthType.ixx" />
-    <ClCompile Include="..\Models\ColorType.ixx" />
-    <ClCompile Include="..\Models\GuildCard.cpp" />
-    <ClCompile Include="..\Models\GuildCard.ixx" />
-    <ClCompile Include="..\Models\ICard.ixx" />
-    <ClCompile Include="..\Models\LinkingSymbolType.ixx" />
-    <ClCompile Include="..\Models\Player.cpp" />
-    <ClCompile Include="..\Models\Player.ixx" />
-    <ClCompile Include="..\Models\ResourceType.cpp" />
-    <ClCompile Include="..\Models\ResourceType.ixx" />
-    <ClCompile Include="..\Models\Token.cpp" />
-    <ClCompile Include="..\Models\Token.ixx" />
-    <ClCompile Include="..\Models\TradeRuleType.cpp" />
-    <ClCompile Include="..\Models\TradeRuleType.ixx" />
-    <ClCompile Include="..\Models\Wonder.cpp" />
-    <ClCompile Include="..\Models\Wonder.ixx" />
+    <ClCompile Include="Age.cpp" />
+    <ClCompile Include="Age.ixx" />
+    <ClCompile Include="AgeCard.cpp" />
+    <ClCompile Include="AgeCard.ixx" />
+    <ClCompile Include="Bank.cpp" />
+    <ClCompile Include="Bank.ixx" />
+    <ClCompile Include="Card.cpp" />
+    <ClCompile Include="Card.ixx" />
+    <ClCompile Include="CoinWorthType.ixx" />
+    <ClCompile Include="ColorType.ixx" />
+    <ClCompile Include="GuildCard.cpp" />
+    <ClCompile Include="GuildCard.ixx" />
+    <ClCompile Include="ICard.ixx" />
+    <ClCompile Include="LinkingSymbolType.ixx" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Player.ixx" />
+    <ClCompile Include="ResourceType.cpp" />
+    <ClCompile Include="ResourceType.ixx" />
     <ClCompile Include="ScientificSymbolType.ixx" />
+    <ClCompile Include="Token.cpp" />
+    <ClCompile Include="Token.ixx" />
+    <ClCompile Include="TradeRuleType.cpp" />
+    <ClCompile Include="TradeRuleType.ixx" />
+    <ClCompile Include="Wonder.cpp" />
+    <ClCompile Include="Wonder.ixx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AgeCards.csv" />
+    <None Include="Guilds.csv" />
+    <None Include="Tokens.csv" />
+    <None Include="Wonders.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

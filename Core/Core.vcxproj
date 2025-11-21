@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CardCsvParser.cpp" />
     <ClCompile Include="Node.ixx" />
     <ClCompile Include="Player.ixx" />
   </ItemGroup>

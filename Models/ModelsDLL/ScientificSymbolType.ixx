@@ -12,6 +12,7 @@ namespace Models
 		CLOCK,
 		MOJAR,
 		PENDULUM,
-		FEATHER
+		FEATHER,
+		SCALE
 	};
 }
