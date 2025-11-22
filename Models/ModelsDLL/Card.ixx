@@ -27,25 +27,30 @@ export namespace Models
 		std::string m_modelPath = "UI path placeholder";
 
 	public:
-		Card() = default;
-		Card(const Card& other) = default;
-		virtual Card& operator=(const Card& other) = default;
-		Card(Card&& other) noexcept;
-		virtual Card& operator=(Card&& other) noexcept;
+		Card() = delete;
+		Card(const Card& other) = delete;
+		virtual Card& operator=(const Card& other) = delete;
+		Card(Card&& other) = default;
+		virtual Card& operator=(Card&& other) = default;
 		virtual ~Card() = default;
+
+		Card(
+			const std::string& name,
+			const std::unordered_map<ResourceType, uint8_t>& resourceCost,
+			uint8_t victoryPoints,
+			CoinWorthType coinWorth,
+			uint8_t coinReward,
+			const std::string& caption,
+			ColorType color,
+			bool isVisible,
+			const std::string& modelPath
+		);
 
 		const std::string& GetName() const;
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceCost() const;
-		const std::unordered_map<ResourceType, uint8_t>& GetResourceProduction() const;
 		uint8_t GetVictoryPoints() const;
-		uint8_t GetShieldPoints() const;
-		uint8_t GetCoinCost() const;
-		const std::array<uint8_t, 7>& GetScientificSymbols() const;
-		LinkingSymbolType GetHasLinkingSymbol() const;
-		LinkingSymbolType GetRequiresLinkingSymbol() const;
 		CoinWorthType GetCoinWorth() const;
-		uint8_t GetCoinValue() const;
-		const std::unordered_map<TradeRuleType, bool>& GetTradeRules() const;
+		uint8_t GetCoinReward() const;
 		const std::string& GetCaption() const;
 		ColorType GetColor() const;
 		bool GetIsVisible() const;
@@ -53,21 +58,13 @@ export namespace Models
 
 		void SetName(const std::string& name);
 		void SetResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
-		void SetResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
 		void SetVictoryPoints(uint8_t victoryPoints);
-		void SetShieldPoints(uint8_t shieldPoints);
-		void SetCoinCost(uint8_t cost);
-		void SetScientificSymbols(const std::array<uint8_t, 7>& scientificSymbols);
-		void SetHasLinkingSymbol(LinkingSymbolType hasLinkingSymbol);
-		void SetRequiresLinkingSymbol(LinkingSymbolType requiresLinkingSymbol);
-		void SetCoinValue(uint8_t coinValue);
-		void SetTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		void SetCoinWorth(CoinWorthType coinWorth);
+		void SetCoinReward(uint8_t coinReward);
 		void SetCaption(const std::string& caption);
 		void SetColor(ColorType color);
 		void SetIsVisible(bool isVisible);
 		void SetModelPath(const std::string& modelPath);
-		void SetAge(const Age& age);
 		
 		virtual void toggleVisibility() override;
 		virtual void toggleAccessibility() override;

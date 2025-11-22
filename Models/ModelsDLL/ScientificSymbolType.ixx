@@ -1,6 +1,8 @@
 export module Models.ScientificSymbolType;
 
 import <cstdint>;
+import <string>;
+import <optional>;
 
 namespace Models
 {
@@ -15,4 +17,6 @@ namespace Models
 		FEATHER,
 		SCALE
 	};
+
+	export __declspec(dllexport) std::optional<ScientificSymbolType> StringToScientificSymbolType(const std::string& str);
 }

@@ -1,6 +1,8 @@
 export module Models.LinkingSymbolType;
 
 import <cstdint>;
+import <string>;
+import <optional>;
 
 export namespace Models {
 	export enum class __declspec(dllexport) LinkingSymbolType :uint8_t
@@ -24,4 +26,6 @@ export namespace Models {
 		BOOK,
 		LAMP
 	};
+
+	export __declspec(dllexport) std::optional<LinkingSymbolType> StringToLinkingSymbolType(const std::string& str);
 };

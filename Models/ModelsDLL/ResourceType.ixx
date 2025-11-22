@@ -4,6 +4,7 @@ export module Models.ResourceType;
 
 import <cstdint>;
 import <string>;
+import <optional>;
 
 export namespace Models {
     export enum class __declspec(dllexport) ResourceType : uint8_t {
@@ -17,4 +18,5 @@ export namespace Models {
     };
 
     export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource); // implementation moved to ResourceType.cpp
+    export __declspec(dllexport) std::optional<ResourceType> StringToResourceType(const std::string& str);
 }

@@ -14,12 +14,14 @@ namespace Models
 	export class __declspec(dllexport) Wonder : public Card
 	{
 	private:
-		uint8_t m_playerReceivesMoney;
 		uint8_t m_opponentLosesMoney;
+		uint8_t m_shieldPoints;
+		ResourceType m_resourceProduction;
 		bool m_playSecondTurn = false;
 		bool m_drawProgressTokens = false;
 		bool m_chooseAndConstructBuilding = false;
-		bool m_discardBrownCardFromOpponent = false;
+		bool m_discardCardFromOpponent = false;
+		ColorType m_discardedCardColor;
 	public:
 		uint8_t getPlayerReceivesMoney() const { return m_playerReceivesMoney; }
 		uint8_t getOpponentLosesMoney() const { return m_opponentLosesMoney; }

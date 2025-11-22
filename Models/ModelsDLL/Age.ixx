@@ -1,6 +1,6 @@
 export module Models.Age;
 import <string>;
-import <cstdint>;
+import <optional>;
 
 export namespace  Models
 {
@@ -11,5 +11,6 @@ export namespace  Models
 		AGE_III = 3
 	};
 
-	export std::string AgeToString(Age a);
+	export __declspec(dllexport) std::string AgeToString(Age a);
+	export __declspec(dllexport) std::optional<Age> StringToAge(const std::string& str);
 }

@@ -1,6 +1,8 @@
 export module Models.CoinWorthType;
 
 import <cstdint>;
+import <string>;
+import <optional>;
 
 export namespace Models
 {
@@ -13,4 +15,6 @@ export namespace Models
 		YELLOW,
 		RED,
 	};
+
+	export __declspec(dllexport) std::optional<CoinWorthType> StringToCoinWorthType(const std::string& str);
 }

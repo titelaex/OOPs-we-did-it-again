@@ -1,10 +1,8 @@
 module Models.Age;
-import Models.Age;
 import <string>;
+import <optional>;
 
-using namespace Models;
-
-std::string Models::AgeToString(Age a)
+export __declspec(dllexport) std::string AgeToString(Age a)
 {
 	switch (a)
 	{
@@ -13,4 +11,11 @@ std::string Models::AgeToString(Age a)
 	case Age::AGE_III: return "III";
 	default: return "Unknown";
 	}
+}
+
+export __declspec(dllexport) std::optional<Age> StringToAge(const std::string& str) {
+    if (str == "AGE_I") return Age::AGE_I;
+    if (str == "AGE_II") return Age::AGE_II;
+    if (str == "AGE_III") return Age::AGE_III;
+    return std::nullopt;
 }

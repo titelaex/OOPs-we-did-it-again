@@ -90,6 +90,18 @@
     <ClCompile Include="AgeCard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScientificSymbolType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoinWorthType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkingSymbolType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="AgeCards.csv">

@@ -1,20 +1,32 @@
 module Models.ResourceType;
 import Models.ResourceType;
 import <string>;
+import <optional>;
 
 using namespace Models;
 
-std::string Models::ResourceTypeToString(ResourceType resource)
+export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource)
 {
 	switch (resource)
 	{
-	case ResourceType::CLAY: return "Clay";
-	case ResourceType::WOOD: return "Wood";
-	case ResourceType::STONE: return "Stone";
-	case ResourceType::GLASS: return "Glass";
-	case ResourceType::PAPYRUS: return "Papyrus";
-	case ResourceType::CONDITION_RAW_GOODS: return "Raw Goods";
-	case ResourceType::CONDITION_MANUFACTURED_GOODS: return "Manufactured Goods";
+	case ResourceType::CLAY: return "CLAY";
+	case ResourceType::WOOD: return "WOOD";
+	case ResourceType::STONE: return "STONE";
+	case ResourceType::GLASS: return "GLASS";
+	case ResourceType::PAPYRUS: return "PAPYRUS";
+	case ResourceType::CONDITION_RAW_GOODS: return "CONDITION_RAW_GOODS";
+	case ResourceType::CONDITION_MANUFACTURED_GOODS: return "CONDITION_MANUFACTURED_GOODS";
 	default: return "Unknown";
 	}
+}
+
+export __declspec(dllexport) std::optional<ResourceType> StringToResourceType(const std::string& str) {
+    if (str == "CLAY") return ResourceType::CLAY;
+    if (str == "WOOD") return ResourceType::WOOD;
+    if (str == "STONE") return ResourceType::STONE;
+    if (str == "GLASS") return ResourceType::GLASS;
+    if (str == "PAPYRUS") return ResourceType::PAPYRUS;
+    if (str == "CONDITION_RAW_GOODS") return ResourceType::CONDITION_RAW_GOODS;
+    if (str == "CONDITION_MANUFACTURED_GOODS") return ResourceType::CONDITION_MANUFACTURED_GOODS;
+    return std::nullopt;
 }

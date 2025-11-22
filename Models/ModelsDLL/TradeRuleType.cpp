@@ -16,3 +16,12 @@ std::string Models::tradeRuleTypeToString(TradeRuleType tradeRule)
 	default: return "Unknown";
 	}
 }
+
+export __declspec(dllexport) std::optional<TradeRuleType> StringToTradeRuleType(const std::string& str) {
+    if (str == "CLAY") return TradeRuleType::CLAY;
+    if (str == "WOOD") return TradeRuleType::WOOD;
+    if (str == "STONE") return TradeRuleType::STONE;
+    if (str == "GLASS") return TradeRuleType::GLASS;
+    if (str == "PAPYRUS") return TradeRuleType::PAPYRUS;
+    return std::nullopt;
+}

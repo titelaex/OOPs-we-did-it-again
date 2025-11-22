@@ -2,6 +2,7 @@ export module Models.TradeRuleType;
 
 import <cstdint>;
 import <string>;
+import <optional>;
 
 export namespace Models
 {
@@ -15,4 +16,5 @@ export namespace Models
 	};
 
 	export __declspec(dllexport) std::string tradeRuleTypeToString(TradeRuleType tradeRule); // implementation in TradeRuleType.cpp
+	export __declspec(dllexport) std::optional<TradeRuleType> StringToTradeRuleType(const std::string& str);
 }
