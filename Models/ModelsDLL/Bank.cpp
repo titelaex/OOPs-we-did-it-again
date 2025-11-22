@@ -8,24 +8,27 @@ import Models.Token;
 
 using namespace Models;
 
-Bank::Bank(std::tuple<uint8_t,uint8_t,uint8_t> startingCoins, unsigned int rngSeed)
-	: m_coins(startingCoins)
-{
-	if (rngSeed == 0)
-		rngSeed = static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-}
+//Bank::Bank(std::tuple<uint8_t,uint8_t,uint8_t> startingCoins, unsigned int rngSeed)
+//	: m_coins(startingCoins)
+//{
+//	if (rngSeed == 0)
+//		rngSeed = static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+//}
 
-std::tuple<uint8_t, uint8_t, uint8_t> Bank::GetCoins() const noexcept {
+Bank::Bank():m_coins({12,6,7}){}
+
+
+std::tuple<uint8_t, uint8_t, uint8_t> Bank::getCoins() const noexcept {
 	return m_coins;
 }
 
-uint32_t Bank::GetRemainingCoins() const noexcept {
+uint32_t Bank::getRemainingCoins() const noexcept {
 	return std::get<0>(m_coins) * 1 + std::get<1>(m_coins) * 3 + std::get<2>(m_coins) * 6;
 }
 
-bool Bank::TryWithdraw(uint32_t amount) noexcept {
+bool Bank::tryWithdraw(uint32_t amount) noexcept {
 	if (amount == 0) return true;
-	const uint32_t total = GetRemainingCoins();
+	const uint32_t total = getRemainingCoins();
 	if (amount > total) return false;
 	uint8_t availableOnes = std::get<0>(m_coins);
 	uint8_t availableThrees = std::get<1>(m_coins);
@@ -47,7 +50,7 @@ bool Bank::TryWithdraw(uint32_t amount) noexcept {
 	return false;
 }
 
-void Bank::Deposit(uint32_t amount) noexcept {
+void Bank::deposit(uint32_t amount) noexcept {
 	if (amount == 0) return;
 	uint8_t& ones = std::get<0>(m_coins);
 	uint8_t& threes = std::get<1>(m_coins);
