@@ -6,6 +6,7 @@ import <cstdint>;
 import <fstream>;
 import <sstream>;
 import <stdexcept>;
+import <tuple>;
 
 export namespace Models
 {
@@ -21,29 +22,33 @@ export namespace Models
     // Simple Token value object. No default ctor to force explicit initialization.
     export class __declspec(dllexport) Token
     {
-    public:
-        Token() = delete;
-        explicit Token(TokenType type, std::string id, std::string name, std::string description, uint8_t value =0);
-
-        TokenType GetType() const noexcept;
-        const std::string& GetId() const noexcept;
-        const std::string& GetName() const noexcept;
-        const std::string& GetDescription() const noexcept;
-        uint8_t GetValue() const noexcept;
-
     private:
         TokenType m_type;
-        std::string m_id;
         std::string m_name;
         std::string m_description;
-        uint8_t m_value =0;
+        std::tuple<uint8_t,uint8_t,uint8_t> m_coins;
+        uint8_t m_victoryPoints{};
+        uint8_t m_shieldPoints{};
+
+    public:
+        Token() = delete;
+        // Construct with explicit coin tuple, victory and shield values
+        explicit Token(TokenType type, std::string name, std::string description, std::tuple<uint8_t,uint8_t,uint8_t> coins = {0,0,0}, uint8_t victoryPoints =0, uint8_t shieldPoints =0);
+
+        TokenType getType() const noexcept;
+        const std::string& getName() const noexcept;
+        const std::string& getDescription() const noexcept;
+        const std::tuple<uint8_t,uint8_t,uint8_t>& getCoins() const noexcept;
+        uint8_t getVictoryPoints() const noexcept;
+        uint8_t getShieldPoints() const noexcept;
+
     };
 
     // Returns a small built-in default set. Useful when CSV is unavailable.
-    export __declspec(dllexport) std::vector<Token> CreateDefaultTokenSet();
+    export __declspec(dllexport) std::vector<Token> createDefaultTokenSet();
 
     // Helper: map uppercase type string to TokenType; throws on unknown type.
-    inline TokenType TokenTypeFromString(const std::string& s)
+    inline TokenType tokenTypeFromString(const std::string& s)
     {
         if (s == "PROGRESS") return TokenType::PROGRESS;
         if (s == "VICTORY") return TokenType::VICTORY;
@@ -53,8 +58,8 @@ export namespace Models
         throw std::invalid_argument("Unknown token type: " + s);
     }
 
-    // Load tokens from a CSV file. Expected header: id,type,name,description,value
+    // Load tokens from a CSV file. Expected header: type,name,description,coins,victory,shield
     // - Handles quoted description fields (basic support: "..." without embedded quotes).
     // - On parse error throws std::runtime_error or std::invalid_argument.
-    export __declspec(dllexport) std::vector<Token> LoadTokensFromCSV(const std::string& path);
+    export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);
 }
