@@ -11,6 +11,6 @@ export namespace  Models
 		AGE_III = 3
 	};
 
-	export __declspec(dllexport) std::string AgeToString(Age a);
-	export __declspec(dllexport) std::optional<Age> StringToAge(const std::string& str);
+	export __declspec(dllexport) std::string ageToString(Age a);
+	export __declspec(dllexport) std::optional<Age> stringToAge(const std::string& str);
 }

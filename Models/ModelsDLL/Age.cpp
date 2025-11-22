@@ -2,7 +2,7 @@ module Models.Age;
 import <string>;
 import <optional>;
 
-export __declspec(dllexport) std::string AgeToString(Age a)
+export __declspec(dllexport) std::string ageToString(Age a)
 {
 	switch (a)
 	{
@@ -13,7 +13,7 @@ export __declspec(dllexport) std::string AgeToString(Age a)
 	}
 }
 
-export __declspec(dllexport) std::optional<Age> StringToAge(const std::string& str) {
+export __declspec(dllexport) std::optional<Age> stringToAge(const std::string& str) {
     if (str == "AGE_I") return Age::AGE_I;
     if (str == "AGE_II") return Age::AGE_II;
     if (str == "AGE_III") return Age::AGE_III;
