@@ -1,6 +1,7 @@
 export module Models.AgeCard;
 
 import <unordered_map>;
+import <ostream>;
 import Models.Card;
 import Models.ScientificSymbolType;
 import Models.ResourceType;
@@ -69,4 +70,5 @@ namespace Models
 		void toggleAccessibility() override;
 		void displayCardInfo() override;
 	};
+	export std::ostream& operator<<(std::ostream& os, const AgeCard& card);
 }
