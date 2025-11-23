@@ -48,13 +48,6 @@ Wonder::Wonder(
 	m_discardedCardColor = discardedCardColor;
 }
 
-//void Wonder::receiveMoneyAction(Player& player) { player.addCoins(kplayerReceivesMoney); }
-//void Wonder::opponentLosesMoneyAction(Player& opponent) { opponent.subtractCoins(static_cast<uint8_t>(-kopponentLosesMoney)); }
-//void Wonder::playSecondTurnAction(Player& /*player*/) { /* game engine hook */ }
-
-
-//void Wonder::m_chooseAndConstructBuildingAction(const std::vector<Card>& /*discardedCards*/) { /* UI + free build logic */ }
-//void Wonder::m_discardBrownCardFromOpponentAction(Player& /*opponent*/) { /* UI discard logic */ }
 
 std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
 {

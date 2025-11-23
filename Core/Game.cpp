@@ -46,7 +46,7 @@ void m_chooseAndConstructBuildingAction(const std::vector<Card>& discardedCards)
 {
 
 }
-void m_discardBrownCardFromOpponentAction(class Player& opponent)
+void m_discardCardFromOpponentAction(class Player& opponent, ColorType color)
 {
 
 }
