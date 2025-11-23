@@ -16,6 +16,7 @@ import Models.CoinWorthType;
 import Models.ColorType;
 import Models.Age;
 import Models.TradeRuleType;
+import Models.Token;
 
 using namespace Models;
 
@@ -108,5 +109,30 @@ GuildCard GuildCardFactory(const std::vector<std::string>& columns) {
 
 Wonder WonderFactory(const std::vector<std::string>& columns) {
     return Wonder();
+}
+
+std::vector<Token> ParseTokensFromCSV(const std::string& path) {
+    std::ifstream ifs(path);
+    if (!ifs.is_open()) throw std::runtime_error("Unable to open Token CSV file: " + path);
+    std::string header;
+    std::getline(ifs, header); 
+    std::vector<Token> tokens;
+    std::string line;
+    while (std::getline(ifs, line)) {
+        if (line.empty()) continue;
+        std::vector<std::string> columns;
+        std::istringstream ss(line);
+        std::string cell;
+        while (std::getline(ss, cell, ',')) columns.push_back(cell);
+        TokenType type = TokenType::PROGRESS;
+        try { if (columns.size() > 0) type = tokenTypeFromString(columns[0]); } catch (...) {}
+        std::string name = columns.size() > 1 ? columns[1] : "";
+        std::string description = columns.size() > 2 ? columns[2] : "";
+        uint8_t coins = (columns.size() > 3 && !columns[3].empty()) ? static_cast<uint8_t>(std::stoi(columns[3])) : 0;
+        uint8_t victory = (columns.size() > 4 && !columns[4].empty()) ? static_cast<uint8_t>(std::stoi(columns[4])) : 0;
+        uint8_t shield = (columns.size() > 5 && !columns[5].empty()) ? static_cast<uint8_t>(std::stoi(columns[5])) : 0;
+        tokens.emplace_back(type, name, description, std::make_tuple(coins, 0, 0), victory, shield);
+    }
+    return tokens;
 }
 
