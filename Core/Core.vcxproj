@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="Board.ixx" />
     <ClCompile Include="CardCsvParser.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="Node.ixx" />
     <ClCompile Include="Player.ixx" />
   </ItemGroup>

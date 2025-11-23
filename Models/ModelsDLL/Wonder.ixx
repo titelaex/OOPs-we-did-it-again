@@ -70,16 +70,8 @@ namespace Models
 
 		void displayCardInfo() override;
 
-		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens);
-		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens);
 
-		/*void m_receiveMoneyAction(class Player& player);
-		void m_opponentLosesMoneyAction(class Player& opponent);
-		void m_playSecondTurnAction(class Player& player);
-		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens);
-		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens);
-		void m_chooseAndConstructBuildingAction(const std::vector<Card>& discardedCards);
-		void m_discardBrownCardFromOpponentAction(class Player& opponent);*/
+		
 	};
 	export std::ostream& operator<<(std::ostream& os, const Wonder& card);
 }
