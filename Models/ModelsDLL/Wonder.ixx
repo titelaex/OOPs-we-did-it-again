@@ -39,9 +39,11 @@ namespace Models
 			CoinWorthType coinWorth,
 			uint8_t coinReward,
 			const std::string& caption,
+			ColorType color,
+			bool isVisible,
 			const std::string& modelPath,
 
-			const std::unordered_map<ResourceType, uint8_t>& resourceProduction,
+			ResourceType resourceProduction,
 			uint8_t shieldPoints,
 			uint8_t playerReceivesMoney,
 			uint8_t opponentLosesMoney,
@@ -67,6 +69,9 @@ namespace Models
 		void setDiscardCardFromOpponent(bool value) { m_discardCardFromOpponent = value; }
 
 		void displayCardInfo() override;
+
+		std::vector<Token> randomTokenSelector(std::vector<Token>& discardedTokens);
+		void m_drawProgressTokenAction(std::vector<Token>& discardedTokens);
 
 		/*void m_receiveMoneyAction(class Player& player);
 		void m_opponentLosesMoneyAction(class Player& opponent);
