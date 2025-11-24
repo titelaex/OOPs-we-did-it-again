@@ -54,6 +54,7 @@ export namespace Models
 		const std::string& GetCaption() const;
 		ColorType GetColor() const;
 		bool GetIsVisible() const;
+		bool GetIsAccessible() const;
 		const std::string& GetModelPath() const;
 
 		void SetName(const std::string& name);
@@ -64,6 +65,7 @@ export namespace Models
 		void SetCaption(const std::string& caption);
 		void SetColor(ColorType color);
 		void SetIsVisible(bool isVisible);
+		void SetIsAccessible(bool isAccessible);
 		void SetModelPath(const std::string& modelPath);
 		
 		virtual void toggleVisibility() override;

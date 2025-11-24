@@ -16,6 +16,7 @@ uint8_t Card::GetCoinReward() const { return m_coinReward; }
 const std::string& Card::GetCaption() const { return m_caption; }
 ColorType Card::GetColor() const { return m_color; }
 bool Card::GetIsVisible() const { return m_isVisibile; }
+bool Card::GetIsAccessible() const { return m_isAccessible; }
 const std::string& Card::GetModelPath() const { return m_modelPath; }
 
 void Card::SetName(const std::string& name) { m_name = name; }
@@ -26,6 +27,7 @@ void Card::SetCoinWorth(CoinWorthType coinWorth) { m_coinWorth = coinWorth; }
 void Card::SetCaption(const std::string& caption) { m_caption = caption; }
 void Card::SetColor(ColorType color) { m_color = color; }
 void Card::SetIsVisible(bool isVisible) { m_isVisibile = isVisible; }
+void Card::SetIsAccessible(bool isAccessible) { m_isAccessible = isAccessible; }
 void Card::SetModelPath(const std::string& modelPath) { m_modelPath = modelPath; }
 
 void Card::toggleVisibility() { m_isVisibile = !m_isVisibile; }

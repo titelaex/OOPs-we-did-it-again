@@ -1,3 +1,5 @@
+module Core.CardCsvParser;
+
 #include <vector>
 #include <string>
 #include <fstream>
@@ -6,6 +8,7 @@
 #include <functional>
 #include <algorithm>
 #include <unordered_map>
+
 import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
@@ -81,34 +84,104 @@ std::vector<T> ParseCardsFromCSV(const std::string& path, std::function<T(const 
 }
 
 AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
+    auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
+    auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
+    auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
+
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType,uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? ParseResourceMap(get(2)) : std::unordered_map<ResourceType,uint8_t>{};
+    uint8_t victoryPoints = parse_u8(3);
+    uint8_t shieldPoints = parse_u8(4);
+    uint8_t coinCost = parse_u8(5);
+    ScientificSymbolType scientificSymbols = ParseEnum(StringToScientificSymbolType(get(6)), ScientificSymbolType::NO_SYMBOL);
+    LinkingSymbolType hasLinkingSymbol = ParseEnum(StringToLinkingSymbolType(get(7)), LinkingSymbolType::NO_SYMBOL);
+    LinkingSymbolType requiresLinkingSymbol = ParseEnum(StringToLinkingSymbolType(get(8)), LinkingSymbolType::NO_SYMBOL);
+    CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(9)), CoinWorthType::VALUE);
+    uint8_t coinReward = parse_u8(10);
+    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 11 ? ParseTradeRuleMap(get(11)) : std::unordered_map<TradeRuleType,bool>{};
+    std::string caption = get(12);
+    ColorType color = ParseEnum(StringToColorType(get(13)), ColorType::BROWN);
+    bool isVisible = parse_bool(14);
+    std::string modelPath = get(15);
+    Age age = ParseEnum(stringToAge(get(16)), Age::AGE_I);
+
     return AgeCard(
-        columns[0],
-        ParseResourceMap(columns[1]),
-        ParseResourceMap(columns[2]),
-        static_cast<uint8_t>(std::stoi(columns[3])),
-        static_cast<uint8_t>(std::stoi(columns[4])),
-        static_cast<uint8_t>(std::stoi(columns[5])),
-        ParseEnum(StringToScientificSymbolType(columns[6]), ScientificSymbolType::NO_SYMBOL),
-        ParseEnum(StringToLinkingSymbolType(columns[7]), LinkingSymbolType::NO_SYMBOL),
-        ParseEnum(StringToLinkingSymbolType(columns[8]), LinkingSymbolType::NO_SYMBOL),
-        ParseEnum(StringToCoinWorthType(columns[9]), CoinWorthType::VALUE),
-        static_cast<uint8_t>(std::stoi(columns[10])),
-        ParseTradeRuleMap(columns[11]),
-        columns[12],
-        ParseEnum(StringToColorType(columns[13]), ColorType::BROWN),
-        columns[14] == "true",
-        columns[15],
-        ParseEnum(StringToAge(columns[16]), Age::AGE_I)
+        get(0),
+        resourceCost,
+        resourceProduction,
+        victoryPoints,
+        shieldPoints,
+        coinCost,
+        scientificSymbols,
+        hasLinkingSymbol,
+        requiresLinkingSymbol,
+        coinWorth,
+        coinReward,
+        tradeRules,
+        caption,
+        color,
+        isVisible,
+        modelPath,
+        age
     );
 }
 
 GuildCard GuildCardFactory(const std::vector<std::string>& columns) {
     std::vector<std::string> scoringRules;
-    return GuildCard(scoringRules);
+    if (columns.size() > 1) {
+        std::istringstream rs(columns[1]);
+        std::string token;
+        while (std::getline(rs, token, ';')) {
+            if (!token.empty()) scoringRules.push_back(token);
+        }
+    }
+    std::string name = columns.size() > 0 ? columns[0] : std::string{};
+    return GuildCard(name, scoringRules);
 }
 
 Wonder WonderFactory(const std::vector<std::string>& columns) {
-    return Wonder();
+    auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
+    auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
+    auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
+
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(columns[1]) : std::unordered_map<ResourceType,uint8_t>{};
+    uint8_t victoryPoints = parse_u8(2);
+    CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(3)), CoinWorthType::VALUE);
+    uint8_t coinReward = parse_u8(4);
+    std::string caption = get(5);
+    ColorType color = ParseEnum(StringToColorType(get(6)), ColorType::BROWN);
+    bool isVisible = parse_bool(7);
+    std::string modelPath = get(8);
+    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::CLAY);
+    uint8_t shieldPoints = parse_u8(10);
+    uint8_t playerReceivesMoney = parse_u8(11);
+    uint8_t opponentLosesMoney = parse_u8(12);
+    bool discardCardFromOpponent = parse_bool(13);
+    bool playSecondTurn = parse_bool(14);
+    bool drawProgressTokens = parse_bool(15);
+    bool chooseAndConstructBuilding = parse_bool(16);
+    ColorType discardedCardColor = ParseEnum(StringToColorType(get(17)), ColorType::BROWN);
+
+    return Wonder(
+        get(0),
+        resourceCost,
+        victoryPoints,
+        coinWorth,
+        coinReward,
+        caption,
+        color,
+        isVisible,
+        modelPath,
+        resourceProduction,
+        shieldPoints,
+        playerReceivesMoney,
+        opponentLosesMoney,
+        discardCardFromOpponent,
+        playSecondTurn,
+        drawProgressTokens,
+        chooseAndConstructBuilding,
+        discardedCardColor
+    );
 }
 
 std::vector<Token> ParseTokensFromCSV(const std::string& path) {

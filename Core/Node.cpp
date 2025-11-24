@@ -1,6 +1,6 @@
-module;
-#include <utility>
 module Core.Node;
+
+#include <utility>
 
 import Core.Node;
 import Models.Card;
@@ -8,12 +8,11 @@ import <memory>;
 
 namespace Core {
 
-Node::Node(std::unique_ptr<Models::Card> card, std::unique_ptr<Node> child1, std::unique_ptr<Node> child2)
-    : m_card(std::move(card)), m_child1(std::move(child1)), m_child2(std::move(child2)) {}
-
-Node::Node(Node&&) noexcept = default;
-Node& Node::operator=(Node&&) noexcept = default;
-
-Node::~Node() = default;
+Node::Node(std::unique_ptr<Models::Card> card, Node* child1, Node* child2)
+    : m_card(std::move(card)), m_child1(child1), m_child2(child2)
+{
+    if (m_child1) { if (m_child1->getParent1() == nullptr) m_child1->setParent1(this); else m_child1->setParent2(this); }
+    if (m_child2) { if (m_child2->getParent1() == nullptr) m_child2->setParent1(this); else m_child2->setParent2(this); }
+}
 
 }

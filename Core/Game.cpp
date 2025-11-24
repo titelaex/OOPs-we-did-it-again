@@ -50,8 +50,3 @@ void m_discardCardFromOpponentAction(class Player& opponent, Models::ColorType c
 {
 
 }
-
-int main()
-{
-	
-}

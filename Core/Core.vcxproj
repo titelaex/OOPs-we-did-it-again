@@ -130,13 +130,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Board.cpp" />
     <ClCompile Include="Board.ixx" />
     <ClCompile Include="CardCsvParser.cpp" />
+    <ClCompile Include="CardCsvParser.ixx" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Node.ixx" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Player.ixx" />
+    <ClCompile Include="Preparation.cpp" />
+    <ClCompile Include="Preparation.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
