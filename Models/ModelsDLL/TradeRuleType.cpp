@@ -1,5 +1,6 @@
 module Models.TradeRuleType;
 import Models.TradeRuleType;
+import <optional>;
 import <string>;
 
 using namespace Models;
@@ -17,11 +18,11 @@ std::string Models::tradeRuleTypeToString(TradeRuleType tradeRule)
 	}
 }
 
-export __declspec(dllexport) std::optional<TradeRuleType> StringToTradeRuleType(const std::string& str) {
-    if (str == "CLAY") return TradeRuleType::CLAY;
-    if (str == "WOOD") return TradeRuleType::WOOD;
-    if (str == "STONE") return TradeRuleType::STONE;
-    if (str == "GLASS") return TradeRuleType::GLASS;
-    if (str == "PAPYRUS") return TradeRuleType::PAPYRUS;
+std::optional<Models::TradeRuleType> StringToTradeRuleType(const std::string& str) {
+    if (str == "CLAY") return Models::TradeRuleType::CLAY;
+    if (str == "WOOD") return Models::TradeRuleType::WOOD;
+    if (str == "STONE") return Models::TradeRuleType::STONE;
+    if (str == "GLASS") return Models::TradeRuleType::GLASS;
+    if (str == "PAPYRUS") return Models::TradeRuleType::PAPYRUS;
     return std::nullopt;
 }

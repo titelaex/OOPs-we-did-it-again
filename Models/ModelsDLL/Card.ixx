@@ -27,11 +27,11 @@ export namespace Models
 		std::string m_modelPath = "UI path placeholder";
 
 	public:
-		Card() = delete;
-		Card(const Card& other) = delete;
-		virtual Card& operator=(const Card& other) = delete;
-		Card(Card&& other) = default;
-		virtual Card& operator=(Card&& other) = default;
+		Card() = default;
+		Card(const Card& other) = default;
+		virtual Card& operator=(const Card& other) = default;
+		Card(Card&& other);
+		virtual Card& operator=(Card&& other);
 		virtual ~Card() = default;
 
 		Card(

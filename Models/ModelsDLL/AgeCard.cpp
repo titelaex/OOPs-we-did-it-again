@@ -13,9 +13,6 @@ import <unordered_map>;
 
 using namespace Models;
 
-AgeCard::AgeCard(AgeCard&& other) noexcept = default;
-AgeCard& AgeCard::operator=(AgeCard&& other) noexcept = default;
-
 const std::unordered_map<ResourceType, uint8_t>& AgeCard::getResourceProduction() const { return m_resourceProduction; }
 uint8_t AgeCard::getShieldPoints() const { return m_shieldPoints; }
 ScientificSymbolType AgeCard::getScientificSymbols() const { return m_scientificSymbols; }

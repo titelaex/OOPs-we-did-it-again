@@ -3,20 +3,20 @@ module Models.Age;
 import <string>;
 import <optional>;
 
-export __declspec(dllexport) std::string Models::ageToString(Age a)
+std::string AgeToString(Models::Age a)
 {
 	switch (a)
 	{
-	case Age::AGE_I: return "I";
-	case Age::AGE_II: return "II";
-	case Age::AGE_III: return "III";
+	case Models::Age::AGE_I: return "I";
+	case Models::Age::AGE_II: return "II";
+	case Models::Age::AGE_III: return "III";
 	default: return "Unknown";
 	}
 }
 
-export __declspec(dllexport) std::optional<Models::Age> Models::stringToAge(const std::string& str) {
-    if (str == "AGE_I") return Age::AGE_I;
-    if (str == "AGE_II") return Age::AGE_II;
-    if (str == "AGE_III") return Age::AGE_III;
+std::optional<Models::Age> StringToAge(const std::string& str) {
+    if (str == "AGE_I") return Models::Age::AGE_I;
+    if (str == "AGE_II") return Models::Age::AGE_II;
+    if (str == "AGE_III") return Models::Age::AGE_III;
     return std::nullopt;
 }

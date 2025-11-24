@@ -6,7 +6,7 @@ using namespace Models;
 
 uint8_t Player::totalCoins(std::tuple<uint8_t, uint8_t, uint8_t> coins) { return std::get<0>(coins) + std::get<1>(coins) * 3 + std::get<2>(coins) * 6; }
 
-uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + progressVictoryPoints; }
+uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
 
 Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), kplayerUsername(username)
 {

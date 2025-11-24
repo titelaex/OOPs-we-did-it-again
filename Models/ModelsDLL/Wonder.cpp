@@ -1,6 +1,5 @@
 module Models.Wonder;
 import Models.Card;
-import Models.Player; // ensure Player available for action methods
 import Models.ResourceType;
 import Models.Token;
 import <random>;
@@ -11,9 +10,6 @@ import <iostream>;
 import <unordered_map>;
 
 using namespace Models;
-
-Wonder::Wonder(Wonder&& other) noexcept = default;
-Wonder& Wonder::operator=(Wonder&& other) noexcept = default;
 
 Wonder::Wonder(
 	const std::string& name,
@@ -69,4 +65,18 @@ std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
 	os << "Choose and Construct Building: " << (card.getChooseAndConstructBuilding() ? "Yes" : "No") << '\n';
 	os << "Discard Card From Opponent: " << (card.getDiscardCardFromOpponent() ? "Yes" : "No") << '\n';
 	return os;
+}
+
+void Wonder::displayCardInfo()
+{
+	Card::displayCardInfo();
+	std::cout << " Resource Production: " << static_cast<int>(m_resourceProduction) << "\n";
+	std::cout << " Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
+	std::cout << " Player Receives Money: " << static_cast<int>(m_playerReceivesMoney) << "\n";
+	std::cout << " Opponent Loses Money: " << static_cast<int>(m_opponentLosesMoney) << "\n";
+	std::cout << " Play Second Turn: " << (m_playSecondTurn ? "Yes" : "No") << "\n";
+	std::cout << " Draw Progress Tokens: " << (m_drawProgressTokens ? "Yes" : "No") << "\n";
+	std::cout << " Choose and Construct Building: " << (m_chooseAndConstructBuilding ? "Yes" : "No") << "\n";
+	std::cout << " Discard Card From Opponent: " << (m_discardCardFromOpponent ? "Yes" : "No") << "\n";
+	std::cout << " Discarded Card Color: " << static_cast<int>(m_discardedCardColor) << "\n";
 }

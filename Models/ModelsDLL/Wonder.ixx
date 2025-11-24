@@ -26,8 +26,8 @@ namespace Models
 	public:
 	
 		Wonder() = delete;
-		Wonder(const Wonder& other) = delete;
-		Wonder& operator=(const Wonder& other) = delete;
+		Wonder(const Wonder& other) = default;
+		Wonder& operator=(const Wonder& other) = default;
 		Wonder(Wonder&& other) = default;
 		Wonder& operator=(Wonder&& other) = default;
 		~Wonder() = default;

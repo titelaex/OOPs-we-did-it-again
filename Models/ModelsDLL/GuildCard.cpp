@@ -36,11 +36,8 @@ GuildCard::GuildCard(const std::string& name, const std::vector<std::string>& sc
 {
 }
 
-GuildCard::GuildCard(const GuildCard& other)
-	: Card(other), m_guildName(other.m_guildName), m_scoringRules(other.m_scoringRules) {}
 GuildCard::GuildCard(GuildCard&& other) noexcept
 	: Card(std::move(other)), m_guildName(std::move(other.m_guildName)), m_scoringRules(std::move(other.m_scoringRules)) {}
-GuildCard& GuildCard::operator=(const GuildCard& other) { if (this != &other) { Card::operator=(other); m_guildName = other.m_guildName; m_scoringRules = other.m_scoringRules; } return *this; }
 GuildCard& GuildCard::operator=(GuildCard&& other) noexcept { if (this != &other) { Card::operator=(std::move(other)); m_guildName = std::move(other.m_guildName); m_scoringRules = std::move(other.m_scoringRules); } return *this; }
 
 const std::string& GuildCard::GetGuildName() const noexcept { return m_guildName; }

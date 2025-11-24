@@ -5,8 +5,8 @@ import <iostream>;
 
 using namespace Models;
 
-Card::Card(Card&& other) noexcept = default;
-Card& Card::operator=(Card&& other) noexcept = default;
+Card::Card(Card&& other) = default;
+Card& Card::operator=(Card&& other) = default;
 
 const std::string& Card::GetName() const { return m_name; }
 const std::unordered_map<ResourceType, uint8_t>& Card::GetResourceCost() const { return m_resourceCost; }
