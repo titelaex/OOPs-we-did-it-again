@@ -23,11 +23,35 @@ import Models.Token;
 
 using namespace Models;
 
+// Helper function to parse a single line of CSV, handling quoted fields
+std::vector<std::string> ParseCsvLine(const std::string& line) {
+    std::vector<std::string> columns;
+    std::stringstream ss(line);
+    std::string cell;
+    bool in_quotes = false;
+    char c;
+
+    while (ss.get(c)) {
+        if (c == '"') {
+            in_quotes = !in_quotes;
+        } else if (c == ',' && !in_quotes) {
+            columns.push_back(cell);
+            cell.clear();
+        } else {
+            cell += c;
+        }
+    }
+    columns.push_back(cell); // Add the last cell
+    return columns;
+}
+
 std::unordered_map<ResourceType, uint8_t> ParseResourceMap(const std::string& str) {
     std::unordered_map<ResourceType, uint8_t> map;
     std::istringstream ss(str);
     std::string token;
-    while (std::getline(ss, token, ',')) {
+    // Revert to comma as the delimiter for resource lists.
+    // This ensures it works for both AgeCards and Wonders.
+    while (std::getline(ss, token, ',')) {  
         auto pos = token.find(':');
         if (pos != std::string::npos) {
             std::string resStr = token.substr(0, pos);
@@ -45,7 +69,7 @@ std::unordered_map<TradeRuleType, bool> ParseTradeRuleMap(const std::string& str
     std::unordered_map<TradeRuleType, bool> map;
     std::istringstream ss(str);
     std::string token;
-    while (std::getline(ss, token, ',')) {
+    while (std::getline(ss, token, ';')) { // Use semicolon as a safer delimiter
         auto pos = token.find(':');
         if (pos != std::string::npos) {
             std::string ruleStr = token.substr(0, pos);
@@ -73,11 +97,8 @@ std::vector<T> ParseCardsFromCSV(const std::string& path, std::function<T(const 
     std::vector<T> cards;
     std::string line;
     while (std::getline(ifs, line)) {
-        if (line.empty()) continue;
-        std::vector<std::string> columns;
-        std::istringstream ss(line);
-        std::string cell;
-        while (std::getline(ss, cell, ',')) columns.push_back(cell);
+        if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) continue;
+        std::vector<std::string> columns = ParseCsvLine(line);
         cards.push_back(factory(columns));
     }
     return cards;
@@ -149,18 +170,17 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(3)), CoinWorthType::VALUE);
     uint8_t coinReward = parse_u8(4);
     std::string caption = get(5);
-    ColorType color = ParseEnum(StringToColorType(get(6)), ColorType::BROWN);
+    ColorType color = ParseEnum(StringToColorType(get(6)), ColorType::NO_COLOR);
     bool isVisible = parse_bool(7);
     std::string modelPath = get(8);
-    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::CLAY);
+    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::NONE);
     uint8_t shieldPoints = parse_u8(10);
-    uint8_t playerReceivesMoney = parse_u8(11);
-    uint8_t opponentLosesMoney = parse_u8(12);
-    bool discardCardFromOpponent = parse_bool(13);
-    bool playSecondTurn = parse_bool(14);
-    bool drawProgressTokens = parse_bool(15);
-    bool chooseAndConstructBuilding = parse_bool(16);
-    ColorType discardedCardColor = ParseEnum(StringToColorType(get(17)), ColorType::BROWN);
+    uint8_t opponentLosesMoney = parse_u8(11);
+    bool discardCardFromOpponent = parse_bool(12);
+    bool playSecondTurn = parse_bool(13);
+    bool drawProgressTokens = parse_bool(14);
+    bool chooseAndConstructBuilding = parse_bool(15);
+    ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NONE);
 
     return Wonder(
         get(0),
@@ -172,13 +192,12 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
         color,
         isVisible,
         modelPath,
-        resourceProduction,
-        shieldPoints,
-        playerReceivesMoney,
         opponentLosesMoney,
-        discardCardFromOpponent,
+        shieldPoints,
+        resourceProduction,
         playSecondTurn,
         drawProgressTokens,
+        discardCardFromOpponent,
         chooseAndConstructBuilding,
         discardedCardColor
     );
@@ -193,10 +212,7 @@ std::vector<Token> ParseTokensFromCSV(const std::string& path) {
     std::string line;
     while (std::getline(ifs, line)) {
         if (line.empty()) continue;
-        std::vector<std::string> columns;
-        std::istringstream ss(line);
-        std::string cell;
-        while (std::getline(ss, cell, ',')) columns.push_back(cell);
+        std::vector<std::string> columns = ParseCsvLine(line);
         TokenType type = TokenType::PROGRESS;
         try { if (columns.size() > 0) type = tokenTypeFromString(columns[0]); } catch (...) {}
         std::string name = columns.size() > 1 ? columns[1] : "";

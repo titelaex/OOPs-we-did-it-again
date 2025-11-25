@@ -8,6 +8,7 @@ export namespace Models
 {
 	export enum class __declspec(dllexport) ColorType : uint8_t
 	{
+		NO_COLOR,
 		BROWN,
 		GREY,
 		RED,

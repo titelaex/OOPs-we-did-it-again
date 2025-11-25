@@ -8,6 +8,7 @@ import <optional>;
 
 export namespace Models {
     export enum class __declspec(dllexport) ResourceType : uint8_t {
+        NO_RESOURCE,
         CLAY,
         WOOD,
         STONE,

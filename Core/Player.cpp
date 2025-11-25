@@ -34,9 +34,6 @@ void Core::Player::playCardWonder(Models::Wonder& wonder, Models::Card& ageCard,
     ageCard.toggleVisibility(); // mark as discarded
 
     // 5. Trigger Wonder effects
-    if (wonder.getPlayerReceivesMoney() > 0)
-        ; // placeholder: implement interaction with Player
-
     if (wonder.getOpponentLosesMoney() > 0)
         ; // placeholder
 
