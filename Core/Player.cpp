@@ -49,7 +49,7 @@ void Core::Player::playCardWonder(Models::Wonder& wonder, Models::Card& ageCard,
     if (wonder.getChooseAndConstructBuilding())
         ; // placeholder
 
-    if (wonder.getDiscardBrownCardFromOpponent())
+    if (wonder.getDiscardCardFromOpponent())
         ; // placeholder
 
     // 6. Add Wonder to player's built list
@@ -74,7 +74,8 @@ void Core::Player::playCardBuilding(Models::Card& card, Models::Player& opponent
         return;
     }
 
-    // Check for chain construction
+    // Chain construction logic requires specific card APIs; commented out for now
+    /*
     if (card.GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
     {
         for (const auto& ownedCard : m_player.getOwnedCards())
@@ -89,9 +90,10 @@ void Core::Player::playCardBuilding(Models::Card& card, Models::Player& opponent
             }
         }
     }
+    */
 
-    // Check if card is free
-    if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
+    // Check if card is free (resource cost only checked; coin-cost logic omitted)
+    if (card.GetResourceCost().empty() /* && coin-cost omitted */)
     {
         m_player.addCard(card);
         card.SetIsVisible(false);
@@ -126,17 +128,20 @@ bool Core::Player::canAffordWonder(const Models::Wonder& wonder, const Models::P
 
     uint8_t totalAvailableCoins = m_player.totalCoins(m_player.getRemainingCoins());
 
-    for (const auto& [resource, requiredAmount] : cost)
+    for (const auto& kv : cost)
     {
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
+
         uint8_t produced = 0;
-        if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-        if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
+        uint8_t opponentProduction = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentProduction;
         uint8_t totalCost = costPerUnit * missing;
 
@@ -157,17 +162,20 @@ void Core::Player::payForWonder(const Models::Wonder& wonder, const Models::Play
 
     uint8_t totalCoinsToPay = 0;
 
-    for (const auto& [resource, requiredAmount] : cost)
+    for (const auto& kv : cost)
     {
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
+
         uint8_t produced = 0;
-        if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-        if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
+        uint8_t opponentProduction = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentProduction;
 
         totalCoinsToPay += costPerUnit * missing;
@@ -185,11 +193,12 @@ void Core::Player::discardRemainingWonder()
 
 bool Core::Player::canAffordCard(const Models::Card& card, const Models::Player& opponent)
 {
-    // 1. Free card
-    if (card.GetResourceCost().empty() && card.GetCoinValue() == 0)
+    // 1. Free card (coin-cost omitted)
+    if (card.GetResourceCost().empty() /* && coin-cost omitted */)
         return true;
 
-    // 2. Chain construction
+    // 2. Chain construction (commented out; requires card linking APIs)
+    /*
     if (card.GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
     {
         for (const auto& ownedCard : m_player.getOwnedCards())
@@ -198,6 +207,7 @@ bool Core::Player::canAffordCard(const Models::Card& card, const Models::Player&
                 return true;
         }
     }
+    */
 
     // 3. Resource cost
     const auto& cost = card.GetResourceCost();
@@ -207,17 +217,20 @@ bool Core::Player::canAffordCard(const Models::Card& card, const Models::Player&
 
     uint8_t availableCoins = m_player.totalCoins(m_player.getRemainingCoins());
 
-    for (const auto& [resource, requiredAmount] : cost)
+    for (const auto& kv : cost)
     {
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
+
         uint8_t produced = 0;
-        if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-        if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentAmount = opponentProduction.contains(resource) ? opponentProduction.at(resource) : 0;
+        uint8_t opponentAmount = (opponentProduction.find(resource) != opponentProduction.end()) ? opponentProduction.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentAmount;
 
         uint8_t totalCost = costPerUnit * missing;
@@ -237,17 +250,20 @@ void Core::Player::payForCard(const Models::Card& card, const Models::Player& op
 
     uint8_t totalCoinsToPay = 0;
 
-    for (const auto& [resource, requiredAmount] : cost)
+    for (const auto& kv : cost)
     {
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
+
         uint8_t produced = 0;
-        if (ownPermanent.contains(resource)) produced += ownPermanent.at(resource);
-        if (ownTrading.contains(resource)) produced += ownTrading.at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = opponentPermanent.contains(resource) ? opponentPermanent.at(resource) : 0;
+        uint8_t opponentProduction = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentProduction;
 
         totalCoinsToPay += costPerUnit * missing;

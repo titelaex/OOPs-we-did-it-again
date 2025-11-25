@@ -71,5 +71,9 @@ export namespace Models
 		virtual void toggleVisibility() override;
 		virtual void toggleAccessibility() override;
 		virtual void displayCardInfo() override;
+
+		// Convenience alias used by external code to display card details.
+		// For backward compatibility we forward to the virtual displayCardInfo implementation.
+		void displayCard() { displayCardInfo(); }
 	};
 }

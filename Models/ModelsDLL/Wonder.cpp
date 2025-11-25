@@ -37,10 +37,12 @@ Wonder::Wonder(
 	m_shieldPoints = shieldPoints;
 	m_playerReceivesMoney = playerReceivesMoney;
 	m_opponentLosesMoney = opponentLosesMoney;
-	m_discardCardFromOpponent = discardCardFromOpponent;
-	m_playSecondTurn = playSecondTurn;
-	m_drawProgressTokens = drawProgressTokens;
-	m_chooseAndConstructBuilding = chooseAndConstructBuilding;
+	m_flags.reset();
+	m_flags.set(0, playSecondTurn);
+	m_flags.set(1, drawProgressTokens);
+	m_flags.set(2, chooseAndConstructBuilding);
+	m_flags.set(3, discardCardFromOpponent);
+	m_flags.set(4, false); // constructed flag
 	m_discardedCardColor = discardedCardColor;
 }
 
@@ -74,9 +76,9 @@ void Wonder::displayCardInfo()
 	std::cout << " Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
 	std::cout << " Player Receives Money: " << static_cast<int>(m_playerReceivesMoney) << "\n";
 	std::cout << " Opponent Loses Money: " << static_cast<int>(m_opponentLosesMoney) << "\n";
-	std::cout << " Play Second Turn: " << (m_playSecondTurn ? "Yes" : "No") << "\n";
-	std::cout << " Draw Progress Tokens: " << (m_drawProgressTokens ? "Yes" : "No") << "\n";
-	std::cout << " Choose and Construct Building: " << (m_chooseAndConstructBuilding ? "Yes" : "No") << "\n";
-	std::cout << " Discard Card From Opponent: " << (m_discardCardFromOpponent ? "Yes" : "No") << "\n";
+	std::cout << " Play Second Turn: " << (getPlaySecondTurn() ? "Yes" : "No") << "\n";
+	std::cout << " Draw Progress Tokens: " << (getDrawProgressTokens() ? "Yes" : "No") << "\n";
+	std::cout << " Choose and Construct Building: " << (getChooseAndConstructBuilding() ? "Yes" : "No") << "\n";
+	std::cout << " Discard Card From Opponent: " << (getDiscardCardFromOpponent() ? "Yes" : "No") << "\n";
 	std::cout << " Discarded Card Color: " << static_cast<int>(m_discardedCardColor) << "\n";
 }
