@@ -12,3 +12,18 @@ std::optional<Models::ColorType> Models::StringToColorType(const std::string& st
     if (str == "PURPLE") return Models::ColorType::PURPLE;
     return std::nullopt;
 }
+
+std::string Models::ColorTypeToString(Models::ColorType c)
+{
+	switch (c) {
+	case Models::ColorType::BROWN: return "BROWN";
+	case Models::ColorType::GREY: return "GREY";
+	case Models::ColorType::RED: return "RED";
+	case Models::ColorType::YELLOW: return "YELLOW";
+	case Models::ColorType::GREEN: return "GREEN";
+	case Models::ColorType::BLUE: return "BLUE";
+	case Models::ColorType::PURPLE: return "PURPLE";
+	default: return "UNKNOWN";
+	}
+}
+

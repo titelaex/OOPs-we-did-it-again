@@ -8,7 +8,7 @@ import <unordered_map>;
 import Models.Token;
 import Models.ResourceType;
 import Models.Card; 
-import Models.Wonder; // provide full Wonder definition
+import Models.Wonder; 
 
 namespace Models
 {
@@ -17,7 +17,6 @@ namespace Models
 	private:
 		const uint8_t kplayerId;
 		const std::string kplayerUsername;
-		//uint8_t positionOnBoard; move to board
 		std::vector<Wonder> m_ownedWonders;
 		std::vector<Card> m_ownedCards;
 		std::vector<Token> m_ownedTokens;

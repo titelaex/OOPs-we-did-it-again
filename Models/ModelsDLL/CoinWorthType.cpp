@@ -11,3 +11,16 @@ std::optional<Models::CoinWorthType> Models::StringToCoinWorthType(const std::st
     if (str == "RED") return Models::CoinWorthType::RED;
     return std::nullopt;
 }
+
+std::string Models::CoinWorthTypeToString(Models::CoinWorthType w)
+{
+	switch (w) {
+	case Models::CoinWorthType::VALUE: return "VALUE";
+	case Models::CoinWorthType::WONDER: return "WONDER";
+	case Models::CoinWorthType::GREY: return "GREY";
+	case Models::CoinWorthType::BROWN: return "BROWN";
+	case Models::CoinWorthType::YELLOW: return "YELLOW";
+	case Models::CoinWorthType::RED: return "RED";
+	default: return "UNKNOWN";
+	}
+}

@@ -13,3 +13,18 @@ std::optional<Models::ScientificSymbolType> Models::StringToScientificSymbolType
     if (str == "SCALE") return Models::ScientificSymbolType::SCALE;
     return std::nullopt;
 }
+
+std::string Models::ScientificSymbolTypeToString(Models::ScientificSymbolType s)
+{
+    switch (s) {
+    case Models::ScientificSymbolType::NO_SYMBOL: return "NO_SYMBOL";
+    case Models::ScientificSymbolType::GLOBE: return "GLOBE";
+    case Models::ScientificSymbolType::WHEEL: return "WHEEL";
+    case Models::ScientificSymbolType::CLOCK: return "CLOCK";
+    case Models::ScientificSymbolType::MOJAR: return "MOJAR";
+    case Models::ScientificSymbolType::PENDULUM: return "PENDULUM";
+    case Models::ScientificSymbolType::FEATHER: return "FEATHER";
+    case Models::ScientificSymbolType::SCALE: return "SCALE";
+    default: return "UNKNOWN";
+    }
+}

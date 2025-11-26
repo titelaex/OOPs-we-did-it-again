@@ -28,4 +28,5 @@ export namespace Models {
 	};
 
 	export __declspec(dllexport) std::optional<LinkingSymbolType> StringToLinkingSymbolType(const std::string& str);
+	export __declspec(dllexport) std::string LinkingSymbolTypeToString(Models::LinkingSymbolType s);
 };

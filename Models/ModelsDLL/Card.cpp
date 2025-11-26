@@ -5,6 +5,7 @@ import <iostream>;
 
 using namespace Models;
 
+
 Card::Card(Card&& other) = default;
 Card& Card::operator=(Card&& other) = default;
 
@@ -32,9 +33,21 @@ void Card::SetModelPath(const std::string& modelPath) { m_modelPath = modelPath;
 
 void Card::toggleVisibility() { m_isVisibile = !m_isVisibile; }
 void Card::toggleAccessibility() { m_isAccessible = !m_isAccessible; }
-void Card::displayCardInfo()
-{
 
+void Card::displayCardInfo() {
+	std::cout << "Card Name: " << m_name << '\n';
+	std::cout << "Caption: " << m_caption << '\n';
+	std::cout << "Model Path: " << m_modelPath << '\n';
+	std::cout << "Color: " << ColorTypeToString(m_color) << '\n';
+	std::cout << "Visible: " << (m_isVisibile ? "Yes" : "No")
+		<< ", Accessible: " << (m_isAccessible ? "Yes" : "No") << '\n';
+	std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
+	std::cout << "Coin Worth: " << CoinWorthTypeToString(m_coinWorth)
+		<< ", Coin Reward: " << static_cast<int>(m_coinReward) << '\n';
+	std::cout << "Resource Cost:" << '\n';
+	for (const auto& kv : m_resourceCost) {
+		std::cout << " - " << ResourceTypeToString(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
+	}
 }
 
 Card::Card(

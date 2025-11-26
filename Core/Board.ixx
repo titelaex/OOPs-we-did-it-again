@@ -26,6 +26,7 @@ export namespace Core {
     
     export void SetupCardPools();
     export void displayBoard();
+	export void displayEntireBoard();
 
     export extern std::vector<std::unique_ptr<Node>> age1Nodes;
     export extern std::vector<std::unique_ptr<Node>> age2Nodes;

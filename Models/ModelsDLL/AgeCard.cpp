@@ -13,6 +13,8 @@ import <unordered_map>;
 
 using namespace Models;
 
+
+
 const std::unordered_map<ResourceType, uint8_t>& AgeCard::getResourceProduction() const { return m_resourceProduction; }
 uint8_t AgeCard::getShieldPoints() const { return m_shieldPoints; }
 ScientificSymbolType AgeCard::getScientificSymbols() const { return m_scientificSymbols; }
@@ -63,16 +65,16 @@ void AgeCard::displayCardInfo() {
 	Card::displayCardInfo();
 	std::cout << " Resource Production: ";
 	for (const auto& kv : m_resourceProduction) {
-		std::cout << static_cast<int>(kv.first) << ":" << static_cast<int>(kv.second) << " ";
+		std::cout << ResourceTypeToString(kv.first) << ":" << static_cast<int>(kv.second) << " ";
 	}
 	std::cout << "\n";
 	std::cout << " Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
-	std::cout << " Scientific Symbol: " << static_cast<int>(m_scientificSymbols) << "\n";
-	std::cout << " Has Linking Symbol: " << static_cast<int>(m_hasLinkingSymbol) << "\n";
-	std::cout << " Requires Linking Symbol: " << static_cast<int>(m_requiresLinkingSymbol) << "\n";
+	std::cout << " Scientific Symbol: " << ScientificSymbolTypeToString(m_scientificSymbols) << "\n";
+	std::cout << " Has Linking Symbol: " << LinkingSymbolTypeToString(m_hasLinkingSymbol) << "\n";
+	std::cout << " Requires Linking Symbol: " << LinkingSymbolTypeToString(m_requiresLinkingSymbol) << "\n";
 	std::cout << " Trade Rules: ";
 	for (const auto& kv : m_tradeRules) {
-		std::cout << static_cast<int>(kv.first) << ":" << (kv.second ? "true" : "false") << " ";
+		std::cout << ResourceTypeToString(static_cast<ResourceType>(kv.first)) << ":" << (kv.second ? "true" : "false") << " ";
 	}
 	std::cout << "\n";
 	std::cout << " Age: " << static_cast<int>(m_age) << "\n";
@@ -81,26 +83,26 @@ void AgeCard::displayCardInfo() {
 std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
 {
 	os << "Card Name: " << card.GetName() << '\n';
-	os << "Color: " << static_cast<int>(card.GetColor()) << '\n';
+	os << "Color: " << ColorTypeToString(card.GetColor()) << '\n';
 	os << "Caption: " << card.GetCaption() << '\n';
 	os << "Model Path: " << card.GetModelPath() << '\n';
 	os << "Visible: " << (card.GetIsVisible() ? "Yes" : "No") << '\n';
 	os << "Resource Cost:" << '\n';
 	for (const auto& [res, amt] : card.GetResourceCost())
-		os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
+		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
 	os << "Resource Production:" << '\n';
 	for (const auto& [res, amt] : card.getResourceProduction())
-		os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
+		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
 	os << "Victory Points: " << static_cast<int>(card.GetVictoryPoints()) << '\n';
 	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
-	os << "Scientific Symbol: " << static_cast<int>(card.getScientificSymbols()) << '\n';
-	os << "Linking Symbol Provided: " << static_cast<int>(card.getHasLinkingSymbol()) << '\n';
-	os << "Linking Symbol Required: " << static_cast<int>(card.getRequiresLinkingSymbol()) << '\n';
-	os << "Coin Worth Type: " << static_cast<int>(card.GetCoinWorth()) << '\n';
+	os << "Scientific Symbol: " << ScientificSymbolTypeToString(card.getScientificSymbols()) << '\n';
+	os << "Linking Symbol Provided: " << LinkingSymbolTypeToString(card.getHasLinkingSymbol()) << '\n';
+	os << "Linking Symbol Required: " << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol()) << '\n';
+	os << "Coin Worth Type: " << CoinWorthTypeToString(card.GetCoinWorth()) << '\n';
 	os << "Coin Reward: " << static_cast<int>(card.GetCoinReward()) << '\n';
 	os << "Trade Rules:" << '\n';
 	for (const auto& [rule, enabled] : card.getTradeRules())
-		os << " - " << static_cast<int>(rule) << ": " << (enabled ? "Enabled" : "Disabled") << '\n';
+		os << " - " << ResourceTypeToString(static_cast<ResourceType>(rule)) << ": " << (enabled ? "Enabled" : "Disabled") << '\n';
 	os << "Age: " << static_cast<int>(card.getAge()) << '\n';
 	return os;
 }

@@ -19,4 +19,5 @@ namespace Models
 	};
 
 	export __declspec(dllexport) std::optional<ScientificSymbolType> StringToScientificSymbolType(const std::string& str);
+	export __declspec(dllexport) std::string ScientificSymbolTypeToString(ScientificSymbolType s);
 }

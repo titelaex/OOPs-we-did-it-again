@@ -19,4 +19,5 @@ export namespace Models
 	};
 
 	export __declspec(dllexport) std::optional<ColorType> StringToColorType(const std::string& str);
+	export __declspec(dllexport) std::string ColorTypeToString(Models::ColorType c);
 }

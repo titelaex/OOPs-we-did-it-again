@@ -31,4 +31,5 @@ std::optional<ResourceType> StringToResourceType(const std::string& str) {
     return std::nullopt;
 }
 
+
 } // namespace Models

@@ -17,4 +17,5 @@ export namespace Models
 	};
 
 	export __declspec(dllexport) std::optional<CoinWorthType> StringToCoinWorthType(const std::string& str);
+	export __declspec(dllexport) std::string CoinWorthTypeToString(Models::CoinWorthType w);
 }

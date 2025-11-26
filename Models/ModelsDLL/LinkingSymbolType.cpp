@@ -23,3 +23,28 @@ std::optional<Models::LinkingSymbolType> Models::StringToLinkingSymbolType(const
     if (str == "LAMP") return Models::LinkingSymbolType::LAMP;
     return std::nullopt;
 }
+
+std::string Models::LinkingSymbolTypeToString(Models::LinkingSymbolType s)
+{
+    switch (s) {
+    case Models::LinkingSymbolType::NO_SYMBOL: return "NO_SYMBOL";
+    case Models::LinkingSymbolType::VESSEL: return "VESSEL";
+    case Models::LinkingSymbolType::BARREL: return "BARREL";
+    case Models::LinkingSymbolType::DRAMA: return "DRAMA";
+    case Models::LinkingSymbolType::TEMPLE: return "TEMPLE";
+    case Models::LinkingSymbolType::SUN: return "SUN";
+    case Models::LinkingSymbolType::WATER: return "WATER";
+    case Models::LinkingSymbolType::PILLAR: return "PILLAR";
+    case Models::LinkingSymbolType::MOON: return "MOON";
+    case Models::LinkingSymbolType::TARGET: return "TARGET";
+    case Models::LinkingSymbolType::SPARTAN: return "SPARTAN";
+    case Models::LinkingSymbolType::HORSESHOE: return "HORSESHOE";
+    case Models::LinkingSymbolType::DAGGER: return "DAGGER";
+    case Models::LinkingSymbolType::TOWER: return "TOWER";
+    case Models::LinkingSymbolType::HARP: return "HARP";
+    case Models::LinkingSymbolType::COG: return "COG";
+    case Models::LinkingSymbolType::BOOK: return "BOOK";
+    case Models::LinkingSymbolType::LAMP: return "LAMP";
+    default: return "UNKNOWN";
+    }
+}

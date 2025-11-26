@@ -8,6 +8,6 @@ int main()
     std::cout << "Starting preparation test...\n";
     Core::preparation();
     std::cout << "Preparation finished.\n";
-    Core::displayBoard();
+    Core::displayEntireBoard();
     return 0;
 }
