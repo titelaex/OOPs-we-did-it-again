@@ -1,8 +1,9 @@
 module Models.Token;
-import Models.Token;
+
 import <fstream>;
 import <sstream>;
 import <stdexcept>;
+import <ostream>;
 
 using namespace Models;
 
@@ -58,4 +59,23 @@ std::vector<Token> Models::loadTokensFromCSV(const std::string& path)
 		tokens.emplace_back(type, name, desc, coins, victory, shield);
 	}
 	return tokens;
+}
+
+std::ostream& Models::operator<<(std::ostream& os, const Token& t)
+{
+	std::string typeStr = "UNKNOWN";
+	switch (t.getType()) {
+		case TokenType::PROGRESS: typeStr = "PROGRESS"; break;
+		case TokenType::VICTORY: typeStr = "VICTORY"; break;
+		case TokenType::COIN: typeStr = "COIN"; break;
+		case TokenType::MILITARY: typeStr = "MILITARY"; break;
+		case TokenType::SCIENCE: typeStr = "SCIENCE"; break;
+	}
+	auto [ones, threes, sixes] = t.getCoins();
+	os << t.getName() << " { type=" << typeStr
+	 << ", coins=" << static_cast<int>(ones) << ":" << static_cast<int>(threes) << ":" << static_cast<int>(sixes)
+	 << ", victory=" << static_cast<int>(t.getVictoryPoints())
+	 << ", shields=" << static_cast<int>(t.getShieldPoints())
+	 << " }";
+	return os;
 }

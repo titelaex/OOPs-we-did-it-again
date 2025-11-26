@@ -1,3 +1,4 @@
+
 module Core.Game;
 
 import <vector>;
@@ -57,6 +58,12 @@ void m_chooseAndConstructBuildingAction(const std::vector<Models::AgeCard>& disc
 void m_discardCardFromOpponentAction(class Player& opponent, Models::ColorType color)
 {
 
+}
+
+void movePawn(int steps) {
+    Core::pawnTrack.reset();
+    Core::pawnPos = std::clamp(Core::pawnPos + steps, 0, 18);
+    Core::pawnTrack.set(Core::pawnPos);
 }
 
 // Preparation helper used by tests: this calls the preparation routine and then prints

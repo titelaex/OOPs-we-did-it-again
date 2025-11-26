@@ -7,6 +7,7 @@ import <fstream>;
 import <sstream>;
 import <stdexcept>;
 import <tuple>;
+import <ostream>; // for operator<< declaration
 
 export namespace Models
 {
@@ -62,4 +63,7 @@ export namespace Models
     // - Handles quoted description fields (basic support: "..." without embedded quotes).
     // - On parse error throws std::runtime_error or std::invalid_argument.
     export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);
+
+    // Stream insertion operator for easy printing
+    export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const Token& t);
 }
