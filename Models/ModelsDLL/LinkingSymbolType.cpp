@@ -2,7 +2,7 @@ module Models.LinkingSymbolType;
 import <optional>;
 import <string>;
 
-std::optional<Models::LinkingSymbolType> StringToLinkingSymbolType(const std::string& str) {
+std::optional<Models::LinkingSymbolType> Models::StringToLinkingSymbolType(const std::string& str) {
     if (str == "NO_SYMBOL") return Models::LinkingSymbolType::NO_SYMBOL;
     if (str == "VESSEL") return Models::LinkingSymbolType::VESSEL;
     if (str == "BARREL") return Models::LinkingSymbolType::BARREL;

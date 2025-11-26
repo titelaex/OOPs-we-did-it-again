@@ -2,7 +2,7 @@ module Models.ScientificSymbolType;
 import <optional>;
 import <string>;
 
-std::optional<Models::ScientificSymbolType> StringToScientificSymbolType(const std::string& str) {
+std::optional<Models::ScientificSymbolType> Models::StringToScientificSymbolType(const std::string& str) {
     if (str == "NO_SYMBOL") return Models::ScientificSymbolType::NO_SYMBOL;
     if (str == "GLOBE") return Models::ScientificSymbolType::GLOBE;
     if (str == "WHEEL") return Models::ScientificSymbolType::WHEEL;

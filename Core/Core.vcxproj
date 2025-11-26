@@ -121,12 +121,13 @@
       <AdditionalIncludeDirectories>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableModules>true</EnableModules>
       <AdditionalModuleDependencies>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models\x64\$(IntDir);%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Models.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ModelsDLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -135,6 +136,7 @@
     <ClCompile Include="CardCsvParser.cpp" />
     <ClCompile Include="CardCsvParser.ixx" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Game.ixx" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Node.ixx" />
@@ -147,6 +149,15 @@
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
       <Project>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AgeCards.csv" />
+    <None Include="Guilds.csv" />
+    <None Include="Tokens.csv" />
+    <None Include="Wonders.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Preparation.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

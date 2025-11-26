@@ -1,7 +1,9 @@
-#include <vector>
-#include <string>
-#include <random>
-#include <iostream>
+module Core.Game;
+
+import <vector>;
+import <string>;
+import <random>;
+import <iostream>;
 
 import Core.Preparation;
 import Core.Board;
@@ -60,6 +62,7 @@ void m_discardCardFromOpponentAction(class Player& opponent, Models::ColorType c
 // Preparation helper used by tests: this calls the preparation routine and then prints
 // the contents of the unused pools and the constructed age node graphs so you can
 // visually verify that cards were loaded, shuffled and moved into nodes correctly.
+namespace Core {
 void preparation()
 {
     try {
@@ -157,3 +160,4 @@ void preparation()
         std::cerr << "Unknown exception during preparation" << std::endl;
     }
 }
+} // namespace Core

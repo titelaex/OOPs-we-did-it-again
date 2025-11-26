@@ -1,10 +1,10 @@
 module Core.Node;
 
-#include <utility>
+import Models.Card;
+import <utility>;
+import <memory>;
 
 import Core.Node;
-import Models.Card;
-import <memory>;
 
 namespace Core {
 

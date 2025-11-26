@@ -1,4 +1,3 @@
-// ResourceType.ixx
 
 export module Models.ResourceType;
 
@@ -18,6 +17,6 @@ export namespace Models {
         CONDITION_MANUFACTURED_GOODS
     };
 
-    export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource); // implementation moved to ResourceType.cpp
+    export __declspec(dllexport) std::string ResourceTypeToString(ResourceType resource);
     export __declspec(dllexport) std::optional<ResourceType> StringToResourceType(const std::string& str);
 }

@@ -18,7 +18,7 @@ std::string Models::tradeRuleTypeToString(TradeRuleType tradeRule)
 	}
 }
 
-std::optional<Models::TradeRuleType> StringToTradeRuleType(const std::string& str) {
+std::optional<Models::TradeRuleType> Models::StringToTradeRuleType(const std::string& str) {
     if (str == "CLAY") return Models::TradeRuleType::CLAY;
     if (str == "WOOD") return Models::TradeRuleType::WOOD;
     if (str == "STONE") return Models::TradeRuleType::STONE;

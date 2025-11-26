@@ -5,12 +5,12 @@ import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
 
-#include <algorithm>
+import <algorithm>;
 
 namespace Core {
     std::vector<std::unique_ptr<Models::Card>> unusedAgeOneCards;
     std::vector<std::unique_ptr<Models::Card>> unusedAgeTwoCards;
-    std::vector<std::unique_ptr<Models::Card>> unusedAgeThreeCards; // excluding guilds
+    std::vector<std::unique_ptr<Models::Card>> unusedAgeThreeCards;
     std::vector<std::unique_ptr<Models::Card>> unusedGuildCards;
     std::vector<std::unique_ptr<Models::Card>> unusedWonders;
 

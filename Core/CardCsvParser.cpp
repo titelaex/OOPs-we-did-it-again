@@ -1,13 +1,14 @@
 module Core.CardCsvParser;
 
-#include <vector>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
+import <vector>;
+import <string>;
+import <fstream>;
+import <sstream>;
+import <stdexcept>;
 #include <functional>
-#include <algorithm>
+import <algorithm>;
 #include <unordered_map>
+#include <optional>;
 
 import Models.AgeCard;
 import Models.GuildCard;
@@ -34,10 +35,12 @@ std::vector<std::string> ParseCsvLine(const std::string& line) {
     while (ss.get(c)) {
         if (c == '"') {
             in_quotes = !in_quotes;
-        } else if (c == ',' && !in_quotes) {
+        }
+        else if (c == ',' && !in_quotes) {
             columns.push_back(cell);
             cell.clear();
-        } else {
+        }
+        else {
             cell += c;
         }
     }
@@ -51,7 +54,7 @@ std::unordered_map<ResourceType, uint8_t> ParseResourceMap(const std::string& st
     std::string token;
     // Revert to comma as the delimiter for resource lists.
     // This ensures it works for both AgeCards and Wonders.
-    while (std::getline(ss, token, ',')) {  
+    while (std::getline(ss, token, ',')) {
         auto pos = token.find(':');
         if (pos != std::string::npos) {
             std::string resStr = token.substr(0, pos);
@@ -109,8 +112,8 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
     auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType,uint8_t>{};
-    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? ParseResourceMap(get(2)) : std::unordered_map<ResourceType,uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? ParseResourceMap(get(2)) : std::unordered_map<ResourceType, uint8_t>{};
     uint8_t victoryPoints = parse_u8(3);
     uint8_t shieldPoints = parse_u8(4);
     uint8_t coinCost = parse_u8(5);
@@ -119,7 +122,7 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     LinkingSymbolType requiresLinkingSymbol = ParseEnum(StringToLinkingSymbolType(get(8)), LinkingSymbolType::NO_SYMBOL);
     CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(9)), CoinWorthType::VALUE);
     uint8_t coinReward = parse_u8(10);
-    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 11 ? ParseTradeRuleMap(get(11)) : std::unordered_map<TradeRuleType,bool>{};
+    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 11 ? ParseTradeRuleMap(get(11)) : std::unordered_map<TradeRuleType, bool>{};
     std::string caption = get(12);
     ColorType color = ParseEnum(StringToColorType(get(13)), ColorType::BROWN);
     bool isVisible = parse_bool(14);
@@ -165,7 +168,7 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
     auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(columns[1]) : std::unordered_map<ResourceType,uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
     uint8_t victoryPoints = parse_u8(2);
     CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(3)), CoinWorthType::VALUE);
     uint8_t coinReward = parse_u8(4);
@@ -173,15 +176,16 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     ColorType color = ParseEnum(StringToColorType(get(6)), ColorType::NO_COLOR);
     bool isVisible = parse_bool(7);
     std::string modelPath = get(8);
-    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::NONE);
+    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::NO_RESOURCE);
     uint8_t shieldPoints = parse_u8(10);
     uint8_t opponentLosesMoney = parse_u8(11);
     bool discardCardFromOpponent = parse_bool(12);
     bool playSecondTurn = parse_bool(13);
     bool drawProgressTokens = parse_bool(14);
     bool chooseAndConstructBuilding = parse_bool(15);
-    ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NONE);
+    ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NO_COLOR);
 
+    // Note: Models::Wonder ctor does not support playerReceivesMoney; ignore that column and pass args in correct order
     return Wonder(
         get(0),
         resourceCost,
@@ -214,7 +218,8 @@ std::vector<Token> ParseTokensFromCSV(const std::string& path) {
         if (line.empty()) continue;
         std::vector<std::string> columns = ParseCsvLine(line);
         TokenType type = TokenType::PROGRESS;
-        try { if (columns.size() > 0) type = tokenTypeFromString(columns[0]); } catch (...) {}
+        try { if (columns.size() > 0) type = tokenTypeFromString(columns[0]); }
+        catch (...) {}
         std::string name = columns.size() > 1 ? columns[1] : "";
         std::string description = columns.size() > 2 ? columns[2] : "";
         uint8_t coins = (columns.size() > 3 && !columns[3].empty()) ? static_cast<uint8_t>(std::stoi(columns[3])) : 0;

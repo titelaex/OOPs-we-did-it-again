@@ -2,7 +2,7 @@ module Models.CoinWorthType;
 import <optional>;
 import <string>;
 
-std::optional<Models::CoinWorthType> StringToCoinWorthType(const std::string& str) {
+std::optional<Models::CoinWorthType> Models::StringToCoinWorthType(const std::string& str) {
     if (str == "VALUE") return Models::CoinWorthType::VALUE;
     if (str == "WONDER") return Models::CoinWorthType::WONDER;
     if (str == "GREY") return Models::CoinWorthType::GREY;

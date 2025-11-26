@@ -3,30 +3,32 @@ import Models.ResourceType;
 import <string>;
 import <optional>;
 
-using namespace Models;
+namespace Models {
 
-std::string ResourceTypeToString(Models::ResourceType resource)
+std::string ResourceTypeToString(ResourceType resource)
 {
-	switch (resource)
-	{
-	case Models::ResourceType::CLAY: return "CLAY";
-	case Models::ResourceType::WOOD: return "WOOD";
-	case Models::ResourceType::STONE: return "STONE";
-	case Models::ResourceType::GLASS: return "GLASS";
-	case Models::ResourceType::PAPYRUS: return "PAPYRUS";
-	case Models::ResourceType::CONDITION_RAW_GOODS: return "CONDITION_RAW_GOODS";
-	case Models::ResourceType::CONDITION_MANUFACTURED_GOODS: return "CONDITION_MANUFACTURED_GOODS";
-	default: return "Unknown";
-	}
+    switch (resource)
+    {
+    case ResourceType::CLAY: return "CLAY";
+    case ResourceType::WOOD: return "WOOD";
+    case ResourceType::STONE: return "STONE";
+    case ResourceType::GLASS: return "GLASS";
+    case ResourceType::PAPYRUS: return "PAPYRUS";
+    case ResourceType::CONDITION_RAW_GOODS: return "CONDITION_RAW_GOODS";
+    case ResourceType::CONDITION_MANUFACTURED_GOODS: return "CONDITION_MANUFACTURED_GOODS";
+    default: return "Unknown";
+    }
 }
 
-std::optional<Models::ResourceType> StringToResourceType(const std::string& str) {
-    if (str == "CLAY") return Models::ResourceType::CLAY;
-    if (str == "WOOD") return Models::ResourceType::WOOD;
-    if (str == "STONE") return Models::ResourceType::STONE;
-    if (str == "GLASS") return Models::ResourceType::GLASS;
-    if (str == "PAPYRUS") return Models::ResourceType::PAPYRUS;
-    if (str == "CONDITION_RAW_GOODS") return Models::ResourceType::CONDITION_RAW_GOODS;
-    if (str == "CONDITION_MANUFACTURED_GOODS") return Models::ResourceType::CONDITION_MANUFACTURED_GOODS;
+std::optional<ResourceType> StringToResourceType(const std::string& str) {
+    if (str == "CLAY") return ResourceType::CLAY;
+    if (str == "WOOD") return ResourceType::WOOD;
+    if (str == "STONE") return ResourceType::STONE;
+    if (str == "GLASS") return ResourceType::GLASS;
+    if (str == "PAPYRUS") return ResourceType::PAPYRUS;
+    if (str == "CONDITION_RAW_GOODS") return ResourceType::CONDITION_RAW_GOODS;
+    if (str == "CONDITION_MANUFACTURED_GOODS") return ResourceType::CONDITION_MANUFACTURED_GOODS;
     return std::nullopt;
 }
+
+} // namespace Models

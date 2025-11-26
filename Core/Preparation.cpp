@@ -10,6 +10,8 @@ module Core.Preparation;
 #include <unordered_map>
 #include <exception>
 #include <random>
+#include <filesystem>
+#include <memory>
 
 import Core.Board;
 import Core.CardCsvParser;
@@ -28,7 +30,7 @@ namespace Core {
 // - Shuffle the unused pools deterministically using a seed.
 // - Build the Age I/II/III node graphs by moving cards from the unused pools into Node instances
 //   stored in `Core::age1Nodes`, `Core::age2Nodes`, `Core::age3Nodes` (in `Core::Board`).
-// - Apply visibility (isVisible) and accessibility (isAccessible) rules to Nodes' cards.
+/// - Apply visibility (isVisible) and accessibility (isAccessible) rules to Nodes' cards.
 // The code below implements these steps and documents the ordering and wiring rules.
 
 // Random utilities
@@ -55,11 +57,26 @@ static std::vector<T> ShuffleAndMove(std::vector<T>&& src, uint32_t seed)
 
 // CSV parsing helpers (same approach used elsewhere in the project)
 static std::vector<std::string> splitCSVLine(const std::string& line) {
-    std::vector<std::string> cols;
-    std::istringstream ss(line);
+    std::vector<std::string> columns;
+    std::stringstream ss(line);
     std::string cell;
-    while (std::getline(ss, cell, ',')) cols.push_back(cell);
-    return cols;
+    bool in_quotes = false;
+    char c;
+
+    while (ss.get(c)) {
+        if (c == '"') {
+            in_quotes = !in_quotes;
+        }
+        else if (c == ',' && !in_quotes) {
+            columns.push_back(cell);
+            cell.clear();
+        }
+        else {
+            cell += c;
+        }
+    }
+    columns.push_back(cell); // Add the last cell
+    return columns;
 }
 
 static void loadGenericFile(const std::string& path, const std::function<void(const std::vector<std::string>&)>& onItem, std::ofstream& log)
@@ -103,6 +120,7 @@ Graph building rules and ordering
 - Card selection order (from the shuffled unused deck):
   For each age we take the first N cards from the unused pool (N = 20 for age 1/2, 20 for age 3 including guilds).
   The requested ordering for placement is: "line 1 from right to left, then line 2 from right to left, ..."
+
   To satisfy this, the builder performs the following steps for each row:
     1. Create node instances for that row by popping cards from the front of the selected card list
        and constructing Nodes. The builder collects pointers to nodes in left-to-right order for wiring.
@@ -167,17 +185,39 @@ static std::vector<std::unique_ptr<Node>> build_tree_rows(std::vector<std::uniqu
         }
     }
 
-    // Wire parents -> children using the left-to-right arrays (natural indexing). Parent p connects
-    // to children at indices p and p+1 in the next row.
+    // Wire parents -> children. Handle cases where child row may have more, fewer or equal nodes
+    // compared to the parent row. Use linear interpolation from parent index to child index
+    // to compute left/right child indices robustly and avoid out-of-range access.
     for (size_t r = 0; r + 1 < rowLeftToRightPtrs.size(); ++r) {
         auto &parents = rowLeftToRightPtrs[r];
         auto &children = rowLeftToRightPtrs[r+1];
-        for (size_t p = 0; p < parents.size(); ++p) {
+        size_t P = parents.size();
+        size_t C = children.size();
+        if (P == 0 || C == 0) continue;
+        for (size_t p = 0; p < P; ++p) {
             Node* parent = parents[p];
-            Node* leftChild = children[p];
-            Node* rightChild = children[p+1];
-            parent->setChild1(leftChild);
-            parent->setChild2(rightChild);
+            Node* leftChild = nullptr;
+            Node* rightChild = nullptr;
+
+            if (P == 1) {
+                // Single parent maps to center child (or first)
+                size_t idx = (C > 0) ? (C - 1) / 2 : 0;
+                leftChild = rightChild = children[idx];
+            } else {
+                double t = 0.0;
+                if (P > 1) t = static_cast<double>(p) * static_cast<double>(C - 1) / static_cast<double>(P - 1);
+                size_t li = static_cast<size_t>(std::floor(t));
+                size_t ri = static_cast<size_t>(std::ceil(t));
+                if (li >= C) li = C - 1;
+                if (ri >= C) ri = C - 1;
+                leftChild = children[li];
+                rightChild = children[ri];
+            }
+
+            if (parent) {
+                parent->setChild1(leftChild);
+                parent->setChild2(rightChild);
+            }
         }
     }
 
@@ -208,20 +248,51 @@ void PrepareBoardCardPools()
     uint32_t seed = static_cast<uint32_t>(std::random_device{}());
     std::ofstream log("Preparation.log", std::ios::app);
 
-    // Load Age cards from CSV and split by age into Board's unused pools. Cards are created as
-    // concrete AgeCard objects and then wrapped into std::unique_ptr<Models::Card> so they can be
-    // moved to Nodes later without slicing or copying.
+    // Log current working directory to help diagnose relative path issues
+    try {
+        auto cwd = std::filesystem::current_path();
+        if (log.is_open()) log << "Current working directory: " << cwd.string() << "\n";
+        std::cout << "Current working directory: " << cwd.string() << "\n";
+    } catch (...) {
+        if (log.is_open()) log << "[Warning] Unable to determine current working directory\n";
+    }
+
+    // Helper: try several candidate relative paths and return the first that exists
+    auto findExistingPath = [&](const std::vector<std::string>& candidates) -> std::string {
+        for (const auto& p : candidates) {
+            try { if (std::filesystem::exists(p)) return p; } catch (...) {}
+        }
+        return std::string{};
+    };
+
+    // Load Age cards: find CSV, parse into temporary vector, then split into per-age pools and shuffle
     try {
         std::vector<Models::AgeCard> allAgeCards;
         auto loadFn = [&](const std::vector<std::string>& cols){
             Models::AgeCard card = AgeCardFactory(cols);
             allAgeCards.push_back(std::move(card));
         };
-        loadGenericFile("ModelsDLL/AgeCards.csv", loadFn, log);
 
-        // Shuffle age cards before splitting into pools to ensure random distribution per age
-        ShuffleInplace(allAgeCards, seed);
+        const std::vector<std::string> ageCandidates = {
+            "AgeCards.csv",
+            "Resources/AgeCards.csv",
+            "Core/Resources/AgeCards.csv",
+            "../Core/Resources/AgeCards.csv",
+            "../ModelsDLL/AgeCards.csv",
+            "ModelsDLL/AgeCards.csv",
+            "../Models/AgeCards.csv"
+        };
+        std::string agePath = findExistingPath(ageCandidates);
+        if (agePath.empty()) {
+            if (log.is_open()) log << "[Error] Age file not found in candidates\n";
+            std::cout << "[Error] Age file not found in candidates\n";
+        } else {
+            if (log.is_open()) log << "Using Age file: " << agePath << "\n";
+            std::cout << "Using Age file: " << agePath << "\n";
+            loadGenericFile(agePath, loadFn, log);
+        }
 
+        // Split into per-age pools first, preserving the card objects, then shuffle each pool independently.
         for (size_t i = 0; i < allAgeCards.size(); ++i) {
             auto& c = allAgeCards[i];
             switch (c.getAge()) {
@@ -237,6 +308,14 @@ void PrepareBoardCardPools()
                 break;
             }
         }
+        // Shuffle each age pool independently to ensure per-age randomization
+        ShuffleInplace(Core::unusedAgeOneCards, seed);
+        ShuffleInplace(Core::unusedAgeTwoCards, seed + 1);
+        ShuffleInplace(Core::unusedAgeThreeCards, seed + 2);
+        if (log.is_open()) log << "Loaded ages: I=" << Core::unusedAgeOneCards.size()
+            << " II=" << Core::unusedAgeTwoCards.size() << " III=" << Core::unusedAgeThreeCards.size() << "\n";
+        std::cout << "Loaded ages: I=" << Core::unusedAgeOneCards.size()
+            << " II=" << Core::unusedAgeTwoCards.size() << " III=" << Core::unusedAgeThreeCards.size() << "\n";
     } catch (const std::exception& ex) {
         if (log.is_open()) log << "[Exception] While processing age cards: " << ex.what() << "\n";
     }
@@ -248,9 +327,28 @@ void PrepareBoardCardPools()
             Models::GuildCard g = GuildCardFactory(cols);
             tempGuilds.push_back(std::move(g));
         };
-        loadGenericFile("ModelsDLL/Guilds.csv", loadG, log);
+        const std::vector<std::string> guildCandidates = {
+            "Guilds.csv",
+            "Resources/Guilds.csv",
+            "Core/Resources/Guilds.csv",
+            "../Core/Resources/Guilds.csv",
+            "../ModelsDLL/Guilds.csv",
+            "ModelsDLL/Guilds.csv",
+            "../Models/Guilds.csv"
+        };
+        std::string guildPath = findExistingPath(guildCandidates);
+        if (guildPath.empty()) {
+            if (log.is_open()) log << "[Error] Guild file not found in candidates\n";
+            std::cout << "[Error] Guild file not found in candidates\n";
+        } else {
+            if (log.is_open()) log << "Using Guild file: " << guildPath << "\n";
+            std::cout << "Using Guild file: " << guildPath << "\n";
+            loadGenericFile(guildPath, loadG, log);
+        }
         ShuffleInplace(tempGuilds, seed);
         for (auto& g : tempGuilds) Core::unusedGuildCards.push_back(std::make_unique<Models::GuildCard>(std::move(g)));
+        if (log.is_open()) log << "Loaded guilds: " << Core::unusedGuildCards.size() << "\n";
+        std::cout << "Loaded guilds: " << Core::unusedGuildCards.size() << "\n";
     } catch (const std::exception& ex) {
         if (log.is_open()) log << "[Exception] While processing guild cards: " << ex.what() << "\n";
     }
@@ -261,9 +359,28 @@ void PrepareBoardCardPools()
             Models::Wonder w = WonderFactory(cols);
             tempWonders.push_back(std::move(w));
         };
-        loadGenericFile("ModelsDLL/Wonders.csv", loadW, log);
+        const std::vector<std::string> wonderCandidates = {
+            "Wonders.csv",
+            "Resources/Wonders.csv",
+            "Core/Resources/Wonders.csv",
+            "../Core/Resources/Wonders.csv",
+            "../ModelsDLL/Wonders.csv",
+            "ModelsDLL/Wonders.csv",
+            "../Models/Wonders.csv"
+        };
+        std::string wonderPath = findExistingPath(wonderCandidates);
+        if (wonderPath.empty()) {
+            if (log.is_open()) log << "[Error] Wonder file not found in candidates\n";
+            std::cout << "[Error] Wonder file not found in candidates\n";
+        } else {
+            if (log.is_open()) log << "Using Wonder file: " << wonderPath << "\n";
+            std::cout << "Using Wonder file: " << wonderPath << "\n";
+            loadGenericFile(wonderPath, loadW, log);
+        }
         ShuffleInplace(tempWonders, seed);
         for (auto& w : tempWonders) Core::unusedWonders.push_back(std::make_unique<Models::Wonder>(std::move(w)));
+        if (log.is_open()) log << "Loaded wonders: " << Core::unusedWonders.size() << "\n";
+        std::cout << "Loaded wonders: " << Core::unusedWonders.size() << "\n";
     } catch (const std::exception& ex) {
         if (log.is_open()) log << "[Exception] While processing wonder cards: " << ex.what() << "\n";
     }

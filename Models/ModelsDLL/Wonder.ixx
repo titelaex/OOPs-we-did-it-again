@@ -25,10 +25,10 @@ namespace Models
 		// 3 = discard browm card from opponent, 4 - is constructed
 		std::bitset<5> m_flags;
 		ColorType m_discardedCardColor;
-	
+
 		bool reserved_padding = false; // reserved for future use
 	public:
-	
+
 		Wonder() = delete;
 		Wonder(const Wonder& other) = default;
 		Wonder& operator=(const Wonder& other) = default;
@@ -80,7 +80,7 @@ namespace Models
 		void displayCardInfo() override;
 		static uint8_t wondersBuilt;
 
-		
+
 	};
 	export std::ostream& operator<<(std::ostream& os, const Wonder& card);
 }

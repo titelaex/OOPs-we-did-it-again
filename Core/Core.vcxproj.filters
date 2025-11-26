@@ -51,5 +51,27 @@
     <ClCompile Include="Preparation.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Wonders.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Tokens.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Guilds.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AgeCards.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Preparation.log">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

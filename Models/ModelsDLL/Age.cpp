@@ -3,7 +3,7 @@ module Models.Age;
 import <string>;
 import <optional>;
 
-std::string ageToString(Models::Age a)
+std::string Models::ageToString(Models::Age a)
 {
 	switch (a)
 	{
@@ -14,7 +14,7 @@ std::string ageToString(Models::Age a)
 	}
 }
 
-std::optional<Models::Age> stringToAge(const std::string& str) {
+std::optional<Models::Age> Models::stringToAge(const std::string& str) {
     if (str == "AGE_I") return Models::Age::AGE_I;
     if (str == "AGE_II") return Models::Age::AGE_II;
     if (str == "AGE_III") return Models::Age::AGE_III;

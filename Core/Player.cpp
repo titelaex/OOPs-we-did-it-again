@@ -1,7 +1,8 @@
-﻿#include <iostream>
-#include <vector>
-#include <tuple>
-module Core.Player;
+﻿module Core.Player;
+
+import <iostream>;
+import <vector>;
+import <tuple>;
 
 import Models.Wonder;
 import Models.Card;
@@ -34,20 +35,35 @@ void Core::Player::playCardWonder(Models::Wonder& wonder, Models::Card& ageCard,
     ageCard.toggleVisibility(); // mark as discarded
 
     // 5. Trigger Wonder effects
+    if (wonder.GetCoinReward() > 0)
+    {
+        // placeholder: give coins to player
+    }
+
     if (wonder.getOpponentLosesMoney() > 0)
-        ; // placeholder
+    {
+        // placeholder: opponent loses money
+    }
 
     if (wonder.getPlaySecondTurn())
-        ; // placeholder
+    {
+        // placeholder: schedule second turn
+    }
 
     if (wonder.getDrawProgressTokens())
-        ; // placeholder
+    {
+        // placeholder: draw progress tokens
+    }
 
     if (wonder.getChooseAndConstructBuilding())
-        ; // placeholder
+    {
+        // placeholder: allow choose and construct building
+    }
 
     if (wonder.getDiscardCardFromOpponent())
-        ; // placeholder
+    {
+        // placeholder: discard an opponent's card
+    }
 
     // 6. Add Wonder to player's built list
     m_player.addWonder(wonder);

@@ -2,7 +2,7 @@ module Models.ColorType;
 import <optional>;
 import <string>;
 
-std::optional<Models::ColorType> StringToColorType(const std::string& str) {
+std::optional<Models::ColorType> Models::StringToColorType(const std::string& str) {
     if (str == "BROWN") return Models::ColorType::BROWN;
     if (str == "GREY") return Models::ColorType::GREY;
     if (str == "RED") return Models::ColorType::RED;
