@@ -16,12 +16,14 @@ import Core.Board;
 import Core.CardCsvParser;
 import Core.Node;
 import Core.AgeTree;
+import Core.Player;
 
 import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
 import Models.Age;
 import Models.Card;
+import Models.Player;
 
 namespace Core {
 
@@ -286,4 +288,101 @@ namespace Core {
         }
     }
 
+    void displayAvailableWonders(const std::vector<std::unique_ptr<Models::Wonder>>& wonders)
+    {
+        std::cout << "Available Wonders to choose from:\n";
+        for (size_t i = 0; i < wonders.size(); ++i)
+        {
+            std::cout << "[" << i << "] ";
+            wonders[i]->displayCardInfo();
+            std::cout << "\n";
+        }
+	}
+
+    void WonderSelection(std::unique_ptr<Core::Player> p1, std::unique_ptr<Core::Player> p2)
+    {
+		bool playerOneTurn = true; // true -> p1's turn, false -> p2's turn
+		///random selection of the player to start the wonder selection
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(0, 1);
+		playerOneTurn = (dis(gen) == 0) ? true : false;
+
+		// get the first 4 wonders from the unusedWonders pool
+		std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
+        for (size_t i = 0; i <= 3; i++)
+        {
+            availableWonders.push_back(
+                std::unique_ptr<Models::Wonder>(static_cast<Models::Wonder*>(Core::unusedWonders[i].release()))
+            );
+        }
+
+		displayAvailableWonders(availableWonders);
+
+        uint8_t chosenIndex = 0;
+        playerOneTurn ? 
+			(std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+			std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+		    displayAvailableWonders(availableWonders),
+            std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+            std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+            p1->chooseWonder(availableWonders, 0)) // ssa o fac automat din chooseWonder
+        :
+            (std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+		    displayAvailableWonders(availableWonders),
+            std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+            std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+            p2->chooseWonder(availableWonders, 0));
+
+
+        // get the next 4 wonders from the unusedWonders pool
+        std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
+        for (size_t i = 0; i <= 3; i++)
+        {
+            availableWonders.push_back(
+                std::unique_ptr<Models::Wonder>(static_cast<Models::Wonder*>(Core::unusedWonders[i].release()))
+            );
+        }
+
+
+		displayAvailableWonders(availableWonders);
+
+
+        uint8_t chosenIndex = 0;
+        !playerOneTurn ? 
+			(std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+			std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+		    displayAvailableWonders(availableWonders),
+            std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+            std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+            p1->chooseWonder(availableWonders, 0)) // ssa o fac automat din chooseWonder
+        :
+            (std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p2->chooseWonder(availableWonders, chosenIndex),
+		    displayAvailableWonders(availableWonders),
+            std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+            std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
+            std::cin >> chosenIndex,
+            p1->chooseWonder(availableWonders, chosenIndex),
+            p2->chooseWonder(availableWonders, 0));
+    }
 }
