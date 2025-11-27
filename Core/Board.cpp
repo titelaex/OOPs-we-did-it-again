@@ -34,14 +34,23 @@ namespace Core {
 	std::bitset<19> pawnTrack = 512;
 	uint8_t pawnPos;
 	std::vector<Models::Token> progressTokens;
-	std::vector<bool> militaryTokens;
+	std::vector<Models::Token> militaryTokens;
 
+    void displayProgressTokens()
+    {
+        std::cout << "Progress Tokens: ";
+        for (const auto& t : progressTokens) std::cout << t;
+        std::cout << "\n\n";
+	}
+    void displayMilitaryTokens()
+    {
+		std::cout << "Military Tokens: ";
+        for (const auto& t : militaryTokens) std::cout << t;
+		std::cout << "\n\n";
+	}
 	void displayBoard() {
 
-		std::cout << "Progress Tokens: ";
-        for (const auto& t : progressTokens) std::cout << t;
-		std::cout << "\n\n";
-
+		displayProgressTokens();
 	
 		std::cout << "C1 |";
 		for (int i = 0; i < 19; ++i) {
@@ -56,9 +65,7 @@ namespace Core {
 		std::cout << " C2\n\n";
 
 		
-		std::cout << "Military Tokens: ";
-		for (const auto& m : militaryTokens) std::cout << "[" << m << "] ";
-		std::cout << "\n";
+		displayMilitaryTokens();
 	}
 
     void displayUnusedPools()

@@ -11,7 +11,7 @@ uint8_t Player::totalCoins(std::tuple<uint8_t, uint8_t, uint8_t> coins) { return
 
 uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
 
-Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), kplayerUsername(username)
+Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), m_playerUsername(username)
 {
 	m_playerPoints = { 0,0,0,0 };
 }

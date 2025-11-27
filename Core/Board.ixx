@@ -21,7 +21,7 @@ export namespace Core {
     export extern std::bitset<19> pawnTrack;
     export extern uint8_t pawnPos;
     export extern std::vector<Models::Token> progressTokens;
-    export extern std::vector<bool> militaryTokens;
+    export extern std::vector<Models::Token> militaryTokens;
 
     
     export void SetupCardPools();

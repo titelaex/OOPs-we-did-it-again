@@ -120,12 +120,12 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     //}
 
 
-    void Core::Player::sellCard()
+   /* void Core::Player::sellCard()
     {
        
-    }
+    }*/
 
-    uint8_t countYellowCards() const
+  /*  uint8_t countYellowCards() const
 {
 	uint8_t count = 0;
 	for (const auto& p : m_player->getOwnedCards()) {
@@ -133,7 +133,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		if (p->GetColor() == ColorType::YELLOW) ++count;
 	}
 	return count;
-}
+}*/
 
     // Check affordability
     if (!canAffordCard(card, opponent))

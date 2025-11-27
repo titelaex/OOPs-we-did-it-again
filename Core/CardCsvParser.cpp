@@ -5,10 +5,10 @@ import <string>;
 import <fstream>;
 import <sstream>;
 import <stdexcept>;
-#include <functional>
 import <algorithm>;
-#include <unordered_map>
-#include <optional>;
+import <unordered_map>;
+import <optional>;
+import <tuple>;
 
 import Models.AgeCard;
 import Models.GuildCard;
@@ -88,8 +88,8 @@ E ParseEnum(const std::optional<E>& opt, E fallback) {
     return opt.has_value() ? opt.value() : fallback;
 }
 
-template<typename T>
-std::vector<T> ParseCardsFromCSV(const std::string& path, std::function<T(const std::vector<std::string>&)> factory) {
+template<typename T, typename Factory>
+std::vector<T> ParseCardsFromCSV(const std::string& path, Factory factory) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) throw std::runtime_error("Unable to open CSV file: " + path);
     std::string header;
@@ -207,21 +207,68 @@ std::vector<Token> ParseTokensFromCSV(const std::string& path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) throw std::runtime_error("Unable to open Token CSV file: " + path);
     std::string header;
-    std::getline(ifs, header); 
+    std::getline(ifs, header);
+
+    auto trim = [](std::string &s){
+        size_t a = s.find_first_not_of(" \t\r\n");
+        size_t b = s.find_last_not_of(" \t\r\n");
+        if (a == std::string::npos) { s.clear(); return; }
+        s = s.substr(a, b - a +1);
+    };
+
+    auto parseCoinsTuple = [](const std::string &field) -> std::tuple<uint8_t,uint8_t,uint8_t> {
+        if (field.empty()) return {0,0,0};
+        // Allow single number (e.g. "6") or a:b:c
+        if (field.find(':') == std::string::npos) {
+            uint8_t v =0; try { v = static_cast<uint8_t>(std::stoi(field)); } catch (...) {}
+            return {v,0,0};
+        }
+        std::istringstream ss(field);
+        std::string a,b,c; uint8_t va=0,vb=0,vc=0;
+        if (std::getline(ss,a,':')) { try { va = static_cast<uint8_t>(std::stoi(a)); } catch(...){} }
+        if (std::getline(ss,b,':')) { try { vb = static_cast<uint8_t>(std::stoi(b)); } catch(...){} }
+        if (std::getline(ss,c)) { try { vc = static_cast<uint8_t>(std::stoi(c)); } catch(...){} }
+        return {va,vb,vc};
+    };
+
     std::vector<Token> tokens;
     std::string line;
     while (std::getline(ifs, line)) {
-        if (line.empty()) continue;
-        std::vector<std::string> columns = ParseCsvLine(line);
-        TokenType type = TokenType::PROGRESS;
-        try { if (columns.size() > 0) type = tokenTypeFromString(columns[0]); }
-        catch (...) {}
-        std::string name = columns.size() > 1 ? columns[1] : "";
-        std::string description = columns.size() > 2 ? columns[2] : "";
-        uint8_t coins = (columns.size() > 3 && !columns[3].empty()) ? static_cast<uint8_t>(std::stoi(columns[3])) : 0;
-        uint8_t victory = (columns.size() > 4 && !columns[4].empty()) ? static_cast<uint8_t>(std::stoi(columns[4])) : 0;
-        uint8_t shield = (columns.size() > 5 && !columns[5].empty()) ? static_cast<uint8_t>(std::stoi(columns[5])) : 0;
-        tokens.emplace_back(type, name, description, std::make_tuple(coins, 0, 0), victory, shield);
+        if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) continue;
+        std::vector<std::string> rawCols = ParseCsvLine(line);
+        if (rawCols.size() <6) {
+            // Attempt to recover if fewer columns (skip for now)
+            continue;
+        }
+        // If more than6 columns, merge description columns (2..size-4)
+        size_t total = rawCols.size();
+        size_t coinsIdx = total -3;
+        size_t victoryIdx = total -2;
+        size_t shieldIdx = total -1;
+        std::string typeStr = rawCols[0];
+        std::string name = rawCols[1];
+        std::string description;
+        for (size_t i =2; i < coinsIdx; ++i) {
+            if (!description.empty()) description += ','; // reinsert comma lost by splitting
+            description += rawCols[i];
+        }
+        std::string coinsField = rawCols[coinsIdx];
+        std::string victoryField = rawCols[victoryIdx];
+        std::string shieldField = rawCols[shieldIdx];
+
+        trim(typeStr); trim(name); trim(description); trim(coinsField); trim(victoryField); trim(shieldField);
+
+        TokenType type;
+        try { type = tokenTypeFromString(typeStr); }
+        catch (...) { continue; }
+        // Keep only PROGRESS / MILITARY per current design
+        if (type != TokenType::PROGRESS && type != TokenType::MILITARY) continue;
+
+        auto coinsTuple = parseCoinsTuple(coinsField);
+        uint8_t victory =0; if (!victoryField.empty()) { try { victory = static_cast<uint8_t>(std::stoi(victoryField)); } catch(...){} }
+        uint8_t shield =0; if (!shieldField.empty()) { try { shield = static_cast<uint8_t>(std::stoi(shieldField)); } catch(...){} }
+
+        tokens.emplace_back(type, name, description, coinsTuple, victory, shield);
     }
     return tokens;
 }
