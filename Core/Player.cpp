@@ -11,6 +11,49 @@ import Models.Token;
 import Models.LinkingSymbolType;
 
 
+void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
+{
+    if (availableWonders.empty())
+    {
+        std::cout << "No available wonders to choose from->\n";
+        return;
+    }
+
+    if(availableWonders.size() == 1)
+    {
+        m_player.addWonder(std::move(availableWonders[0]));
+        availableWonders.erase(availableWonders.begin());
+        std::cout << "Only one wonder available. Automatically chosen: " << m_player.getOwnedWonders().back()->GetName() << "->\n";
+        return;
+	}
+
+    if (chosenIndex >= availableWonders.size())
+    {
+        std::cout << "Invalid wonder index->\n";
+        return;
+    }
+    auto& chosenWonder = availableWonders[chosenIndex];
+    m_player.addWonder(std::move(chosenWonder));
+    availableWonders.erase(availableWonders.begin() + chosenIndex);
+    std::cout << "Chosen wonder: " << m_player.getOwnedWonders().back()->GetName() << "->\n";
+
+}
+
+void Core::Player::sellCard()
+{
+
+}
+
+uint8_t Core::Player::countYellowCards()
+{
+    uint8_t count = 0;
+    for (const auto& p : m_player.getOwnedCards()) {
+        if (!p) continue;
+        if (p->GetColor() == Models::ColorType::YELLOW) ++count;
+    }
+    return count;
+}
+
 //de refacut functia asta
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
     std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
@@ -90,7 +133,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
         std::cout << "Card \"" << card->GetName() << "\" is not accessible->\n";
         return;
     }
-    
+
     // Chain construction logic requires specific card APIs; commented out for now
     /*
     if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
@@ -118,22 +161,6 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     //    applyCardEffects(card);
     //    return;
     //}
-
-
-   /* void Core::Player::sellCard()
-    {
-       
-    }*/
-
-  /*  uint8_t countYellowCards() const
-{
-	uint8_t count = 0;
-	for (const auto& p : m_player->getOwnedCards()) {
-		if (!p) continue;
-		if (p->GetColor() == ColorType::YELLOW) ++count;
-	}
-	return count;
-}*/
 
     // Check affordability
     if (!canAffordCard(card, opponent))
@@ -309,5 +336,4 @@ void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
     std::cout << "Applying effects of card \"" << card->GetName() << "\"->\n";
 }
-
 

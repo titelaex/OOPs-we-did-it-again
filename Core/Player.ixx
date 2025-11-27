@@ -18,15 +18,16 @@ export namespace Core
 			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
 			uint8_t& totalWondersBuilt);
 		virtual void playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player > &opponent);
+		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
+		void sellCard();
 
 	private:
-
+		uint8_t countYellowCards();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent);
 		void payForWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent);
 		void discardRemainingWonder();
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
-		void sellCard();
 	};
 }
