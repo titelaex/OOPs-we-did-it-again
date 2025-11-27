@@ -313,7 +313,7 @@ namespace Core {
         for (size_t i = 0; i <= 3; i++)
         {
             availableWonders.push_back(
-                std::unique_ptr<Models::Wonder>(static_cast<Models::Wonder*>(Core::unusedWonders[i].release()))
+                std::unique_ptr<Models::Wonder>(std::move(static_cast<Models::Wonder*>(Core::unusedWonders[i].release())))
             );
         }
 
@@ -347,19 +347,16 @@ namespace Core {
 
 
         // get the next 4 wonders from the unusedWonders pool
-        std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
         for (size_t i = 0; i <= 3; i++)
         {
             availableWonders.push_back(
-                std::unique_ptr<Models::Wonder>(static_cast<Models::Wonder*>(Core::unusedWonders[i].release()))
+                std::unique_ptr<Models::Wonder>(std::move(static_cast<Models::Wonder*>(Core::unusedWonders[i].release())))
             );
         }
 
 
 		displayAvailableWonders(availableWonders);
 
-
-        uint8_t chosenIndex = 0;
         !playerOneTurn ? 
 			(std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
 			std::cin >> chosenIndex,

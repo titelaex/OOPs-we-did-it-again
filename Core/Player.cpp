@@ -41,7 +41,21 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
 
 void Core::Player::sellCard()
 {
+    uint8_t yellowCards = countYellowCards();
+    uint8_t coinsEarned = 2 + yellowCards;
+	//addCoins(coinsEarned);
 
+	/*
+        auto it = std::find_if(m_player.getOwnedCards().begin(), m_player.getOwnedCards().end(), [&](const std::unique_ptr<Models::Card>& p) { return p && p.get() == &card; });
+	if (it != m_player.getOwnedCards().end()) {
+		(*it)->SetIsVisible(false);
+		std::cout << "Card \"" << (*it)->GetName() << "\" discarded. Player \"" << m_player.getPlayerUsername() << "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
+	//	m_player.getOwnedCards().erase(it);
+	} else {
+		card.SetIsVisible(false);
+		std::cout << "Card \"" << card.GetName() << "\" discarded. Player \"" << m_player.getPlayerUsername() << "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
+	}
+    */
 }
 
 uint8_t Core::Player::countYellowCards()
