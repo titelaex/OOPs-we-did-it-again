@@ -40,13 +40,13 @@ export namespace Models
 		 GuildCard(const std::string& name, const std::vector<std::string>& scoringRules);
 
 		 // Copy constructor (deleted because base Card is non-copyable)
-		 GuildCard(const GuildCard& other) = default;
+		 GuildCard(const GuildCard& other) = delete;
 
 		 // Move constructor (noexcept to allow container optimizations)
 		 GuildCard(GuildCard&& other) noexcept;
 
 		 // Copy assignment (deleted)
-		 GuildCard& operator=(const GuildCard& other) = default;
+		 GuildCard& operator=(const GuildCard& other) = delete;
 
 		 // Move assignment
 		 GuildCard& operator=(GuildCard&& other) noexcept;
