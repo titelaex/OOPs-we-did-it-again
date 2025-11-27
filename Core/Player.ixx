@@ -27,5 +27,6 @@ export namespace Core
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
+		void sellCard();
 	};
 }

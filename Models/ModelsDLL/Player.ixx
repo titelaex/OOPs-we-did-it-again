@@ -10,6 +10,7 @@ import Models.Token;
 import Models.ResourceType;
 import Models.Card; 
 import Models.Wonder; 
+import Models.ScientificSymbolType;
 
 namespace Models
 {
@@ -17,13 +18,13 @@ namespace Models
 	{
 	private:
 		const uint8_t kplayerId;
-		const std::string kplayerUsername;
+		std::string m_playerUsername;
 		std::vector<std::unique_ptr<Wonder>> m_ownedWonders;
 		std::vector<std::unique_ptr<Card>> m_ownedCards;
 		std::vector<Token> m_ownedTokens;
-		bool m_hasConflictPawn = false;
 		std::unordered_map<ResourceType, uint8_t> m_ownedPermanentResources;
 		std::unordered_map<ResourceType, uint8_t> m_ownedTradingResources;
+		std::unordered_map<ScientificSymbolType, uint8_t> m_ownedScientificSymbols;
 		std::tuple<uint8_t, uint8_t, uint8_t> m_remainingCoins{ 1,2,0 };
 		struct Points {
 			uint8_t m_militaryVictoryPoints;
@@ -45,7 +46,6 @@ namespace Models
 		void addToken(const Token& token);
 		void addPermanentResource(ResourceType resourceType, uint8_t quantity);
 		void addTradingResource(ResourceType resourceType, uint8_t quantity);
-		void setHasConflictPawn(bool hasPawn);
 		void setRemainingCoins(std::tuple<uint8_t, uint8_t, uint8_t> remainingCoins);
 		void setPoints(Points playerPoints);
 		const uint8_t getkPlayerId() const;
@@ -55,7 +55,6 @@ namespace Models
 		const std::vector<Token>& getOwnedTokens() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedTradingResources() const;
-		bool getHasConflictPawn() const;
 		std::tuple<uint8_t, uint8_t, uint8_t> getRemainingCoins() const;
 		Points getPoints() const;
 		/*void addCoins(uint8_t coinsToAdd);

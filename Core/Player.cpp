@@ -10,10 +10,14 @@ import Models.Player;
 import Models.Token;
 import Models.LinkingSymbolType;
 
+
+//de refacut functia asta
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
     std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
     uint8_t& totalWondersBuilt)
 {
+    // check if WondersBuilt < 7
+
     // 1-> Check if Wonder is already built
     if (wonder->GetIsVisible())
     {
@@ -86,7 +90,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
         std::cout << "Card \"" << card->GetName() << "\" is not accessible->\n";
         return;
     }
-
+    
     // Chain construction logic requires specific card APIs; commented out for now
     /*
     if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
@@ -114,6 +118,22 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     //    applyCardEffects(card);
     //    return;
     //}
+
+
+    void Core::Player::sellCard()
+    {
+       
+    }
+
+    uint8_t countYellowCards() const
+{
+	uint8_t count = 0;
+	for (const auto& p : m_player->getOwnedCards()) {
+		if (!p) continue;
+		if (p->GetColor() == ColorType::YELLOW) ++count;
+	}
+	return count;
+}
 
     // Check affordability
     if (!canAffordCard(card, opponent))
@@ -289,3 +309,5 @@ void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
     std::cout << "Applying effects of card \"" << card->GetName() << "\"->\n";
 }
+
+

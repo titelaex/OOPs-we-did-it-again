@@ -41,7 +41,7 @@ Wonder::Wonder(
 	m_flags.set(1, drawProgressTokens);
 	m_flags.set(2, chooseAndConstructBuilding);
 	m_flags.set(3, discardCardFromOpponent);
-	m_flags.set(4, false); // is constructed
+	m_flags.set(4, false);
 	m_discardedCardColor = discardedCardColor;
 }
 

@@ -27,6 +27,10 @@ namespace Models
 		ColorType m_discardedCardColor;
 
 		bool reserved_padding = false; // reserved for future use
+
+	public:
+		static uint8_t wondersBuilt; //increase when playCardWonder()
+
 	public:
 
 		Wonder() = delete;
@@ -78,7 +82,6 @@ namespace Models
 		void setIsConstructed(bool v);
 
 		void displayCardInfo() override;
-		static uint8_t wondersBuilt;
 
 
 	};

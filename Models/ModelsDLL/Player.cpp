@@ -21,17 +21,15 @@ void Player::addWonder(std::unique_ptr<Wonder> wonder) { m_ownedWonders.push_bac
 void Player::addToken(const Token& token) { m_ownedTokens.push_back(token); }
 void Player::addPermanentResource(ResourceType resourceType, uint8_t quantity) { m_ownedPermanentResources[resourceType] += quantity; }
 void Player::addTradingResource(ResourceType resourceType, uint8_t quantity) { m_ownedTradingResources[resourceType] += quantity; }
-void Player::setHasConflictPawn(bool hasPawn) { m_hasConflictPawn = hasPawn; }
 void Player::setRemainingCoins(std::tuple<uint8_t,uint8_t,uint8_t> remainingCoins) { m_remainingCoins = remainingCoins; }
 void Player::setPoints(Points playerPoints) { m_playerPoints = playerPoints; }
 const uint8_t Player::getkPlayerId() const { return kplayerId; }
-const std::string& Player::getPlayerUsername() const { return kplayerUsername; }
+const std::string& Player::getPlayerUsername() const { return m_playerUsername; }
 const std::vector<std::unique_ptr<Wonder>>& Player::getOwnedWonders() const { return m_ownedWonders; }
 const std::vector<std::unique_ptr<Card>>& Player::getOwnedCards() const { return m_ownedCards; }
 const std::vector<Token>& Player::getOwnedTokens() const { return m_ownedTokens; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedPermanentResources() const { return m_ownedPermanentResources; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedTradingResources() const { return m_ownedTradingResources; }
-bool Player::getHasConflictPawn() const { return m_hasConflictPawn; }
 std::tuple<uint8_t,uint8_t,uint8_t> Player::getRemainingCoins() const { return m_remainingCoins; }
 Player::Points Player::getPoints() const { return m_playerPoints; }
 
@@ -58,15 +56,7 @@ Player::Points Player::getPoints() const { return m_playerPoints; }
 //	}
 //}
 //
-//uint8_t Player::countYellowCards() const
-//{
-//	uint8_t count = 0;
-//	for (const auto& p : m_ownedCards) {
-//		if (!p) continue;
-//		if (p->GetColor() == ColorType::YELLOW) ++count;
-//	}
-//	return count;
-//}
+
 //
 //void Player::burnCard(Card& card)
 //{
