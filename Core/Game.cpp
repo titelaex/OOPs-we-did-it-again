@@ -22,6 +22,7 @@ import Models.Age;
 import Models.TradeRuleType;
 import Models.Token; // ensures loadTokensFromCSV is available
 import Models.Card;
+import Core.CardCsvParser;
 
 void m_receiveMoneyAction(class Player& player)
 {
@@ -81,7 +82,7 @@ namespace Core {
         try {
             Core::PrepareBoardCardPools();
             
-            auto allTokens = Models::loadTokensFromCSV("Tokens.csv");
+            auto allTokens = ParseTokensFromCSV("Tokens.csv");
             Core::progressTokens = startGameTokens(allTokens);
         }
         catch (const std::exception& ex) {

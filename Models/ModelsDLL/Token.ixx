@@ -14,10 +14,7 @@ export namespace Models
     export enum class __declspec(dllexport) TokenType : uint8_t
     {
         PROGRESS,
-        VICTORY,
-        COIN,
         MILITARY,
-        SCIENCE
     };
 
     export class __declspec(dllexport) Token
@@ -48,10 +45,7 @@ export namespace Models
     inline TokenType tokenTypeFromString(const std::string& s)
     {
         if (s == "PROGRESS") return TokenType::PROGRESS;
-        if (s == "VICTORY") return TokenType::VICTORY;
-        if (s == "COIN") return TokenType::COIN;
         if (s == "MILITARY") return TokenType::MILITARY;
-        if (s == "SCIENCE") return TokenType::SCIENCE;
         throw std::invalid_argument("Unknown token type: " + s);
     }
     export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);

@@ -161,6 +161,6 @@ namespace Core {
 		displayUnusedPools();
 		displayAge1Cards();
 		displayAge2Cards();
-		displayAge1Cards();
+		displayAge3Cards();
 	}
 }

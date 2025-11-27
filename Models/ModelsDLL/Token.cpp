@@ -66,10 +66,7 @@ std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 	std::string typeStr = "UNKNOWN";
 	switch (t.getType()) {
 		case TokenType::PROGRESS: typeStr = "PROGRESS"; break;
-		case TokenType::VICTORY: typeStr = "VICTORY"; break;
-		case TokenType::COIN: typeStr = "COIN"; break;
 		case TokenType::MILITARY: typeStr = "MILITARY"; break;
-		case TokenType::SCIENCE: typeStr = "SCIENCE"; break;
 	}
 	auto [ones, threes, sixes] = t.getCoins();
 	os << t.getName();
