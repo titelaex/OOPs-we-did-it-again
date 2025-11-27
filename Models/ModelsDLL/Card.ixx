@@ -28,8 +28,8 @@ export namespace Models
 
 	public:
 		Card() = default;
-		Card(const Card& other) = default;
-		virtual Card& operator=(const Card& other) = default;
+		Card(const Card& other) = delete;
+		virtual Card& operator=(const Card& other) = delete;
 		Card(Card&& other);
 		virtual Card& operator=(Card&& other);
 		virtual ~Card() = default;

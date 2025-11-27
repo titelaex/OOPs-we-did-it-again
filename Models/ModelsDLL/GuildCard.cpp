@@ -71,7 +71,7 @@ std::vector<GuildCard> Models::LoadGuildCardsFromCSV(const std::string& path)
 		auto trim = [](std::string& s){ size_t a = s.find_first_not_of(" \t\r\n"); size_t b = s.find_last_not_of(" \t\r\n"); if (a == std::string::npos){ s.clear(); return;} s = s.substr(a, b-a+1);};
 		trim(name); trim(rulesField);
 		std::vector<std::string> rules; std::istringstream rs(rulesField); std::string token; while (std::getline(rs, token, ';')) { trim(token); if (!token.empty()) rules.push_back(token); }
-		if (name.empty()) continue; GuildCard gc(name, rules); cards.push_back(gc);
+		if (name.empty()) continue; GuildCard gc(name, rules); cards.push_back(std::move(gc));
 	}
 	return cards;
 }
