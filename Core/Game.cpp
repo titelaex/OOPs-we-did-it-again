@@ -1,4 +1,3 @@
-
 module Core.Game;
 
 import <vector>;
@@ -70,17 +69,19 @@ void movePawn(int steps) {
 // the contents of the unused pools and the constructed age node graphs so you can
 // visually verify that cards were loaded, shuffled and moved into nodes correctly.
 namespace Core {
-void preparation()
-{
-    try {
-        Core::PrepareBoardCardPools();
+    void preparation()
+    {
+        try {
+            Core::PrepareBoardCardPools();
 
-        
 
-    } catch (const std::exception& ex) {
-        std::cerr << "Preparation exception: " << ex.what() << std::endl;
-    } catch (...) {
-        std::cerr << "Unknown exception during preparation" << std::endl;
+
+        }
+        catch (const std::exception& ex) {
+            std::cerr << "Preparation exception: " << ex.what() << std::endl;
+        }
+        catch (...) {
+            std::cerr << "Unknown exception during preparation" << std::endl;
+        }
     }
 }
-} // namespace Core

@@ -24,7 +24,6 @@ import Models.Token;
 
 using namespace Models;
 
-// Helper function to parse a single line of CSV, handling quoted fields
 std::vector<std::string> ParseCsvLine(const std::string& line) {
     std::vector<std::string> columns;
     std::stringstream ss(line);
@@ -44,7 +43,7 @@ std::vector<std::string> ParseCsvLine(const std::string& line) {
             cell += c;
         }
     }
-    columns.push_back(cell); // Add the last cell
+    columns.push_back(cell);
     return columns;
 }
 
@@ -52,8 +51,6 @@ std::unordered_map<ResourceType, uint8_t> ParseResourceMap(const std::string& st
     std::unordered_map<ResourceType, uint8_t> map;
     std::istringstream ss(str);
     std::string token;
-    // Revert to comma as the delimiter for resource lists.
-    // This ensures it works for both AgeCards and Wonders.
     while (std::getline(ss, token, ',')) {
         auto pos = token.find(':');
         if (pos != std::string::npos) {
@@ -72,7 +69,7 @@ std::unordered_map<TradeRuleType, bool> ParseTradeRuleMap(const std::string& str
     std::unordered_map<TradeRuleType, bool> map;
     std::istringstream ss(str);
     std::string token;
-    while (std::getline(ss, token, ';')) { // Use semicolon as a safer delimiter
+    while (std::getline(ss, token, ';')) {
         auto pos = token.find(':');
         if (pos != std::string::npos) {
             std::string ruleStr = token.substr(0, pos);
@@ -185,7 +182,6 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     bool chooseAndConstructBuilding = parse_bool(15);
     ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NO_COLOR);
 
-    // Note: Models::Wonder ctor does not support playerReceivesMoney; ignore that column and pass args in correct order
     return Wonder(
         get(0),
         resourceCost,

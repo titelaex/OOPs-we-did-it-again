@@ -131,6 +131,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AgeTree.cpp" />
+    <ClCompile Include="AgeTree.ixx" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="Board.ixx" />
     <ClCompile Include="CardCsvParser.cpp" />

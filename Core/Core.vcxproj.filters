@@ -54,6 +54,12 @@
     <ClCompile Include="Game.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="AgeTree.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AgeTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Wonders.csv">

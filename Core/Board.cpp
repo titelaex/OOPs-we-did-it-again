@@ -126,7 +126,7 @@ namespace Core {
             c->displayCardInfo();
             auto p1 = n->getParent1();
             auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? "1" : " ") << "," << (p2 ? "1" : " ") << ")\n";
+            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
 
         std::cout << "--- Age II Nodes (" << Core::age2Nodes.size() << " nodes) ---\n";
@@ -139,7 +139,7 @@ namespace Core {
             c->displayCardInfo();
             auto p1 = n->getParent1();
             auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? "1" : " ") << "," << (p2 ? "1" : " ") << ")\n";
+            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
 
         std::cout << "--- Age III Nodes (" << Core::age3Nodes.size() << " nodes) ---\n";
@@ -152,7 +152,7 @@ namespace Core {
             c->displayCardInfo();
             auto p1 = n->getParent1();
             auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? "1" : " ") << "," << (p2 ? "1" : " ") << ")\n";
+            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
 	}
 }
