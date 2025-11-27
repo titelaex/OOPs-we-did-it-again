@@ -4,6 +4,7 @@ import <vector>;
 import <string>;
 import <random>;
 import <iostream>;
+import <algorithm>;
 
 import Core.Preparation;
 import Core.Board;
@@ -19,7 +20,7 @@ import Models.CoinWorthType;
 import Models.ColorType;
 import Models.Age;
 import Models.TradeRuleType;
-import Models.Token;
+import Models.Token; // ensures loadTokensFromCSV is available
 import Models.Card;
 
 void m_receiveMoneyAction(class Player& player)
@@ -43,7 +44,15 @@ std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& disca
     std::sample(discardedTokens.begin(), discardedTokens.end(), std::back_inserter(selectedTokens), tokensToSelect, generator);
     return selectedTokens;
 }
-
+std::vector<Models::Token> startGameTokens(std::vector<Models::Token>& allTokens)
+{
+    constexpr size_t kSelectCount = 5;
+    if (allTokens.size() <= kSelectCount) return allTokens;
+    std::vector<Models::Token> selected; selected.reserve(kSelectCount);
+    std::random_device rd; std::mt19937 gen(rd());
+    std::sample(allTokens.begin(), allTokens.end(), std::back_inserter(selected), kSelectCount, gen);
+    return selected;
+}
 void m_drawProgressTokenAction(std::vector<Models::Token>& discardedTokens)
 {
     auto selectedTokens = randomTokenSelector(discardedTokens);
@@ -65,17 +74,15 @@ void movePawn(int steps) {
     Core::pawnTrack.set(Core::pawnPos);
 }
 
-// Preparation helper used by tests: this calls the preparation routine and then prints
-// the contents of the unused pools and the constructed age node graphs so you can
-// visually verify that cards were loaded, shuffled and moved into nodes correctly.
+
 namespace Core {
     void preparation()
     {
         try {
             Core::PrepareBoardCardPools();
-
-
-
+            
+            auto allTokens = Models::loadTokensFromCSV("Tokens.csv");
+            Core::progressTokens = startGameTokens(allTokens);
         }
         catch (const std::exception& ex) {
             std::cerr << "Preparation exception: " << ex.what() << std::endl;

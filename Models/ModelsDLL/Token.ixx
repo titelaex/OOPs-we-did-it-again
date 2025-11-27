@@ -20,7 +20,6 @@ export namespace Models
         SCIENCE
     };
 
-    // Simple Token value object. No default ctor to force explicit initialization.
     export class __declspec(dllexport) Token
     {
     private:
@@ -33,7 +32,6 @@ export namespace Models
 
     public:
         Token() = delete;
-        // Construct with explicit coin tuple, victory and shield values
         explicit Token(TokenType type, std::string name, std::string description, std::tuple<uint8_t,uint8_t,uint8_t> coins = {0,0,0}, uint8_t victoryPoints =0, uint8_t shieldPoints =0);
 
         TokenType getType() const noexcept;
@@ -45,10 +43,8 @@ export namespace Models
 
     };
 
-    // Returns a small built-in default set. Useful when CSV is unavailable.
     export __declspec(dllexport) std::vector<Token> createDefaultTokenSet();
 
-    // Helper: map uppercase type string to TokenType; throws on unknown type.
     inline TokenType tokenTypeFromString(const std::string& s)
     {
         if (s == "PROGRESS") return TokenType::PROGRESS;
@@ -58,12 +54,6 @@ export namespace Models
         if (s == "SCIENCE") return TokenType::SCIENCE;
         throw std::invalid_argument("Unknown token type: " + s);
     }
-
-    // Load tokens from a CSV file. Expected header: type,name,description,coins,victory,shield
-    // - Handles quoted description fields (basic support: "..." without embedded quotes).
-    // - On parse error throws std::runtime_error or std::invalid_argument.
     export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);
-
-    // Stream insertion operator for easy printing
     export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const Token& t);
 }

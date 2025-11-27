@@ -39,7 +39,7 @@ namespace Core {
 	void displayBoard() {
 
 		std::cout << "Progress Tokens: ";
-		for (const auto& t : progressTokens) std::cout << "[" << t << "] ";
+        for (const auto& t : progressTokens) std::cout << t;
 		std::cout << "\n\n";
 
 	
@@ -108,15 +108,8 @@ namespace Core {
             }
         }
     }
-	void displayEntireBoard() {
-		std::cout << "=== Board State ===\n";
-		displayBoard();
-		std::cout << "===================\n";
-        std::cout << "--- UNUSED POOLS ---\n";
-
-      
-
-        std::cout << "--- Age I Nodes (" << Core::age1Nodes.size() << " nodes) ---\n";
+    void displayAge1Cards(){
+        std::cout << "--- Age I Cards (" << Core::age1Nodes.size() << " nodes) ---\n";
         for (size_t i = 0; i < Core::age1Nodes.size(); ++i) {
             auto& n = Core::age1Nodes[i];
             if (!n) continue;
@@ -128,8 +121,10 @@ namespace Core {
             auto p2 = n->getParent2();
             std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
-
-        std::cout << "--- Age II Nodes (" << Core::age2Nodes.size() << " nodes) ---\n";
+	}
+    void displayAge2Cards()
+    {
+        std::cout << "--- Age II Cards (" << Core::age2Nodes.size() << " nodes) ---\n";
         for (size_t i = 0; i < Core::age2Nodes.size(); ++i) {
             auto& n = Core::age2Nodes[i];
             if (!n) continue;
@@ -141,8 +136,10 @@ namespace Core {
             auto p2 = n->getParent2();
             std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
-
-        std::cout << "--- Age III Nodes (" << Core::age3Nodes.size() << " nodes) ---\n";
+    }
+    void displayAge3Cards()
+    {
+        std::cout << "--- Age III Cards (" << Core::age3Nodes.size() << " nodes) ---\n";
         for (size_t i = 0; i < Core::age3Nodes.size(); ++i) {
             auto& n = Core::age3Nodes[i];
             if (!n) continue;
@@ -154,5 +151,16 @@ namespace Core {
             auto p2 = n->getParent2();
             std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
         }
+	}
+	void displayEntireBoard() 
+    {
+		std::cout << "=== Board State ===\n";
+		displayBoard();
+		std::cout << "===================\n";
+        std::cout << "--- UNUSED POOLS ---\n";
+		displayUnusedPools();
+		displayAge1Cards();
+		displayAge2Cards();
+		displayAge1Cards();
 	}
 }

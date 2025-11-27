@@ -9,7 +9,6 @@ import <vector>;
 
 export
 {
-    // Factories implemented in Core\CardCsvParser.cpp
     Models::AgeCard AgeCardFactory(const std::vector<std::string>& columns);
     Models::GuildCard GuildCardFactory(const std::vector<std::string>& columns);
     Models::Wonder WonderFactory(const std::vector<std::string>& columns);

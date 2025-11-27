@@ -72,10 +72,15 @@ std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 		case TokenType::SCIENCE: typeStr = "SCIENCE"; break;
 	}
 	auto [ones, threes, sixes] = t.getCoins();
-	os << t.getName() << " { type=" << typeStr
-	 << ", coins=" << static_cast<int>(ones) << ":" << static_cast<int>(threes) << ":" << static_cast<int>(sixes)
-	 << ", victory=" << static_cast<int>(t.getVictoryPoints())
-	 << ", shields=" << static_cast<int>(t.getShieldPoints())
-	 << " }";
+	os << t.getName();
+	os << " - " << t.getDescription();
+	os << " { type=" << typeStr;
+	if (ones || threes || sixes) {
+		os << ", coins=" << static_cast<int>(ones) << ":" << static_cast<int>(threes) << ":" << static_cast<int>(sixes);
+	}
+	if (t.getVictoryPoints()) os << ", victory=" << static_cast<int>(t.getVictoryPoints());
+	if (t.getShieldPoints()) os << ", shields=" << static_cast<int>(t.getShieldPoints());
+	os << " }";
+	os << std::endl;
 	return os;
 }
