@@ -1,8 +1,8 @@
-guild_name,resource_cost,victory_points,coin_worth,coin_reward,caption,color,is_visible,model_path,scoring_rules,description
-"Builders Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per wonder stage you built; +1 VP per wonder stage your neighbors built,"Guild of builders, scores for wonder constructions"
-"Scientists Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per set of3 identical scientific symbols; +2 VP per set of3 different symbols,"Guild of scientists, scores scientific sets"
-"Merchants Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per brown/grey card you own; +2 coins when you build a brown card,"Guild of craftsmen, rewards resource cards"
-"Moneylenders Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per yellow card you own; +1 coin from left neighbor when trading,"Guild of traders, rewards commerce"
-"Tacticians Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per military victory token you own; +1 coin per military shield,"Guild of spies, rewards military success"
-"Magistrates Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per red card you own; +1 VP per blue card in neighbors,"Guild of magistrates, civic scoring"
-"Shipowners Guild",,0,VALUE,0,,PURPLE,false,,+1 VP per symbol on your ships; +2 coins when constructing ships,"Guild of shipowners, rewards navigation"
+name,resourceCost,victoryPoints,coinWorth,coinReward,caption,color,isVisible,modelPath
+"Builders Guild",,0,WONDER,0,"2 victory points for each Wonder constructed in the city which has the most wonders.",PURPLE,false,
+"Scientists Guild",,0,GREEN,0,"1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end)",PURPLE,false,
+"Shipowners Guild",,0,GREYBROWN,0,"1 coin/(gray+brown in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
+"Traders Guild",,0,YELLOW,0,"1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
+"Moneylenders Guild",,0,VALUE,0," at the end h 1 victory point for each set of 3 coins in the richest city.",PURPLE,false,
+"Tacticians Guild",,0,RED,0,"1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
+"Magistrates Guild",,0,BLUE,0,"1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,

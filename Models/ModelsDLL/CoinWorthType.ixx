@@ -14,6 +14,9 @@ export namespace Models
 		BROWN,
 		YELLOW,
 		RED,
+		GREYBROWN,
+		BLUE,
+		GREEN
 	};
 
 	export __declspec(dllexport) std::optional<CoinWorthType> StringToCoinWorthType(const std::string& str);
