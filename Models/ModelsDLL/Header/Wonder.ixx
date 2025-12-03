@@ -26,8 +26,6 @@ namespace Models
 		std::bitset<5> m_flags;
 		ColorType m_discardedCardColor;
 
-		bool reserved_padding = false; // reserved for future use
-
 	public:
 		static uint8_t wondersBuilt; //increase when playCardWonder()
 
@@ -40,50 +38,38 @@ namespace Models
 		Wonder& operator=(Wonder&& other) = default;
 		~Wonder() = default;
 
-		Wonder(
-			const std::string& name,
-			const std::unordered_map<ResourceType, uint8_t>& resourceCost,
-			uint8_t victoryPoints,
-			CoinWorthType coinWorth,
-			uint8_t coinReward,
-			const std::string& caption,
-			ColorType color,
-			bool isVisible,
-			const std::string& modelPath,
-
-			uint8_t opponentLosesMoney,
-			uint8_t shieldPoints,
-			ResourceType resourceProduction,
-			bool playSecondTurn,
-			bool drawProgressTokens,
-			bool discardCardFromOpponent,
-			bool chooseAndConstructBuilding,
-			ColorType discardedCardColor
-		);
-
-		uint8_t getOpponentLosesMoney() const;
-		uint8_t getShieldPoints() const;
-		ResourceType getResourceProduction() const;
-
-		bool getPlaySecondTurn() const;
-		bool getDrawProgressTokens() const;
-		bool getChooseAndConstructBuilding() const;
-		bool getDiscardCardFromOpponent() const;
-		bool getIsConstructed() const;
+		const uint8_t& getOpponentLosesMoney() const;
+		const uint8_t& getShieldPoints() const;
+		const ResourceType& getResourceProduction() const;
+		const std::bitset<5>& getFlags() const;
 
 		void setOpponentLosesMoney(uint8_t amt);
 		void setShieldPoints(uint8_t pts);
 		void setResourceProduction(ResourceType r);
-
-		void setPlaySecondTurn(bool v);
-		void setDrawProgressTokens(bool v);
-		void setChooseAndConstructBuilding(bool v);
-		void setDiscardCardFromOpponent(bool v);
-		void setIsConstructed(bool v);
+		void setFlags(const std::bitset<5>& flags);
 
 		void displayCardInfo() override;
 
-
 	};
 	export std::ostream& operator<<(std::ostream& os, const Wonder& card);
+
+	export class __declspec(dllexport) WonderBuilder : public CardBuilder
+	{
+		Wonder m_card;
+	public:
+		WonderBuilder& setName(const std::string& name);
+		WonderBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
+		WonderBuilder& setVictoryPoints(const uint8_t& victoryPoints);
+		WonderBuilder& setCoinWorth(const CoinWorthType& coinWorth);
+		WonderBuilder& setCoinReward(const uint8_t& coinReward);
+		WonderBuilder& setCaption(const std::string& caption);
+		WonderBuilder& setColor(const ColorType& color);
+		WonderBuilder& setOpponentLosesMoney(const uint8_t& amt);
+		WonderBuilder& setShieldPoints(const uint8_t& pts);
+		WonderBuilder& setResourceProduction(const ResourceType& r);
+		WonderBuilder& setFlags(const std::bitset<5>& flags);
+		WonderBuilder& setDiscardedCardColor(const ColorType& color);
+		WonderBuilder& addOnPlayAction(const std::function<void()>& action);
+		Wonder build();
+	};
 }

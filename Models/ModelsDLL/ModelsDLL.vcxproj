@@ -45,7 +45,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <EnableModules>true</EnableModules>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
       <BuildStlModules>true</BuildStlModules>
@@ -146,35 +146,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Age.cpp" />
-    <ClCompile Include="Age.ixx" />
-    <ClCompile Include="AgeCard.cpp" />
-    <ClCompile Include="AgeCard.ixx" />
-    <ClCompile Include="Bank.cpp" />
-    <ClCompile Include="Bank.ixx" />
-    <ClCompile Include="Card.cpp" />
-    <ClCompile Include="Card.ixx" />
-    <ClCompile Include="CoinWorthType.cpp" />
-    <ClCompile Include="CoinWorthType.ixx" />
-    <ClCompile Include="ColorType.cpp" />
-    <ClCompile Include="ColorType.ixx" />
-    <ClCompile Include="GuildCard.cpp" />
-    <ClCompile Include="GuildCard.ixx" />
-    <ClCompile Include="ICard.ixx" />
-    <ClCompile Include="LinkingSymbolType.cpp" />
-    <ClCompile Include="LinkingSymbolType.ixx" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Player.ixx" />
-    <ClCompile Include="ResourceType.cpp" />
-    <ClCompile Include="ResourceType.ixx" />
-    <ClCompile Include="ScientificSymbolType.cpp" />
-    <ClCompile Include="ScientificSymbolType.ixx" />
-    <ClCompile Include="Token.cpp" />
-    <ClCompile Include="Token.ixx" />
-    <ClCompile Include="TradeRuleType.cpp" />
-    <ClCompile Include="TradeRuleType.ixx" />
-    <ClCompile Include="Wonder.cpp" />
-    <ClCompile Include="Wonder.ixx" />
+    <ClCompile Include="Source/Age.cpp" />
+    <ClCompile Include="Header/Age.ixx" />
+    <ClCompile Include="Source/AgeCard.cpp" />
+    <ClCompile Include="Header/AgeCard.ixx" />
+    <ClCompile Include="Source/Bank.cpp" />
+    <ClCompile Include="Header/Bank.ixx" />
+    <ClCompile Include="Source/Card.cpp" />
+    <ClCompile Include="Header/Card.ixx" />
+    <ClCompile Include="Source/CoinWorthType.cpp" />
+    <ClCompile Include="Header/CoinWorthType.ixx" />
+    <ClCompile Include="Source/ColorType.cpp" />
+    <ClCompile Include="Header/ColorType.ixx" />
+    <ClCompile Include="Source/GuildCard.cpp" />
+    <ClCompile Include="Header/GuildCard.ixx" />
+    <ClCompile Include="Header/ICard.ixx" />
+    <ClCompile Include="Source/LinkingSymbolType.cpp" />
+    <ClCompile Include="Header/LinkingSymbolType.ixx" />
+    <ClCompile Include="Source/Player.cpp" />
+    <ClCompile Include="Header/Player.ixx" />
+    <ClCompile Include="Source/ResourceType.cpp" />
+    <ClCompile Include="Header/ResourceType.ixx" />
+    <ClCompile Include="Source/ScientificSymbolType.cpp" />
+    <ClCompile Include="Header/ScientificSymbolType.ixx" />
+    <ClCompile Include="Source/Token.cpp" />
+    <ClCompile Include="Header/Token.ixx" />
+    <ClCompile Include="Source/TradeRuleType.cpp" />
+    <ClCompile Include="Header/TradeRuleType.ixx" />
+    <ClCompile Include="Source/Wonder.cpp" />
+    <ClCompile Include="Header/Wonder.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

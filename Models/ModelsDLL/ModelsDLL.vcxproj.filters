@@ -15,91 +15,91 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ScientificSymbolType.ixx">
+    <ClCompile Include="Header/ScientificSymbolType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Age.ixx">
+    <ClCompile Include="Header/Age.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bank.ixx">
+    <ClCompile Include="Header/Bank.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Card.ixx">
+    <ClCompile Include="Header/Card.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="CoinWorthType.ixx">
+    <ClCompile Include="Header/CoinWorthType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColorType.ixx">
+    <ClCompile Include="Header/ColorType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuildCard.ixx">
+    <ClCompile Include="Header/GuildCard.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="ICard.ixx">
+    <ClCompile Include="Header/ICard.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinkingSymbolType.ixx">
+    <ClCompile Include="Header/LinkingSymbolType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.ixx">
+    <ClCompile Include="Header/Player.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceType.ixx">
+    <ClCompile Include="Header/ResourceType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Token.ixx">
+    <ClCompile Include="Header/Token.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="TradeRuleType.ixx">
+    <ClCompile Include="Header/TradeRuleType.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Wonder.ixx">
+    <ClCompile Include="Header/Wonder.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Wonder.cpp">
+    <ClCompile Include="Source/Wonder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TradeRuleType.cpp">
+    <ClCompile Include="Source/TradeRuleType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Token.cpp">
+    <ClCompile Include="Source/Token.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceType.cpp">
+    <ClCompile Include="Source/ResourceType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="Source/Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuildCard.cpp">
+    <ClCompile Include="Source/GuildCard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Card.cpp">
+    <ClCompile Include="Source/Card.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bank.cpp">
+    <ClCompile Include="Source/Bank.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Age.cpp">
+    <ClCompile Include="Source/Age.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AgeCard.ixx">
+    <ClCompile Include="Header/AgeCard.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScientificSymbolType.cpp">
+    <ClCompile Include="Source/ScientificSymbolType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CoinWorthType.cpp">
+    <ClCompile Include="Source/CoinWorthType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinkingSymbolType.cpp">
+    <ClCompile Include="Source/LinkingSymbolType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColorType.cpp">
+    <ClCompile Include="Source/ColorType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AgeCard.cpp">
+    <ClCompile Include="Source/AgeCard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
