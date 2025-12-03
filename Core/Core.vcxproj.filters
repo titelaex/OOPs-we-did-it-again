@@ -15,68 +15,71 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CardCsvParser.cpp">
+    <ClCompile Include="Source/CardCsvParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
+    <ClCompile Include="Source/Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.ixx">
+    <ClCompile Include="Header/Game.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Node.ixx">
+    <ClCompile Include="Header/Node.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="Source/Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Node.cpp">
+    <ClCompile Include="Source/Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Preparation.cpp">
+    <ClCompile Include="Source/Preparation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Board.cpp">
+    <ClCompile Include="Source/Board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Board.ixx">
+    <ClCompile Include="Header/Board.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Source/main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CardCsvParser.ixx">
+    <ClCompile Include="Header/CardCsvParser.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Preparation.ixx">
+    <ClCompile Include="Header/Preparation.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game.ixx">
+    <ClCompile Include="Header/Game.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="AgeTree.ixx">
+    <ClCompile Include="Header/AgeTree.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="AgeTree.cpp">
+    <ClCompile Include="Source/AgeTree.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header/Player.ixx">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Wonders.csv">
+    <None Include="Config/Wonders.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Tokens.csv">
+    <None Include="Config/Tokens.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Guilds.csv">
+    <None Include="Config/Guilds.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="AgeCards.csv">
+    <None Include="Config/AgeCards.csv">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Preparation.log">
+    <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

@@ -103,10 +103,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalModuleDependencies>..\Models\x64\$(IntDir);%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\Models\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ModelsDLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -118,9 +122,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableModules>true</EnableModules>
-      <AdditionalModuleDependencies>C:\Users\matei\Desktop\OOPs-we-did-it-again\Models\Models\x64\$(IntDir);%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
+      <AdditionalModuleDependencies>..\Models\x64\$(IntDir);%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
       <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
@@ -131,35 +133,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AgeTree.cpp" />
-    <ClCompile Include="AgeTree.ixx" />
-    <ClCompile Include="Board.cpp" />
-    <ClCompile Include="Board.ixx" />
-    <ClCompile Include="CardCsvParser.cpp" />
-    <ClCompile Include="CardCsvParser.ixx" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Game.ixx" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Node.cpp" />
-    <ClCompile Include="Node.ixx" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Player.ixx" />
-    <ClCompile Include="Preparation.cpp" />
-    <ClCompile Include="Preparation.ixx" />
+    <ClCompile Include="Source/AgeTree.cpp" />
+    <ClCompile Include="Header/AgeTree.ixx" />
+    <ClCompile Include="Source/Board.cpp" />
+    <ClCompile Include="Header/Board.ixx" />
+    <ClCompile Include="Source/CardCsvParser.cpp" />
+    <ClCompile Include="Header/CardCsvParser.ixx" />
+    <ClCompile Include="Source/Game.cpp" />
+    <ClCompile Include="Header/Game.ixx" />
+    <ClCompile Include="Source/main.cpp" />
+    <ClCompile Include="Source/Node.cpp" />
+    <ClCompile Include="Header/Node.ixx" />
+    <ClCompile Include="Source/Player.cpp" />
+    <ClCompile Include="Header/Player.ixx" />
+    <ClCompile Include="Source/Preparation.cpp" />
+    <ClCompile Include="Header/Preparation.ixx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config/AgeCards.csv" />
+    <None Include="Config/Guilds.csv" />
+    <None Include="Config/Tokens.csv" />
+    <None Include="Config/Wonders.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Logs/Preparation.log" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
       <Project>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="AgeCards.csv" />
-    <None Include="Guilds.csv" />
-    <None Include="Tokens.csv" />
-    <None Include="Wonders.csv" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Preparation.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
