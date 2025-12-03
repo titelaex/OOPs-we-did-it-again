@@ -48,8 +48,6 @@ export namespace Models
 		
 		 ~GuildCard() override = default;
 
-		 void toggleVisibility() override;
-		 void toggleAccessibility() override;
 		 void displayCardInfo() override;
 
 	};
