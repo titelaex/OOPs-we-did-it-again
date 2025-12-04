@@ -40,17 +40,10 @@ void GuildCard::displayCardInfo() {
 	}
 }
 
-//GuildCard GuildCardFactory::operator()(const std::vector<std::string>& fields) const {
-//	using namespace std;
-//	GuildCard card(fields[0]);
-//	card.setVictoryPoints( stoi(fields[1]) );
-//	card.setCoinWorth( static_cast<CoinWorthType>( stoi(fields[2]) ) );
-//	card.setCoinReward( static_cast<uint8_t>( stoi(fields[3]) ) );
-//	card.setCaption( fields[4] );
-//	card.setColor( static_cast<ColorType>( stoi(fields[5]) ) );
-//	return card;
-//}
-//
+void GuildCard::onDiscard()
+{
+    Card::onDiscard();
+}
 
 GuildCardBuilder& GuildCardBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
 GuildCardBuilder& GuildCardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }

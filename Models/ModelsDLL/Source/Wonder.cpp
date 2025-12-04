@@ -63,6 +63,11 @@ WonderBuilder& WonderBuilder::setOpponentLosesMoney(const uint8_t& amt) { m_card
 WonderBuilder& WonderBuilder::setShieldPoints(const uint8_t& pts) { m_card.setShieldPoints(pts); return *this; }
 WonderBuilder& WonderBuilder::setResourceProduction(const ResourceType& r) { m_card.setResourceProduction(r); return *this; }
 WonderBuilder& WonderBuilder::setFlags(const std::bitset<5>& flags) { m_card.setFlags(flags); return *this; }
-WonderBuilder& WonderBuilder::setDiscardedCardColor(const ColorType& color) { m_card.setResourceProduction(static_cast<ResourceType>(color)); /* reuse setter */ return *this; }
+WonderBuilder& WonderBuilder::setDiscardedCardColor(const ColorType& color) { m_card.setResourceProduction(static_cast<ResourceType>(color)); return *this; }
 WonderBuilder& WonderBuilder::addOnPlayAction(const std::function<void()>& action) { m_card.addOnPlayAction(action); return *this; }
 Wonder WonderBuilder::build() { return std::move(m_card); }
+
+void Wonder::onDiscard()
+{
+    Card::onDiscard();
+}

@@ -45,7 +45,7 @@ namespace Models
 		void setRequiresLinkingSymbol(const LinkingSymbolType& requiresLinkingSymbol);
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		void setAge(const Age& age);
-
+		void onDiscard() override;
 		void displayCardInfo() override;
 	};
 	export std::ostream& operator<<(std::ostream& os, const AgeCard& card);

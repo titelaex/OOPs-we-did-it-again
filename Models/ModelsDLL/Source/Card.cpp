@@ -16,10 +16,20 @@ const uint8_t& Card::GetVictoryPoints() const { return m_victoryPoints; }
 const CoinWorthType& Card::GetCoinWorth() const { return m_coinWorth; }
 const uint8_t& Card::GetCoinReward() const { return m_coinReward; }
 const std::vector<std::function<void()>>& Card::GetOnPlayActions() const { return m_onPlayActions; }
+const std::vector<std::function<void()>>& Card::GetOnDiscardActions() const { return m_onDiscardActions; }
+const bool& Card::IsVisible() const { return m_isVisible; }
+const bool& Card::IsAvailable() const { return m_isAvailable; }
 
 void Card::onPlay()
 {
     for (const auto& action : m_onPlayActions) {
+        if (action) action();
+    }
+}
+
+void Card::onDiscard()
+{
+    for (const auto& action : m_onDiscardActions) {
         if (action) action();
     }
 }
@@ -32,6 +42,9 @@ void Card::setCoinReward(const uint8_t& coinReward) { m_coinReward = coinReward;
 void Card::setCaption(const std::string& caption) { m_caption = caption; }
 void Card::setColor(const ColorType& color) { m_color = color; }
 void Card::addOnPlayAction(const std::function<void()>& action) { m_onPlayActions.push_back(action); }
+void Card::addOnDiscardAction(const std::function<void()>& action) { m_onDiscardActions.push_back(action); }
+void Card::setIsVisible(const bool& isVisible) { m_isVisible = isVisible; }
+void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable; }
 
 void Card::displayCardInfo() {
     std::cout << "Card Name: " << m_name << '\n';
@@ -45,6 +58,9 @@ void Card::displayCardInfo() {
         std::cout << " - " << ResourceTypeToString(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
     }
     std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
+    std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
+    std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
+    std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
 }
 
 CardBuilder& CardBuilder::setName(const std::string& name) {
@@ -84,6 +100,21 @@ CardBuilder& CardBuilder::setColor(const ColorType& color) {
 
 CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
     m_card.addOnPlayAction(action);
+    return *this;
+}
+
+CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
+    m_card.addOnDiscardAction(action);
+    return *this;
+}
+
+CardBuilder& CardBuilder::setIsVisible(const bool& isVisible) {
+    m_card.setIsVisible(isVisible);
+    return *this;
+}
+
+CardBuilder& CardBuilder::setIsAvailable(const bool& isAvailable) {
+    m_card.setIsAvailable(isAvailable);
     return *this;
 }
 

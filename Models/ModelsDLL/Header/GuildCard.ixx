@@ -39,8 +39,8 @@ export namespace Models
 
 		~GuildCard() override = default;
 
-		void displayCardInfo() override;
-
+		 void displayCardInfo() override;
+		 void onDiscard() override;
 	};
 
 	// Builder for GuildCard

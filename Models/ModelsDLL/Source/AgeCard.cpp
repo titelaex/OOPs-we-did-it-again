@@ -153,3 +153,8 @@ AgeCard AgeCardBuilder::build() {
     return std::move(m_card);
 }
 
+void AgeCard::onDiscard()
+{
+    Card::onDiscard();
+}
+

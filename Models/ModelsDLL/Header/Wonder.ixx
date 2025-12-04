@@ -49,6 +49,7 @@ namespace Models
 		void setFlags(const std::bitset<5>& flags);
 
 		void displayCardInfo() override;
+		void onDiscard() override;
 
 	};
 	export std::ostream& operator<<(std::ostream& os, const Wonder& card);

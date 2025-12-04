@@ -24,6 +24,9 @@ export namespace Models
 		std::string m_caption;
 		ColorType m_color{};
 		std::vector<std::function<void()>> m_onPlayActions;
+		std::vector<std::function<void()>> m_onDiscardActions;
+		bool m_isVisible{ false };
+		bool m_isAvailable{ false };
 		//std::string m_modelPath = "UI path placeholder";
 
 	public:
@@ -34,7 +37,8 @@ export namespace Models
 		virtual Card& operator=(Card&& other);
 		virtual ~Card() = default;
 
-		void onPlay();
+		virtual void onPlay();
+		virtual void onDiscard();
 
 		const std::string& GetName() const;
 		const std::unordered_map<ResourceType, uint8_t>& GetResourceCost() const;
@@ -44,6 +48,9 @@ export namespace Models
 		const std::string& GetCaption() const;
 		const ColorType& GetColor() const;
 		const std::vector<std::function<void()>>& GetOnPlayActions() const;
+		const std::vector<std::function<void()>>& GetOnDiscardActions() const;
+		const bool& IsVisible() const;
+		const bool& IsAvailable() const;
 
 		void setName(const std::string& name);
 		void setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
@@ -53,6 +60,9 @@ export namespace Models
 		void setCaption(const std::string& caption);
 		void setColor(const ColorType& color);
 		void addOnPlayAction(const std::function<void()>& action);
+		void addOnDiscardAction(const std::function<void()>& action);
+		void setIsVisible(const bool& isVisible);
+		void setIsAvailable(const bool& isAvailable);
 
 		virtual void displayCardInfo() override;
 	};
@@ -69,6 +79,7 @@ export namespace Models
 		CardBuilder& setCaption(const std::string& caption);
 		CardBuilder& setColor(const ColorType& color);
 		CardBuilder& addOnPlayAction(const std::function<void()>& action);
+		CardBuilder& addOnDiscardAction(const std::function<void()>& action);
 		Card build();
 	};
 }
