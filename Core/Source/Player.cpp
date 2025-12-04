@@ -10,6 +10,13 @@ import Models.Player;
 import Models.Token;
 import Models.LinkingSymbolType;
 
+static thread_local Core::Player* g_current_player = nullptr;
+
+void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
+Core::Player* GetCurrentPlayer() { return g_current_player; }
+
+Core::ScopedPlayerContext::ScopedPlayerContext(Player* p) : m_prev(g_current_player) { SetCurrentPlayer(p); }
+Core::ScopedPlayerContext::~ScopedPlayerContext() { SetCurrentPlayer(m_prev); }
 
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {
@@ -167,7 +174,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     */
 
     // Check if card is free (resource cost only checked; coin-cost logic omitted)
-    //if (card.GetResourceCost()->empty() /* && coin-cost omitted */)
+    //if (card.GetResourceCost()->empty() /* && coin-cost logic omitted */)
     //{
     //    m_player->addCard(card);
     //    card->SetIsVisible(false);
@@ -349,5 +356,61 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
     std::cout << "Applying effects of card \"" << card->GetName() << "\"->\n";
+}
+
+void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
+{
+    // Rebuild the card to bind its onPlay actions to this Core::Player
+    const auto& oldActions = card->GetOnPlayActions();
+    Models::CardBuilder builder;
+    builder.setName(card->GetName())
+        .setResourceCost(card->GetResourceCost())
+        .setVictoryPoints(card->GetVictoryPoints())
+        .setCoinWorth(card->GetCoinWorth())
+        .setCoinReward(card->GetCoinReward())
+        .setCaption(card->GetCaption())
+        .setColor(card->GetColor());
+
+    for (const auto& act : oldActions) {
+        // wrap original action so it always runs with this player as current context
+        builder.addOnPlayAction([this, act]() {
+            Core::ScopedPlayerContext ctx(this);
+            if (act) act();
+        });
+    }
+
+    auto newCard = std::make_unique<Models::Card>(builder.build());
+
+    std::cout << "Player takes card: " << newCard->GetName() << "\n";
+    // play the card immediately in the context of this player
+    {
+        Core::ScopedPlayerContext ctx(this);
+        newCard->onPlay();
+    }
+    m_player.addCard(std::move(newCard));
+}
+
+void Core::Player::addCoins(uint8_t amt)
+{
+    auto coins = m_player.getRemainingCoins();
+    uint32_t total = m_player.totalCoins(coins) + amt;
+    uint8_t sixes = static_cast<uint8_t>(total / 6u);
+    uint8_t rem = static_cast<uint8_t>(total % 6u);
+    uint8_t threes = static_cast<uint8_t>(rem / 3u);
+    uint8_t ones = static_cast<uint8_t>(rem % 3u);
+    m_player.setRemainingCoins({ones, threes, sixes});
+}
+
+void Core::Player::subtractCoins(uint8_t amt)
+{
+    auto coins = m_player.getRemainingCoins();
+    uint32_t total = m_player.totalCoins(coins);
+    if (amt >= total) { m_player.setRemainingCoins({0,0,0}); return; }
+    uint32_t newTotal = total - amt;
+    uint8_t sixes = static_cast<uint8_t>(newTotal / 6u);
+    uint8_t rem = static_cast<uint8_t>(newTotal % 6u);
+    uint8_t threes = static_cast<uint8_t>(rem / 3u);
+    uint8_t ones = static_cast<uint8_t>(rem % 3u);
+    m_player.setRemainingCoins({ones, threes, sixes});
 }
 

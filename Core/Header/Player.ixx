@@ -18,6 +18,9 @@ export namespace Core
 			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
 			uint8_t& totalWondersBuilt);
 		virtual void playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player > &opponent);
+		void takeCard(std::unique_ptr<Models::Card> card);
+		void addCoins(uint8_t amt);
+		void subtractCoins(uint8_t amt);
 		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
 		void sellCard();
 
@@ -29,5 +32,14 @@ export namespace Core
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
+	};
+
+	// current player context helpers
+	export void SetCurrentPlayer(Player* p);
+	export Player* GetCurrentPlayer();
+	export struct ScopedPlayerContext {
+		Player* m_prev;
+		ScopedPlayerContext(Player* p);
+		~ScopedPlayerContext();
 	};
 }

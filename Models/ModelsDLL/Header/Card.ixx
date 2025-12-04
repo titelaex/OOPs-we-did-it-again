@@ -19,13 +19,11 @@ export namespace Models
 		std::string m_name;
 		std::unordered_map<ResourceType, uint8_t> m_resourceCost;
 		uint8_t m_victoryPoints{};
-		CoinWorthType m_coinWorth{ CoinWorthType::VALUE };
+		CoinWorthType m_coinWorth{};
 		uint8_t m_coinReward{};
 		std::string m_caption;
 		ColorType m_color{};
 		std::vector<std::function<void()>> m_onPlayActions;
-		/*bool m_isVisibile = false;
-		bool m_isAccessible = false;*/
 		//std::string m_modelPath = "UI path placeholder";
 
 	public:

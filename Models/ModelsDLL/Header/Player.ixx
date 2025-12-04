@@ -11,6 +11,7 @@ import Models.ResourceType;
 import Models.Card; 
 import Models.Wonder; 
 import Models.ScientificSymbolType;
+import Models.TradeRuleType;
 
 namespace Models
 {
@@ -33,6 +34,7 @@ namespace Models
 			uint8_t m_progressVictoryPoints;
 			uint8_t totalVictoryPoints();
 		} m_playerPoints;
+		std::unordered_map<TradeRuleType, bool> m_tradeRules{ 0 };
 	public:
 		Player(const Player&) = delete;
 		Player& operator=(const Player&) = delete;
@@ -40,14 +42,16 @@ namespace Models
 		Player& operator=(Player&&) noexcept = default;
 		Player(const uint8_t& id, const std::string& username);
 		~Player() = default;
-		uint8_t totalCoins(std::tuple<uint8_t, uint8_t, uint8_t> coins);
-		void addCard(std::unique_ptr<Card> card);
-		void addWonder(std::unique_ptr<Wonder> wonder);
+		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
+		void addCard(const std::unique_ptr<Card>& card);
+		void addWonder(const std::unique_ptr<Wonder>& wonder);
 		void addToken(const Token& token);
-		void addPermanentResource(ResourceType resourceType, uint8_t quantity);
-		void addTradingResource(ResourceType resourceType, uint8_t quantity);
-		void setRemainingCoins(std::tuple<uint8_t, uint8_t, uint8_t> remainingCoins);
-		void setPoints(Points playerPoints);
+		void addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity);
+		void addTradingResource(const ResourceType& resourceType, const uint8_t& quantity);
+		void setRemainingCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& remainingCoins);
+		void setPoints(const Points& playerPoints);
+		void addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity);
+		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		const uint8_t getkPlayerId() const;
 		const std::string& getPlayerUsername() const;
 		const std::vector<std::unique_ptr<Wonder>>& getOwnedWonders() const;
@@ -55,11 +59,9 @@ namespace Models
 		const std::vector<Token>& getOwnedTokens() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedTradingResources() const;
-		std::tuple<uint8_t, uint8_t, uint8_t> getRemainingCoins() const;
-		Points getPoints() const;
-		/*void addCoins(uint8_t coinsToAdd);
-		void subtractCoins(uint8_t coinsToSubtract);
-		uint8_t countYellowCards() const;
-		void burnCard(Card & card);*/
+		const std::tuple<uint8_t, uint8_t, uint8_t> getRemainingCoins() const;
+		const std::unordered_map<ScientificSymbolType, uint8_t>& getOwnedScientificSymbols() const;
+		const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		const Points& getPoints() const;
 	};
 }
