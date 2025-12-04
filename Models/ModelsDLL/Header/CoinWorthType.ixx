@@ -8,7 +8,6 @@ export namespace Models
 {
 	export enum class __declspec(dllexport) CoinWorthType : uint8_t
 	{
-		VALUE,
 		WONDER,
 		GREY,
 		BROWN,

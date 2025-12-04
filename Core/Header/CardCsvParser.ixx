@@ -4,6 +4,7 @@ import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
 import Models.Token;
+import Core.Player;
 import <string>;
 import <vector>;
 
@@ -13,4 +14,5 @@ export
     Models::GuildCard GuildCardFactory(const std::vector<std::string>& columns);
     Models::Wonder WonderFactory(const std::vector<std::string>& columns);
     std::vector<Models::Token> ParseTokensFromCSV(const std::string& path);
+    void RegisterCsvTargetPlayer(std::unique_ptr<Core::Player>* p);
 }

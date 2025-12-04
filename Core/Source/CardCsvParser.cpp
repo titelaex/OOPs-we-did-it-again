@@ -21,9 +21,196 @@ import Models.ColorType;
 import Models.Age;
 import Models.TradeRuleType;
 import Models.Token;
+import Core.Player;
 
 using namespace Models;
 
+auto payCoins = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        cp->subtractCoins(amt);
+    };
+};
+
+auto getCoins = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        cp->addCoins(amt);
+    };
+};
+
+auto getResource = [](uint8_t amt, Models::ResourceType res) {
+    return [amt, res]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        cp->m_player.addPermanentResource(res, amt);
+    };
+};
+
+auto takeResource = [](uint8_t amt, Models::ResourceType res) {
+    return [amt, res]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+		auto owned = cp->m_player.getOwnedPermanentResources();
+		auto it = owned.find(res);
+        if (it != owned.end()) {
+            uint8_t currentAmt = it->second;
+            if (currentAmt >= amt) {
+                cp->m_player.addPermanentResource(res, -static_cast<int8_t>(amt));
+            }
+            else {
+                cp->m_player.addPermanentResource(res, -static_cast<int8_t>(currentAmt));
+            }
+        }
+    };
+};
+
+auto getShieldPoints = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        auto points = cp->m_player.getPoints();
+        points.m_militaryVictoryPoints += amt;
+        cp->m_player.setPoints(points);
+    };
+};
+
+auto takeShieldPoints = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        auto points = cp->m_player.getPoints();
+        if (points.m_militaryVictoryPoints >= amt) {
+            points.m_militaryVictoryPoints -= amt;
+        }
+        else {
+            points.m_militaryVictoryPoints = 0;
+        }
+        cp->m_player.setPoints(points);
+    };
+};
+
+auto getVictoryPoints = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        auto points = cp->m_player.getPoints();
+        points.m_buildingVictoryPoints += amt;
+        cp->m_player.setPoints(points);
+    };
+};
+
+auto takeVictoryPoints = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        auto points = cp->m_player.getPoints();
+        if (points.m_buildingVictoryPoints >= amt) {
+            points.m_buildingVictoryPoints -= amt;
+        }
+        else {
+            points.m_buildingVictoryPoints = 0;
+        }
+        cp->m_player.setPoints(points);
+    };
+};
+
+auto getScientificSymbol = [](ScientificSymbolType symbol) {
+    return [symbol]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+		cp->m_player.addScientificSymbol(symbol, 1);
+    };
+};
+
+auto takeScientificSymbol = [](ScientificSymbolType symbol) {
+    return [symbol]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+		auto owned = cp->m_player.getOwnedScientificSymbols();
+        auto it = owned.find(symbol);
+        if (it != owned.end()) {
+            uint8_t currentAmt = it->second;
+            if (currentAmt >= 1) {
+                cp->m_player.addScientificSymbol(symbol, -1);
+            }
+		}
+    };
+};
+
+auto getTradeRule = [](TradeRuleType rule) {
+    return [rule]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        auto tradeRules = cp->m_player.getTradeRules();
+        tradeRules[rule] = true;
+        cp->m_player.setTradeRules(tradeRules);
+    };
+};
+
+auto applyAgeCoinWorth = [](CoinWorthType type) {
+    return [type]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        switch (type) {
+        case CoinWorthType::GREY:
+            cp->addCoins(3);
+            break;
+        case CoinWorthType::BROWN:
+            cp->addCoins(2);
+            break;
+        case CoinWorthType::RED:
+            cp->addCoins(1);
+            break;
+        case CoinWorthType::YELLOW:
+            cp->addCoins(1);
+            break;
+        case CoinWorthType::WONDER:
+            cp->addCoins(2);
+            break;
+        default:
+            break;
+        };
+    };
+};
+
+auto applyGuildCointWorth = [](CoinWorthType type) {
+    return [type]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        switch (type) {
+        case CoinWorthType::GREYBROWN:
+            cp->addCoins(1);
+			getVictoryPoints(1)();
+            break;
+        case CoinWorthType::GREEN:
+            cp->addCoins(1);
+            getVictoryPoints(1)();
+            break;
+        case CoinWorthType::RED:
+            cp->addCoins(1);
+            getVictoryPoints(1)();
+            break;
+        case CoinWorthType::YELLOW:
+            cp->addCoins(1);
+            getVictoryPoints(1)();
+            break;
+        case CoinWorthType::BLUE:
+            cp->addCoins(1);
+            getVictoryPoints(1)();
+            break;
+		case CoinWorthType::WONDER:
+			getVictoryPoints(2)();
+            break;
+		default:
+			cp->addCoins(3);
+            getVictoryPoints(1)();
+            break;
+        };
+    };
+};
 std::vector<std::string> ParseCsvLine(const std::string& line) {
     std::vector<std::string> columns;
     std::stringstream ss(line);
@@ -126,25 +313,12 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     std::string modelPath = get(15);
     Age age = ParseEnum(stringToAge(get(16)), Age::AGE_I);
 
-    return AgeCard(
-        get(0),
-        resourceCost,
-        resourceProduction,
-        victoryPoints,
-        shieldPoints,
-        coinCost,
-        scientificSymbols,
-        hasLinkingSymbol,
-        requiresLinkingSymbol,
-        coinWorth,
-        coinReward,
-        tradeRules,
-        caption,
-        color,
-        isVisible,
-        modelPath,
-        age
-    );
+    AgeCardBuilder b;
+    b.setName(get(0)).setResourceCost(resourceCost).setResourceProduction(resourceProduction)
+      .setVictoryPoints(victoryPoints).setShieldPoints(shieldPoints).setCoinWorth(coinWorth)
+      .setCoinReward(coinReward).setCaption(caption).setColor(color).setAge(age)
+      .addOnPlayAction(make_payCoins(coinReward));
+    return b.build();
 }
 
 GuildCard GuildCardFactory(const std::vector<std::string>& columns) {
@@ -182,25 +356,18 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     bool chooseAndConstructBuilding = parse_bool(15);
     ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NO_COLOR);
 
-    return Wonder(
-        get(0),
-        resourceCost,
-        victoryPoints,
-        coinWorth,
-        coinReward,
-        caption,
-        color,
-        isVisible,
-        modelPath,
-        opponentLosesMoney,
-        shieldPoints,
-        resourceProduction,
-        playSecondTurn,
-        drawProgressTokens,
-        discardCardFromOpponent,
-        chooseAndConstructBuilding,
-        discardedCardColor
-    );
+    WonderBuilder b;
+    std::bitset<5> flags;
+    flags.set(0, playSecondTurn);
+    flags.set(1, drawProgressTokens);
+    flags.set(2, chooseAndConstructBuilding);
+    flags.set(3, discardCardFromOpponent);
+    b.setName(get(0)).setResourceCost(resourceCost).setVictoryPoints(victoryPoints)
+     .setCoinWorth(coinWorth).setCoinReward(coinReward).setCaption(caption).setColor(color)
+     .setOpponentLosesMoney(opponentLosesMoney).setShieldPoints(shieldPoints).setResourceProduction(resourceProduction)
+     .setFlags(flags).setDiscardedCardColor(discardedCardColor)
+     .addOnPlayAction(make_payCoins(coinReward));
+    return b.build();
 }
 
 std::vector<Token> ParseTokensFromCSV(const std::string& path) {

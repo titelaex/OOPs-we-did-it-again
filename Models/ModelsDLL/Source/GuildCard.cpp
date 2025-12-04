@@ -1,46 +1,15 @@
-#include "../../Core/CardCsvParser.cpp"
-//module Models.GuildCard;
-import <fstream>;
-import <sstream>;
-import <stdexcept>;
+module Models.GuildCard;
 import <iostream>;
-import Models.GuildCard;
 
 using namespace Models;
-GuildCard::GuildCard(const std::string& name,
-	const std::unordered_map<ResourceType, uint8_t>& resourceCost,
-	uint8_t victoryPoints,
-	CoinWorthType coinWorth,
-	uint8_t coinReward,
-	const std::string& caption,
-	ColorType color,
-	bool isVisible,
-	const std::string& modelPath)
-	: Card(
-		name,
-		resourceCost,
-		victoryPoints,
-		coinWorth,
-		coinReward,
-		caption,
-		color,
-		isVisible,
-		modelPath
-	) {}
 
-//// CSV/minimal constructor: provide sensible defaults for base Card
-//GuildCard::GuildCard(const std::string& name, const std::vector<std::string>& scoringRules)
-//	: Card(name, std::unordered_map<ResourceType, uint8_t>{},0, CoinWorthType::VALUE,0, std::string{}, ColorType::BROWN, false, std::string{}),
-//	m_guildName(name), m_scoringRules(scoringRules)
-//{
-//}
+GuildCard::GuildCard()
+{
+}
 
 GuildCard::GuildCard(GuildCard&& other) noexcept
 	: Card(std::move(other)) {}
 GuildCard& GuildCard::operator=(GuildCard&& other) noexcept { if (this != &other) { Card::operator=(std::move(other));  } return *this; }
-
-void GuildCard::toggleVisibility() { Card::toggleVisibility(); }
-void GuildCard::toggleAccessibility() { Card::toggleAccessibility(); }
 
 void GuildCard::displayCardInfo() {
 	Card::displayCardInfo();
@@ -63,41 +32,32 @@ void GuildCard::displayCardInfo() {
 		case CoinWorthType::YELLOW:
 			std::cout << "1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)";
 			break;
-		case CoinWorthType::VALUE:
-			std::cout << " at the end h 1 victory point for each set of 3 coins in the richest city.";
-			break;
 		case CoinWorthType::GREEN:
 			std::cout << "1 coin/(green in the city which has the most at that time)+ 1v_point/(same thing at the end)";
 			break;
-		deafault:
+		default:
 			std::cout << "Tip neidentificat";
 	}
 }
 
-//std::vector<GuildCard> Models::LoadGuildCardsFromCSV(const std::string& path)
-//{
-//	std::ifstream ifs(path);
-//	if (!ifs.is_open()) throw std::runtime_error("Unable to open guild CSV file: " + path);
-//	std::string header; if (!std::getline(ifs, header)) throw std::runtime_error("Empty guild CSV file: " + path);
-//	std::vector<GuildCard> cards; std::string line;
-//	while (std::getline(ifs, line)) {
-//		if (line.empty()) continue; std::istringstream ss(line);
-//		std::string name, rulesField, desc;
-//		if (!std::getline(ss, name, ',')) continue;
-//		if (ss.peek() == '"') { char ch; ss.get(ch); std::getline(ss, rulesField, '"'); if (ss.peek() == ',') ss.get(ch); }
-//		else { if (!std::getline(ss, rulesField, ',')) rulesField.clear(); }
-//		if (!std::getline(ss, desc)) desc.clear();
-//		auto trim = [](std::string& s){ size_t a = s.find_first_not_of(" \t\r\n"); size_t b = s.find_last_not_of(" \t\r\n"); if (a == std::string::npos){ s.clear(); return;} s = s.substr(a, b-a+1);};
-//		trim(name); trim(rulesField);
-//		std::vector<std::string> rules; std::istringstream rs(rulesField); std::string token; while (std::getline(rs, token, ';')) { trim(token); if (!token.empty()) rules.push_back(token); }
-//		if (name.empty()) continue; GuildCard gc(name, rules); cards.push_back(std::move(gc));
-//	}
-//	return cards;
+//GuildCard GuildCardFactory::operator()(const std::vector<std::string>& fields) const {
+//	using namespace std;
+//	GuildCard card(fields[0]);
+//	card.setVictoryPoints( stoi(fields[1]) );
+//	card.setCoinWorth( static_cast<CoinWorthType>( stoi(fields[2]) ) );
+//	card.setCoinReward( static_cast<uint8_t>( stoi(fields[3]) ) );
+//	card.setCaption( fields[4] );
+//	card.setColor( static_cast<ColorType>( stoi(fields[5]) ) );
+//	return card;
 //}
+//
 
-
-std::vector<GuildCard> Models::LoadGuildCardsFromCSV(const std::string& path)
-{
-	// Use the generic CSV parser with the factory implemented in Core\CardCsvParser.cpp
-	return ParseCardsFromCSV<GuildCard>(path, GuildCardFactory);
-}
+GuildCardBuilder& GuildCardBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
+GuildCardBuilder& GuildCardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }
+GuildCardBuilder& GuildCardBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card.setVictoryPoints(victoryPoints); return *this; }
+GuildCardBuilder& GuildCardBuilder::setCoinWorth(const CoinWorthType& coinWorth) { m_card.setCoinWorth(coinWorth); return *this; }
+GuildCardBuilder& GuildCardBuilder::setCoinReward(const uint8_t& coinReward) { m_card.setCoinReward(coinReward); return *this; }
+GuildCardBuilder& GuildCardBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
+GuildCardBuilder& GuildCardBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
+GuildCardBuilder& GuildCardBuilder::addOnPlayAction(const std::function<void()>& action) { m_card.addOnPlayAction(action); return *this; }
+GuildCard GuildCardBuilder::build() { return std::move(m_card); }
