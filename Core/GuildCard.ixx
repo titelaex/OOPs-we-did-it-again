@@ -1,11 +1,11 @@
 export module Core.GuildCard;
 
 import Models.GuildCard;
-
+import Core.Card;
 
 export namespace Core
 {
-	export class GuildCard
+	export class GuildCard:public Core::Card
 	{
 		public:
 			Models::GuildCard m_guildCard;

@@ -10,164 +10,170 @@ import <vector>;
 import <algorithm>;
 import <bitset>;
 import <iostream>;
+import Models.Bank;
 
 namespace Core {
-	std::vector<std::unique_ptr<Models::Card>> unusedAgeOneCards;
-	std::vector<std::unique_ptr<Models::Card>> unusedAgeTwoCards;
-	std::vector<std::unique_ptr<Models::Card>> unusedAgeThreeCards;
-	std::vector<std::unique_ptr<Models::Card>> unusedGuildCards;
-	std::vector<std::unique_ptr<Models::Card>> unusedWonders;
 
-	std::vector<std::unique_ptr<Node>> age1Nodes;
-	std::vector<std::unique_ptr<Node>> age2Nodes;
-	std::vector<std::unique_ptr<Node>> age3Nodes;
+    export class Bank {
 
-	void SetupCardPools()
-	{
-		unusedAgeOneCards.reserve(23);
-		unusedAgeTwoCards.reserve(23);
-		unusedAgeThreeCards.reserve(20);
-		unusedGuildCards.reserve(7);
-		unusedWonders.reserve(12);
-	}
+        std::unique_ptr<Models::Bank> bank;
+        std::vector<std::unique_ptr<Models::Card>> unusedAgeOneCards;
+        std::vector<std::unique_ptr<Models::Card>> unusedAgeTwoCards;
+        std::vector<std::unique_ptr<Models::Card>> unusedAgeThreeCards;
+        std::vector<std::unique_ptr<Models::Card>> unusedGuildCards;
+        std::vector<std::unique_ptr<Models::Card>> unusedWonders;
 
-	std::bitset<19> pawnTrack = 512;
-	uint8_t pawnPos;
-	std::vector<Models::Token> progressTokens;
-	std::vector<Models::Token> militaryTokens;
+        std::vector<std::unique_ptr<Node>> age1Nodes;
+        std::vector<std::unique_ptr<Node>> age2Nodes;
+        std::vector<std::unique_ptr<Node>> age3Nodes;
 
-    void displayProgressTokens()
-    {
-        std::cout << "Progress Tokens: ";
-        for (const auto& t : progressTokens) std::cout << t;
-        std::cout << "\n\n";
-	}
-    void displayMilitaryTokens()
-    {
-		std::cout << "Military Tokens: ";
-        for (const auto& t : militaryTokens) std::cout << t;
-		std::cout << "\n\n";
-	}
-	void displayBoard() {
+        void SetupCardPools()
+        {
+            unusedAgeOneCards.reserve(23);
+            unusedAgeTwoCards.reserve(23);
+            unusedAgeThreeCards.reserve(20);
+            unusedGuildCards.reserve(7);
+            unusedWonders.reserve(12);
+        }
 
-		displayProgressTokens();
-	
-		std::cout << "C1 |";
-		for (int i = 0; i < 19; ++i) {
-			if (pawnTrack.test(i))
-				std::cout << " ! ";
-			else
-				std::cout << " _ ";
+        std::bitset<19> pawnTrack = 512;
+        uint8_t pawnPos;
+        std::vector<Models::Token> progressTokens;
+        std::vector<Models::Token> militaryTokens;
 
-			if (((i + 1) % 3 == 0 && i < 9) || (i % 3 == 0 && i >= 9))
-				std::cout << "|";
-		}
-		std::cout << " C2\n\n";
+        void displayProgressTokens()
+        {
+            std::cout << "Progress Tokens: ";
+            for (const auto& t : progressTokens) std::cout << t;
+            std::cout << "\n\n";
+        }
+        void displayMilitaryTokens()
+        {
+            std::cout << "Military Tokens: ";
+            for (const auto& t : militaryTokens) std::cout << t;
+            std::cout << "\n\n";
+        }
+        void displayBoard() {
 
-		
-		displayMilitaryTokens();
-	}
+            displayProgressTokens();
 
-    void displayUnusedPools()
-    {
-		  std::cout << "Age I unused: " << Core::unusedAgeOneCards.size() << " cards\n";
-        for (size_t i = 0; i < Core::unusedAgeOneCards.size(); ++i) {
-            auto& p = Core::unusedAgeOneCards[i];
-            if (p) {
-                std::cout << "[AgeI] card " << i << ":\n";
-                p->displayCardInfo();
+            std::cout << "C1 |";
+            for (int i = 0; i < 19; ++i) {
+                if (pawnTrack.test(i))
+                    std::cout << " ! ";
+                else
+                    std::cout << " _ ";
+
+                if (((i + 1) % 3 == 0 && i < 9) || (i % 3 == 0 && i >= 9))
+                    std::cout << "|";
+            }
+            std::cout << " C2\n\n";
+
+
+            displayMilitaryTokens();
+        }
+
+        void displayUnusedPools()
+        {
+            std::cout << "Age I unused: " << Core::unusedAgeOneCards.size() << " cards\n";
+            for (size_t i = 0; i < Core::unusedAgeOneCards.size(); ++i) {
+                auto& p = Core::unusedAgeOneCards[i];
+                if (p) {
+                    std::cout << "[AgeI] card " << i << ":\n";
+                    p->displayCardInfo();
+                }
+            }
+
+            std::cout << "Age II unused: " << Core::unusedAgeTwoCards.size() << " cards\n";
+            for (size_t i = 0; i < Core::unusedAgeTwoCards.size(); ++i) {
+                auto& p = Core::unusedAgeTwoCards[i];
+                if (p) {
+                    std::cout << "[AgeII] card " << i << ":\n";
+                    p->displayCardInfo();
+                }
+            }
+
+            std::cout << "Age III unused: " << Core::unusedAgeThreeCards.size() << " cards\n";
+            for (size_t i = 0; i < Core::unusedAgeThreeCards.size(); ++i) {
+                auto& p = Core::unusedAgeThreeCards[i];
+                if (p) {
+                    std::cout << "[AgeIII] card " << i << ":\n";
+                    p->displayCardInfo();
+                }
+            }
+
+            std::cout << "Guild unused: " << Core::unusedGuildCards.size() << " cards\n";
+            for (size_t i = 0; i < Core::unusedGuildCards.size(); ++i) {
+                auto& p = Core::unusedGuildCards[i];
+                if (p) {
+                    std::cout << "[Guild] card " << i << ":\n";
+                    p->displayCardInfo();
+                }
+            }
+
+            std::cout << "Wonders unused: " << Core::unusedWonders.size() << " cards\n";
+            for (size_t i = 0; i < Core::unusedWonders.size(); ++i) {
+                auto& p = Core::unusedWonders[i];
+                if (p) {
+                    std::cout << "[Wonder] card " << i << ":\n";
+                    p->displayCardInfo();
+                }
             }
         }
-
-        std::cout << "Age II unused: " << Core::unusedAgeTwoCards.size() << " cards\n";
-        for (size_t i = 0; i < Core::unusedAgeTwoCards.size(); ++i) {
-            auto& p = Core::unusedAgeTwoCards[i];
-            if (p) {
-                std::cout << "[AgeII] card " << i << ":\n";
-                p->displayCardInfo();
+        void displayAge1Cards() {
+            std::cout << "--- Age I Cards (" << Core::age1Nodes.size() << " nodes) ---\n";
+            for (size_t i = 0; i < Core::age1Nodes.size(); ++i) {
+                auto& n = Core::age1Nodes[i];
+                if (!n) continue;
+                Models::Card* c = n->getCard();
+                if (!c) continue;
+                std::cout << "Node[" << i << "]:\n";
+                c->displayCardInfo();
+                auto p1 = n->getParent1();
+                auto p2 = n->getParent2();
+                std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
             }
         }
-
-        std::cout << "Age III unused: " << Core::unusedAgeThreeCards.size() << " cards\n";
-        for (size_t i = 0; i < Core::unusedAgeThreeCards.size(); ++i) {
-            auto& p = Core::unusedAgeThreeCards[i];
-            if (p) {
-                std::cout << "[AgeIII] card " << i << ":\n";
-                p->displayCardInfo();
+        void displayAge2Cards()
+        {
+            std::cout << "--- Age II Cards (" << Core::age2Nodes.size() << " nodes) ---\n";
+            for (size_t i = 0; i < Core::age2Nodes.size(); ++i) {
+                auto& n = Core::age2Nodes[i];
+                if (!n) continue;
+                Models::Card* c = n->getCard();
+                if (!c) continue;
+                std::cout << "Node[" << i << "]:\n";
+                c->displayCardInfo();
+                auto p1 = n->getParent1();
+                auto p2 = n->getParent2();
+                std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
             }
         }
-
-        std::cout << "Guild unused: " << Core::unusedGuildCards.size() << " cards\n";
-        for (size_t i = 0; i < Core::unusedGuildCards.size(); ++i) {
-            auto& p = Core::unusedGuildCards[i];
-            if (p) {
-                std::cout << "[Guild] card " << i << ":\n";
-                p->displayCardInfo();
+        void displayAge3Cards()
+        {
+            std::cout << "--- Age III Cards (" << Core::age3Nodes.size() << " nodes) ---\n";
+            for (size_t i = 0; i < Core::age3Nodes.size(); ++i) {
+                auto& n = Core::age3Nodes[i];
+                if (!n) continue;
+                Models::Card* c = n->getCard();
+                if (!c) continue;
+                std::cout << "Node[" << i << "]:\n";
+                c->displayCardInfo();
+                auto p1 = n->getParent1();
+                auto p2 = n->getParent2();
+                std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
             }
         }
-
-        std::cout << "Wonders unused: " << Core::unusedWonders.size() << " cards\n";
-        for (size_t i = 0; i < Core::unusedWonders.size(); ++i) {
-            auto& p = Core::unusedWonders[i];
-            if (p) {
-                std::cout << "[Wonder] card " << i << ":\n";
-                p->displayCardInfo();
-            }
+        void displayEntireBoard()
+        {
+            std::cout << "=== Board State ===\n";
+            displayBoard();
+            std::cout << "===================\n";
+            std::cout << "--- UNUSED POOLS ---\n";
+            displayUnusedPools();
+            displayAge1Cards();
+            displayAge2Cards();
+            displayAge3Cards();
         }
-    }
-    void displayAge1Cards(){
-        std::cout << "--- Age I Cards (" << Core::age1Nodes.size() << " nodes) ---\n";
-        for (size_t i = 0; i < Core::age1Nodes.size(); ++i) {
-            auto& n = Core::age1Nodes[i];
-            if (!n) continue;
-            Models::Card* c = n->getCard();
-            if (!c) continue;
-            std::cout << "Node[" << i << "]:\n";
-            c->displayCardInfo();
-            auto p1 = n->getParent1();
-            auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
-        }
-	}
-    void displayAge2Cards()
-    {
-        std::cout << "--- Age II Cards (" << Core::age2Nodes.size() << " nodes) ---\n";
-        for (size_t i = 0; i < Core::age2Nodes.size(); ++i) {
-            auto& n = Core::age2Nodes[i];
-            if (!n) continue;
-            Models::Card* c = n->getCard();
-            if (!c) continue;
-            std::cout << "Node[" << i << "]:\n";
-            c->displayCardInfo();
-            auto p1 = n->getParent1();
-            auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
-        }
-    }
-    void displayAge3Cards()
-    {
-        std::cout << "--- Age III Cards (" << Core::age3Nodes.size() << " nodes) ---\n";
-        for (size_t i = 0; i < Core::age3Nodes.size(); ++i) {
-            auto& n = Core::age3Nodes[i];
-            if (!n) continue;
-            Models::Card* c = n->getCard();
-            if (!c) continue;
-            std::cout << "Node[" << i << "]:\n";
-            c->displayCardInfo();
-            auto p1 = n->getParent1();
-            auto p2 = n->getParent2();
-            std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ") << "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
-        }
-	}
-	void displayEntireBoard() 
-    {
-		std::cout << "=== Board State ===\n";
-		displayBoard();
-		std::cout << "===================\n";
-        std::cout << "--- UNUSED POOLS ---\n";
-		displayUnusedPools();
-		displayAge1Cards();
-		displayAge2Cards();
-		displayAge3Cards();
-	}
+    };
 }

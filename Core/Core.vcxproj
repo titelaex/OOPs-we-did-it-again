@@ -135,6 +135,8 @@
   <ItemGroup>
     <ClCompile Include="AgeCard.cpp" />
     <ClCompile Include="AgeCard.ixx" />
+    <ClCompile Include="Card.ixx" />
+    <ClCompile Include="GameState.ixx" />
     <ClCompile Include="GuildCard.cpp" />
     <ClCompile Include="GuildCard.ixx" />
     <ClCompile Include="Source/AgeTree.cpp" />

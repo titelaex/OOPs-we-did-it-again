@@ -1,9 +1,10 @@
 export module Core.AgeCard;
 
 import Models.Card;
-
+import Core.Card;
 export namespace Core {
-	export class AgeCard {
+	export class AgeCard :public Core::Card
+	{
 	public:
 		Models::Card m_ageCard;
 	private:

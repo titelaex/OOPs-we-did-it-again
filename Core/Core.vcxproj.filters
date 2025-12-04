@@ -81,6 +81,12 @@
     <ClCompile Include="GuildCard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Card.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameState.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
