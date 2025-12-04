@@ -14,5 +14,4 @@ export
     Models::GuildCard GuildCardFactory(const std::vector<std::string>& columns);
     Models::Wonder WonderFactory(const std::vector<std::string>& columns);
     std::vector<Models::Token> ParseTokensFromCSV(const std::string& path);
-    void RegisterCsvTargetPlayer(std::unique_ptr<Core::Player>* p);
 }

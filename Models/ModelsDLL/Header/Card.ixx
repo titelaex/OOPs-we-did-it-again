@@ -80,6 +80,8 @@ export namespace Models
 		CardBuilder& setColor(const ColorType& color);
 		CardBuilder& addOnPlayAction(const std::function<void()>& action);
 		CardBuilder& addOnDiscardAction(const std::function<void()>& action);
+		CardBuilder& setIsVisible(const bool& isVisible);
+		CardBuilder& setIsAvailable(const bool& isAvailable);
 		Card build();
 	};
 }

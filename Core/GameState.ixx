@@ -5,7 +5,7 @@ export namespace Core
 {
 	export class GameState {
 	private:
-		GameState(){}
+		GameState();
 		GameState(const GameState&) = delete;
 		GameState& operator=(const GameState&) = delete;
 	public:
