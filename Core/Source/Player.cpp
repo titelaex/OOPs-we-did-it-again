@@ -9,14 +9,98 @@ import Models.Card;
 import Models.Player;
 import Models.Token;
 import Models.LinkingSymbolType;
+import GameState;
+import Core.Board;
 
 static thread_local Core::Player* g_current_player = nullptr;
 
 void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
 Core::Player* GetCurrentPlayer() { return g_current_player; }
 
-Core::ScopedPlayerContext::ScopedPlayerContext(Player* p) : m_prev(g_current_player) { SetCurrentPlayer(p); }
-Core::ScopedPlayerContext::~ScopedPlayerContext() { SetCurrentPlayer(m_prev); }
+Core::Player* Core::GetOpponentPlayer()
+{
+    Core::Player* cp = GetCurrentPlayer();
+    if (!cp) return nullptr;
+    auto &gs = Core::GameState::getInstance();
+    Player* p1 = gs.GetPlayer1();
+    Player* p2 = gs.GetPlayer2();
+    if (p1 == cp) return p2;
+    if (p2 == cp) return p1;
+    return nullptr;
+}
+
+void Core::playTurnForCurrentPlayer()
+{
+    Core::Player* cp = GetCurrentPlayer();
+    if (!cp) return;
+    std::cout << "Playing an extra turn for player\n";
+}
+
+void Core::drawTokenForCurrentPlayer()
+{
+    Core::Player* cp = GetCurrentPlayer();
+    if (!cp) return;
+    std::vector<Models::Token> combined;
+    for (const auto &t : Core::progressTokens) combined.push_back(t);
+    for (const auto &t : Core::militaryTokens) combined.push_back(t);
+    if (combined.empty()) return;
+    std::random_device rd; std::mt19937 gen(rd());
+    std::shuffle(combined.begin(), combined.end(), gen);
+    size_t pickCount = std::min<size_t>(3, combined.size());
+    // show options
+    std::cout << "Choose a token: \n";
+    for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i] << "\n";
+    size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
+    // give token to player and remove it from board pool where found
+    const auto &chosen = combined[choice];
+    cp->m_player.addToken(chosen);
+    // remove first occurrence from progress or military
+    for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
+        if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); return; }
+    }
+    for (auto it = Core::militaryTokens.begin(); it != Core::militaryTokens.end(); ++it) {
+        if (it->getName() == chosen.getName()) { Core::militaryTokens.erase(it); return; }
+    }
+}
+
+// Discard an opponent card of given color (grey or brown). Let current player choose index among opponent owned cards filtered by color.
+void Core::discardOpponentCardOfColor(ColorType color)
+{
+    Core::Player* cp = GetCurrentPlayer();
+    if (!cp) return;
+    Core::Player* opponent = GetOpponentPlayer();
+    if (!opponent) return;
+    auto &owned = opponent->m_player.getOwnedCards();
+    std::vector<size_t> candidates;
+    for (size_t i = 0; i < owned.size(); ++i) {
+        if (!owned[i]) continue;
+        if (owned[i]->GetColor() == color) candidates.push_back(i);
+    }
+    if (candidates.empty()) return;
+    std::cout << "Choose opponent card to discard:\n";
+    for (size_t idx = 0; idx < candidates.size(); ++idx) {
+        size_t i = candidates[idx];
+        std::cout << "[" << idx << "] " << owned[i]->GetName() << "\n";
+    }
+    size_t choice = 0; std::cin >> choice; if (choice >= candidates.size()) choice = 0;
+    size_t removeIdx = candidates[choice];
+    // move card into board::discardedCards
+    auto moved = opponent->m_player.removeOwnedCardAt(removeIdx);
+    if (moved) Core::discardedCards.push_back(std::move(moved));
+}
+
+// Build a chosen card from Core::unusedAgeOneCards (index into that vector)
+void Core::buildCardFromAge1Pool(size_t index)
+{
+    Core::Player* cp = GetCurrentPlayer();
+    if (!cp) return;
+    if (index >= Core::unusedAgeOneCards.size()) return;
+    // move card into buildDiscardedCard pool (as requested)
+    auto cardPtr = std::move(Core::buildDiscardedCard[index]);
+    if (!cardPtr) return;
+    cp->m_player.addCard(cardPtr);
+    Core::buildDiscardedCard.erase(Core::buildDiscardedCard.begin() + index);
+}
 
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {

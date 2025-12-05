@@ -2,6 +2,7 @@ export module Models.AgeCard;
 
 import <unordered_map>;
 import <ostream>;
+import <optional>;
 import Models.Card;
 import Models.ScientificSymbolType;
 import Models.ResourceType;
@@ -14,16 +15,16 @@ namespace Models
 	export class __declspec(dllexport) AgeCard : public Card
 	{
 	private: 
-		std::unordered_map<ResourceType, uint8_t> m_resourceProduction;
+		std::unordered_map<ResourceType, uint8_t> m_resourceProduction{};
 		uint8_t m_shieldPoints{};
-		ScientificSymbolType m_scientificSymbols=ScientificSymbolType::NO_SYMBOL;
-		LinkingSymbolType m_hasLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
-		LinkingSymbolType m_requiresLinkingSymbol = LinkingSymbolType::NO_SYMBOL;
-		std::unordered_map<TradeRuleType, bool> m_tradeRules;
-		Age m_age{};
+		std::optional<ScientificSymbolType> m_scientificSymbols{};
+		std::optional<LinkingSymbolType> m_hasLinkingSymbol{};
+		std::optional<LinkingSymbolType> m_requiresLinkingSymbol{};
+		std::unordered_map<TradeRuleType, bool> m_tradeRules{};
+		Age m_age{Age::AGE_I};
 
 	public:
-		AgeCard() = delete;
+		AgeCard() = default;
 		AgeCard(const AgeCard& other) = delete;
 		AgeCard& operator=(const AgeCard& other) = delete;
 		AgeCard(AgeCard&& other) = default;
@@ -32,17 +33,17 @@ namespace Models
 
 		const std::unordered_map<ResourceType, uint8_t>& getResourceProduction() const;
 		const uint8_t& getShieldPoints() const;
-		const ScientificSymbolType& getScientificSymbols() const;
-		const LinkingSymbolType& getHasLinkingSymbol() const;
-		const LinkingSymbolType& getRequiresLinkingSymbol() const;
+		const std::optional<ScientificSymbolType>& getScientificSymbols() const;
+		const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
+		const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
 		const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
 		const Age& getAge() const;
 
 		void setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
 		void setShieldPoints(const uint8_t& shieldPoints);
-		void setScientificSymbols(const ScientificSymbolType& scientificSymbols);
-		void setHasLinkingSymbol(const LinkingSymbolType& hasLinkingSymbol);
-		void setRequiresLinkingSymbol(const LinkingSymbolType& requiresLinkingSymbol);
+		void setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols);
+		void setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol);
+		void setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol);
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		void setAge(const Age& age);
 		void onDiscard() override;
@@ -59,16 +60,15 @@ namespace Models
 		AgeCardBuilder& setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
 		AgeCardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
 		AgeCardBuilder& setShieldPoints(const uint8_t& shieldPoints);
-		AgeCardBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		AgeCardBuilder& setCoinReward (const uint8_t& coinReward);
-		AgeCardBuilder& setScientificSymbols(const ScientificSymbolType& scientificSymbols);
-		AgeCardBuilder& setHasLinkingSymbol(const LinkingSymbolType& hasLinkingSymbol);
-		AgeCardBuilder& setRequiresLinkingSymbol(const LinkingSymbolType& requiresLinkingSymbol);
+		AgeCardBuilder& setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols);
+		AgeCardBuilder& setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol);
+		AgeCardBuilder& setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol);
 		AgeCardBuilder& setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		AgeCardBuilder& setCaption(const std::string& caption);
 		AgeCardBuilder& setColor(const ColorType& color);
 		AgeCardBuilder& setAge(const Age& age);
 		AgeCardBuilder& addOnPlayAction(const std::function<void()>& action);
+		AgeCardBuilder& addOnDiscardAction(const std::function<void()>& action);
 		AgeCard build();
 	};
 }

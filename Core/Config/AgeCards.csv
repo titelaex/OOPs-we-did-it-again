@@ -1,68 +1,68 @@
-m_name,m_resourceCost,m_resourceProduction,m_victoryPoints,m_shieldPoints,coinCost,m_scientificSymbols,m_hasLinkingSymbol,m_requiresLinkingSymbol,m_coinWorth,m_coinValue,m_tradeRules,m_caption,m_color,m_isVisibile,m_modelPath,m_age
-"Lumber Yard","","WOOD:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 wood","BROWN",false,"UI path placeholder","AGE_I"
-"Logging Camp","","WOOD:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 wood","BROWN",false,"UI path placeholder","AGE_I"
-"Clay Pit","","CLAY:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 clay","BROWN",false,"UI path placeholder","AGE_I"
-"Clay Pool","","CLAY:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 clay","BROWN",false,"UI path placeholder","AGE_I"
-"Stone Pit","","STONE:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 stone","BROWN",false,"UI path placeholder","AGE_I"
-"Stone Reserve","","STONE:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"STONE:true","Buy 1 stone for 1 coin","BROWN",false,"UI path placeholder","AGE_I"
-"Wood Reserve","","WOOD:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"WOOD:true","Buy 1 wood for 1 coin","BROWN",false,"UI path placeholder","AGE_I"
-"Glassworks","","GLASS:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 glass","GREY",false,"UI path placeholder","AGE_I"
-"Press","","PAPYRUS:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 papyrus","GREY",false,"UI path placeholder","AGE_I"
-"Quarry","","STONE:1",0,0,1,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 stone","BROWN",false,"UI path placeholder","AGE_I"
-"Guard Tower","","",0,1,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Provides 1 shield","RED",false,"UI path placeholder","AGE_I"
-"Workshop","GLASS:1","",0,0,0,"PENDULUM","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Provides gear symbol","GREEN",false,"UI path placeholder","AGE_I"
-"Apothecary","PAPYRUS:1","",0,0,0,"WHEEL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Provides compass symbol","GREEN",false,"UI path placeholder","AGE_I"
-"Clay Reserve","","CLAY:1",0,0,3,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"CLAY:true","Buy 1 clay for 1 coins","BROWN",false,"UI path placeholder","AGE_I"
-"Stable","WOOD:1","",0,1,0,"NO_SYMBOL","HORSESHOE","NO_SYMBOL","VALUE",0,"","Provides 1 shield and horse symbol","RED",false,"UI path placeholder","AGE_I"
-"Garrison","CLAY:1","",0,1,0,"NO_SYMBOL","DAGGER","NO_SYMBOL","VALUE",0,"","Provides 1 shield and target symbol","RED",false,"UI path placeholder","AGE_I"
-"Palisade","","",0,1,2,"NO_SYMBOL","TOWER","NO_SYMBOL","VALUE",0,"","Provides 1 shield and wall symbol","RED",false,"UI path placeholder","AGE_I"
-"Scriptorium","","",0,0,2,"FEATHER","BOOK","NO_SYMBOL","VALUE",0,"","Provides tablet symbol","GREEN",false,"UI path placeholder","AGE_I"
-"Pharmacist","","",0,0,2,"MOJAR","COG","NO_SYMBOL","VALUE",0,"","Provides compass symbol","GREEN",false,"UI path placeholder","AGE_I"
-"Theater","","",3,0,0,"NO_SYMBOL","DRAMA","NO_SYMBOL","VALUE",0,"","Gives 3 victory points and mask symbol","BLUE",false,"UI path placeholder","AGE_I"
-"Altar","","",3,0,0,"NO_SYMBOL","MOON","NO_SYMBOL","VALUE",0,"","Gives 3 victory points and moon symbol","BLUE",false,"UI path placeholder","AGE_I"
-"Baths","STONE:1","",3,0,0,"NO_SYMBOL","WATER","NO_SYMBOL","VALUE",0,"","Gives 3 victory points and drop symbol","BLUE",false,"UI path placeholder","AGE_I"
-"Tavern","","",0,0,0,"NO_SYMBOL","VESSEL","NO_SYMBOL","VALUE",4,"","Gain 4 coins","YELLOW",false,"UI path placeholder","AGE_I"
-"Sawmill","","WOOD:2",0,0,2,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 2 wood","BROWN",false,"UI path placeholder","AGE_II"
-"Brickyard","","CLAY:2",0,0,2,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 2 clay","BROWN",false,"UI path placeholder","AGE_II"
-"Shelf Quarry","","STONE:2",0,0,2,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 2 stone","BROWN",false,"UI path placeholder","AGE_II"
-"Glass-Blower","","GLASS:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 glass","GREY",false,"UI path placeholder","AGE_II"
-"Drying Room","","PAPYRUS:1",0,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Produces 1 papyrus","GREY",false,"UI path placeholder","AGE_II"
-"Walls","STONE:2","",0,2,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Provides 2 shields and fort symbol","RED",false,"UI path placeholder","AGE_II"
-"Forum","CLAY:3,","CONDITION_MANUFACTURED_GOODS",0,0,3,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives either glass or papyrus","YELLOW",false,"UI path placeholder","AGE_II"
-"Caravansery","GLASS:1,PAPYRUS:1","CONDITION_RAW_GOODS",0,0,2,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives either wood, clay or stone","YELLOW",false,"UI path placeholder","AGE_II"
-"Customs House","","",0,0,2,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"GLASS:true,PAPYRUS:true","Produces 1 wood, stone, clay","YELLOW",false,"UI path placeholder","AGE_II"
-"Courthouse","WOOD:2, GLASS:1","",5,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 5 Victory Points","BLUE",false,"UI path placeholder","AGE_II"
-"Horse Breeders","WOOD:1, CLAY:1","",0,1,0,"NO_SYMBOL","NO_SYMBOL","HORSESHOE","VALUE",0,"","Gives 1 War Point","RED",false,"UI path placeholder","AGE_II"
-"Barracks","","",0,1,3,"NO_SYMBOL","NO_SYMBOL","DAGGER","VALUE",0,"","Gives 1 War Point","RED",false,"UI path placeholder","AGE_II"
-"Archery Range","WOOD:1, PAPYRUS:1, STONE:1","",0,2,0,"NO_SYMBOL","TARGET","NO_SYMBOL","VALUE",0,"","Gives 2 War Points","RED",false,"UI path placeholder","AGE_II"
-"Parade Ground","CLAY:2, GLASS:1","",0,2,0,"NO_SYMBOL","SPARTAN","NO_SYMBOL","VALUE",0,"","Gives 2 War Points","RED",false,"UI path placeholder","AGE_II"
-"Library","WOOD:1, GLASS:1, STONE:1","",2,0,0,"FEATHER","NO_SYMBOL","BOOK","VALUE",0,"","Gives scientific symbol","GREEN",false,"UI path placeholder","AGE_II"
-"Dispensary","CLAY:2, STONE:1","",2,0,0,"MOJAR","NO_SYMBOL",",","VALUE",0,"","Gives scientific symbol","GREEN",false,"UI path placeholder","AGE_II"
-"School","WOOD:1, PAPYRUS:2","",1,0,0,"WHEEL","HARP","NO_SYMBOL","VALUE",0,"","Gives scientific symbol","GREEN",false,"UI path placeholder","AGE_II"
-"Laboratory","WOOD:1, GLASS:2","",1,0,0,"PENDULUM","LAMP","NO_SYMBOL","VALUE",0,"","Gives scientific symbol","GREEN",false,"UI path placeholder","AGE_II"
-"Statue","CLAY:2","",4,0,0,"NO_SYMBOL","PILLAR","DRAMA","VALUE",0,"","Gives 4 Victory Points","BLUE",false,"UI path placeholder","AGE_II"
-"Temple","WOOD:1, PAPYRUS:1","",4,0,0,"NO_SYMBOL","SUN","MOON","VALUE",0,"","Gives 4 Victory Points","BLUE", false,"UI path placeholder","AGE_II"
-"Aqueduct","STONE:3","",5,0,0,"NO_SYMBOL","NO_SYMBOL","WATER","VALUE",0,"","Gives 5 Victory Points","BLUE",false,"UI path placeholder","AGE_II"
-"Rostrum","WOOD:1, STONE:1","",4,0,0,"NO_SYMBOL","TEMPLE","NO_SYMBOL","VALUE",0,"","Gives 4 Victory Points","BLUE",false,"UI path placeholder","AGE_II"
-"Brewery","","",0,0,0,"NO_SYMBOL","BARREL","NO_SYMBOL","VALUE",6,"","Gives 6 Coins","YELLOW",false,"UI path placeholder","AGE_II"
-"Arsenal","CLAY:3, WOOD:2","",0,3,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 3 War Points","RED",false,"UI path placeholder","AGE_III"
-"Pretorium","","",0,3,8,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 3 War Points","RED",false,"UI path placeholder","AGE_III"
-"Academy","STONE:1, WOOD:1, GLASS:2","",3,0,0,"CLOCK","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives Scientific Symbol","GREEN",false,"UI path placeholder","AGE_III"
-"Study","WOOD:2, GLASS:1, PAYPRUS:1","",3,0,0,"CLOCK","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives Scientific Symbol","GREEN",false,"UI path placeholder","AGE_III"
-"Chamber Of Commerce","PAPYRUS:2","",3,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","GREY",3,"","Gives 3 victory point and 3 coins per grey card","YELLOW",false,"UI path placeholder","AGE_III"
-"Port","WOOD:1, GLASS:1, PAPYRUS:1","",3,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","BROWN",2,"","Gives 3 victory point and 2 coins per brown card","YELLOW",false,"UI path placeholder","AGE_III"
-"Armory","STONE:2, GLASS:1","",3,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","RED",1,"","Gives 3 victory point and 1 coin per red card","YELLOW",false,"UI path placeholder","AGE_III"
-"Palace","CLAY:1, STONE:1, WOOD:1, GALSS:2","",7,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 7 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Town Hall","STONE:3, WOOD:2","",7,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 7 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Obelisk","STONE:2, GLASS:1","",5,0,0,"NO_SYMBOL","NO_SYMBOL","NO_SYMBOL","VALUE",0,"","Gives 5 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Fortifications","STONE:2, CLAY:1, PAPYRUS:1","",0,2,0,"NO_SYMBOL","NO_SYMBOL","TOWER","VALUE",0,"","Gives 2 War Points","RED",false,"UI path placeholder","AGE_III"
-"Siege Workshop","WOOD:3, GLASS:1","",0,2,0,"NO_SYMBOL","NO_SYMBOL","TARGET","VALUE",0,"","Gives 2 War Points","RED",false,"UI path placeholder","AGE_III"
-"Circus","STONE:2, CLAY:2","",0,2,0,"NO_SYMBOL","NO_SYMBOL","SPARTAN","VALUE",0,"","Gives 2 War Points","RED",false,"UI path placeholder","AGE_III"
-"University","CLAY:1, GLASS:1, PAPYRUS:1","",2,0,0,"GLOBE","NO_SYMBOL","HARP","VALUE",0,"","Gives 2 Victory Points and Scientific Symbol","GREEN",false,"UI path placeholder","AGE_III"
-"Observatory","STONE:1, PAPYRUS:2","",2,0,0,"GLOBE","NO_SYMBOL","LAMP","VALUE",0,"","Gives 2 Victory Points and Scientific Symbol","GREEN",false,"UI path placeholder","AGE_III"
-"Gardens","CLAY:2, WOOD:2","",6,0,0,"NO_SYMBOL","NO_SYMBOL","PILLAR","VALUE",0,"","Gives 6 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Pantheon","CLAY:1, WOOD:1, PAPYRUS:2","",6,0,0,"NO_SYMBOL","NO_SYMBOL","SUN","VALUE",0,"","Gives 6 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Senate","STONE:1, CLAY:2, PAPYRUS:1","",5,0,0,"NO_SYMBOL","NO_SYMBOL","TEMPLE","VALUE",0,"","Gives 5 Victory Points","BLUE",false,"UI path placeholder","AGE_III"
-"Lighthouse","CLAY:2, GLASS:1","",3,0,0,"NO_SYMBOL","NO_SYMBOL","VESSEL","YELLOW",1,"","Gives 3 Victory Points and 1 coint per yellow card","YELLOW",false,"UI path placeholder","AGE_III"
-"Arena","STONE:1, WOOD:1, CLAY:1","",3,0,0,"NO_SYMBOL","NO_SYMBOL","BARREL","WONDER",2,"","Gives 3 Victory Points and 2 coins per wonder","YELLOW",false,"UI path placeholder","AGE_III"
+name,resourceCost,resourceProduction,victoryPoints,shieldPoints,coinCost,scientificSymbols,hasLinkingSymbol,requiresLinkingSymbol,tradeRules,caption,color,age,onPlayActions,onDiscardActions
+"Lumber Yard",,"WOOD:1",,,,,,,,"Produces 1 wood","BROWN","AGE_I","getResource","takeResource"
+"Logging Camp",,"WOOD:1",,,1,,,,,"Produces 1 wood","BROWN","AGE_I","getResource, payCoins","takeResource"
+"Clay Pit",,"CLAY:1",,,1,,,,,"Produces 1 clay","BROWN","AGE_I","getResource, payCoins","takeResource"
+"Clay Pool",,"CLAY:1",,,,,,,,"Produces 1 clay","BROWN","AGE_I","getResource","takeResource"
+"Stone Pit",,"STONE:1",,,1,,,,,"Produces 1 stone","BROWN","AGE_I","getResource, payCoins","takeResource"
+"Stone Reserve",,"STONE:1",,,1,,,,"STONE:true","Buy 1 stone for 1 coin","YELLOW","AGE_I","getTradeRule, payCoins",
+"Wood Reserve",,"WOOD:1",,,1,,,,"WOOD:true","Buy 1 wood for 1 coin","YELLOW","AGE_I","getTradeRule, payCoins",
+"Glassworks",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_I","getResource, payCoins","takeResource"
+"Press",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_I","getResource, payCoins","takeResource"
+"Quarry",,"STONE:1",,,1,,,,,"Produces 1 stone","BROWN","AGE_I","getResource","takeResource"
+"Guard Tower",,,,1,,,,,,"Provides 1 shield","RED","AGE_I","getShieldPoints",
+"Workshop","GLASS:1",,,,,"PENDULUM",,,,"Provides gear symbol","GREEN","AGE_I","getVictoryPoints, getScientificSymbol",
+"Apothecary","PAPYRUS:1",,,,,"WHEEL",,,,"Provides compass symbol","GREEN","AGE_I","getVictoryPoints, getScientificSymbol",
+"Clay Reserve",,"CLAY:1",,,3,,,,"CLAY:true","Buy 1 clay for 1 coins","YELLOW","AGE_I","getTradeRule, payCoins",
+"Stable","WOOD:1",,,1,,,"HORSESHOE",,,"Provides 1 shield and horse symbol","RED","AGE_I","getShieldPoints",
+"Garrison","CLAY:1",,,1,,,"DAGGER",,,"Provides 1 shield and target symbol","RED","AGE_I","getShieldPoints",
+"Palisade",,,,1,2,,"TOWER",,,"Provides 1 shield and wall symbol","RED","AGE_I","getShieldPoints, payCoins",
+"Scriptorium",,,,,2,"FEATHER","BOOK",,,"Provides tablet symbol","GREEN","AGE_I","getScientificSymbol, payCoins",
+"Pharmacist",,,,,2,"MOJAR","COG",,,"Provides compass symbol","GREEN","AGE_I","getScientificSymbol, payCoins",
+"Theater",,,3,,,,"DRAMA",,,"Gives 3 victory points and mask symbol","BLUE","AGE_I","getVictoryPoints",
+"Altar",,,3,,,,"MOON",,,"Gives 3 victory points and moon symbol","BLUE","AGE_I","getVictoryPoints",
+"Baths","STONE:1",,3,,,,"WATER",,,"Gives 3 victory points and drop symbol","BLUE","AGE_I","getVictoryPoints",
+"Tavern",,,,,,,"VESSEL",,,"Gain 4 coins","YELLOW","AGE_I","getCoins(4)",
+"Sawmill",,"WOOD:2",,,2,,,,,"Produces 2 wood","BROWN","AGE_II","getResource, payCoins","takeResource"
+"Brickyard",,"CLAY:2",,,2,,,,,"Produces 2 clay","BROWN","AGE_II","getResource, payCoins","takeResource"
+"Shelf Quarry",,"STONE:2",,,2,,,,,"Produces 2 stone","BROWN","AGE_II","getResource, payCoins","takeResource"
+"Glass-Blower",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_II","getResource","takeResource"
+"Drying Room",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_II","getResource","takeResource"
+"Walls","STONE:2",,,2,,,,,,"Provides 2 shields and fort symbol","RED","AGE_II","getShieldPoints",
+"Forum","CLAY:3,","CONDITION_MANUFACTURED_GOODS",,,3,,,,,"Gives either glass or papyrus","YELLOW","AGE_II","getResource, payCoins",
+"Caravansery","GLASS:1,PAPYRUS:1","CONDITION_RAW_GOODS",,,2,,,,,"Gives either wood, clay or stone","YELLOW","AGE_II","getResource, payCoins",
+"Customs House",,,,,2,,,,"GLASS:true,PAPYRUS:true","Produces 1 wood, stone, clay","YELLOW","AGE_II","getTradeRule, payCoins",
+"Courthouse","WOOD:2, GLASS:1",,5,,,,,,,"Gives 5 Victory Points","BLUE","AGE_II","getVictoryPoints",
+"Horse Breeders","WOOD:1, CLAY:1",,,1,,,,"HORSESHOE",,"Gives 1 War Point","RED","AGE_II","getShieldPoints",
+"Barracks",,,,1,3,,,"DAGGER",,"Gives 1 War Point","RED","AGE_II","getShieldPoints, payCoins",
+"Archery Range","WOOD:1, PAPYRUS:1, STONE:1",,,2,,,"TARGET",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
+"Parade Ground","CLAY:2, GLASS:1",,,2,,,"SPARTAN",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
+"Library","WOOD:1, GLASS:1, STONE:1",,2,,,"FEATHER",,"BOOK",,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints, getScientificSymbol",
+"Dispensary","CLAY:2, STONE:1",,2,,,"MOJAR",,",",,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints, getScientificSymbol",
+"School","WOOD:1, PAPYRUS:2",,1,,,"WHEEL","HARP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints, getScientificSymbol",
+"Laboratory","WOOD:1, GLASS:2",,1,,,"PENDULUM","LAMP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints, getScientificSymbol",
+"Statue","CLAY:2",,4,,,,"PILLAR","DRAMA",,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
+"Temple","WOOD:1, PAPYRUS:1",,4,,,,"SUN","MOON",,"Gives 4 Victory Points","BLUE", "AGE_II","getVictoryPoints",
+"Aqueduct","STONE:3",,5,,,,,"WATER",,"Gives 5 Victory Points","BLUE","AGE_II","getVictoryPoints",
+"Rostrum","WOOD:1, STONE:1",,4,,,,"TEMPLE",,,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
+"Brewery",,,,,,,"BARREL",,,"Gives 6 Coins","YELLOW","AGE_II","getCoins(6)",
+"Arsenal","CLAY:3, WOOD:2",,,3,,,,,,"Gives 3 War Points","RED","AGE_III","getShieldPoints",
+"Pretorium",,,,3,8,,,,,"Gives 3 War Points","RED","AGE_III","getShieldPoints, payCoins",
+"Academy","STONE:1, WOOD:1, GLASS:2",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints, getScientificSymbol",
+"Study","WOOD:2, GLASS:1, PAYPRUS:1",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints, getScientificSymbol",
+"Chamber Of Commerce","PAPYRUS:2",,3,,,,,,,"Gives 3 victory point and 3 coins per grey card","YELLOW","AGE_III","getVictoryPoints, applyAgeCoinWorth(GREY)",
+"Port","WOOD:1, GLASS:1, PAPYRUS:1",,3,,,,,,,"Gives 3 victory point and 2 coins per brown card","YELLOW","AGE_III","getVictoryPoints, applyAgeCoinWorth(BROWN)",
+"Armory","STONE:2, GLASS:1",,3,,,,,,,"Gives 3 victory point and 1 coin per red card","YELLOW","AGE_III","getVictoryPoints, applyAgeCoinWorth(RED)",
+"Palace","CLAY:1, STONE:1, WOOD:1, GALSS:2",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Town Hall","STONE:3, WOOD:2",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Obelisk","STONE:2, GLASS:1",,5,,,,,,,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Fortifications","STONE:2, CLAY:1, PAPYRUS:1",,,2,,,,"TOWER",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+"Siege Workshop","WOOD:3, GLASS:1",,,2,,,,"TARGET",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+"Circus","STONE:2, CLAY:2",,,2,,,,"SPARTAN",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+"University","CLAY:1, GLASS:1, PAPYRUS:1",,2,,,"GLOBE",,"HARP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints, getScientificSymbol",
+"Observatory","STONE:1, PAPYRUS:2",,2,,,"GLOBE",,"LAMP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints, getScientificSymbol",
+"Gardens","CLAY:2, WOOD:2",,6,,,,,"PILLAR",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Pantheon","CLAY:1, WOOD:1, PAPYRUS:2",,6,,,,,"SUN",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Senate","STONE:1, CLAY:2, PAPYRUS:1",,5,,,,,"TEMPLE",,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
+"Lighthouse","CLAY:2, GLASS:1",,3,,,,,"VESSEL",,"Gives 3 Victory Points and 1 coint per yellow card","YELLOW","AGE_III","getVictoryPoints, applyAgeCoinWorth(YELLOW)",
+"Arena","STONE:1, WOOD:1, CLAY:1",,3,,,,,"BARREL",,"Gives 3 Victory Points and 2 coins per wonder","YELLOW","AGE_III","getVictoryPoints, applyAgeCoinWorth(WONDER)",
 

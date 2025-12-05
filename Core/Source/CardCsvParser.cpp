@@ -77,21 +77,6 @@ auto getShieldPoints = [](uint8_t amt) {
     };
 };
 
-auto takeShieldPoints = [](uint8_t amt) {
-    return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
-        if (!cp) return;
-        auto points = cp->m_player.getPoints();
-        if (points.m_militaryVictoryPoints >= amt) {
-            points.m_militaryVictoryPoints -= amt;
-        }
-        else {
-            points.m_militaryVictoryPoints = 0;
-        }
-        cp->m_player.setPoints(points);
-    };
-};
-
 auto getVictoryPoints = [](uint8_t amt) {
     return [amt]() {
         Core::Player* cp = Core::GetCurrentPlayer();
@@ -102,41 +87,11 @@ auto getVictoryPoints = [](uint8_t amt) {
     };
 };
 
-auto takeVictoryPoints = [](uint8_t amt) {
-    return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
-        if (!cp) return;
-        auto points = cp->m_player.getPoints();
-        if (points.m_buildingVictoryPoints >= amt) {
-            points.m_buildingVictoryPoints -= amt;
-        }
-        else {
-            points.m_buildingVictoryPoints = 0;
-        }
-        cp->m_player.setPoints(points);
-    };
-};
-
 auto getScientificSymbol = [](ScientificSymbolType symbol) {
     return [symbol]() {
         Core::Player* cp = Core::GetCurrentPlayer();
         if (!cp) return;
 		cp->m_player.addScientificSymbol(symbol, 1);
-    };
-};
-
-auto takeScientificSymbol = [](ScientificSymbolType symbol) {
-    return [symbol]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
-        if (!cp) return;
-		auto owned = cp->m_player.getOwnedScientificSymbols();
-        auto it = owned.find(symbol);
-        if (it != owned.end()) {
-            uint8_t currentAmt = it->second;
-            if (currentAmt >= 1) {
-                cp->m_player.addScientificSymbol(symbol, -1);
-            }
-		}
     };
 };
 
@@ -211,6 +166,42 @@ auto applyGuildCointWorth = [](CoinWorthType type) {
         };
     };
 };
+
+auto returnCoinsFromOpponent = [](uint8_t amt) {
+    return [amt]() {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+        Core::Player* opponent = Core::GetOpponentPlayer();
+        if (!opponent) return;
+        opponent->subtractCoins(amt);
+        cp->addCoins(amt);
+    };
+};
+
+auto playAnotherTurn = []() {
+    Core::Player* cp = Core::GetCurrentPlayer();
+    if (!cp) return;
+    cp->setHasAnotherTurn(true);
+};
+
+auto discardOpponentCard = [](ColorType type) {
+    Core::Player* opponent = Core::GetOpponentPlayer();
+    if (!opponent) return;
+    opponent->discardCard(type);
+};
+
+auto drawToken = []() {
+    Core::Player* cp = Core::GetCurrentPlayer();
+    if (!cp) return;
+    cp->drawToken();
+};
+
+auto takeNewCard = []() {
+    Core::Player* cp = Core::GetCurrentPlayer();
+    if (!cp) return;
+    cp->takeNewCard();
+};
+
 std::vector<std::string> ParseCsvLine(const std::string& line) {
     std::vector<std::string> columns;
     std::stringstream ss(line);
@@ -301,37 +292,91 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     uint8_t victoryPoints = parse_u8(3);
     uint8_t shieldPoints = parse_u8(4);
     uint8_t coinCost = parse_u8(5);
-    ScientificSymbolType scientificSymbols = ParseEnum(StringToScientificSymbolType(get(6)), ScientificSymbolType::NO_SYMBOL);
-    LinkingSymbolType hasLinkingSymbol = ParseEnum(StringToLinkingSymbolType(get(7)), LinkingSymbolType::NO_SYMBOL);
-    LinkingSymbolType requiresLinkingSymbol = ParseEnum(StringToLinkingSymbolType(get(8)), LinkingSymbolType::NO_SYMBOL);
-    CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(9)), CoinWorthType::VALUE);
-    uint8_t coinReward = parse_u8(10);
-    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 11 ? ParseTradeRuleMap(get(11)) : std::unordered_map<TradeRuleType, bool>{};
-    std::string caption = get(12);
-    ColorType color = ParseEnum(StringToColorType(get(13)), ColorType::BROWN);
-    bool isVisible = parse_bool(14);
-    std::string modelPath = get(15);
-    Age age = ParseEnum(stringToAge(get(16)), Age::AGE_I);
+    std::optional<ScientificSymbolType> scientificSymbols;
+    if (auto opt = StringToScientificSymbolType(get(6)); opt.has_value()) scientificSymbols = opt;
+    std::optional<LinkingSymbolType> hasLinkingSymbol;
+    if (auto opt = StringToLinkingSymbolType(get(7)); opt.has_value()) hasLinkingSymbol = opt;
+    std::optional<LinkingSymbolType> requiresLinkingSymbol;
+    if (auto opt = StringToLinkingSymbolType(get(8)); opt.has_value()) requiresLinkingSymbol = opt;
+    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 9 ? ParseTradeRuleMap(get(9)) : std::unordered_map<TradeRuleType, bool>{};
+    std::string caption = get(10);
+    std::optional<ColorType> color;
+    if (auto opt = StringToColorType(get(11)); opt.has_value()) color = opt;
+    bool isVisible = parse_bool(12);
+    Age age = Age::AGE_I;
+    if (auto opt = stringToAge(get(12)); opt.has_value()) age = opt.value();
+
+    auto split_actions = [&](const std::string &s){
+        std::vector<std::string> out;
+        std::string cur; for (char c : s) { if (c==',') { auto a = cur; // trim
+                    size_t a1 = a.find_first_not_of(" \t\r\n"); size_t a2 = a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a = a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a); cur.clear(); }
+                else cur.push_back(c);} if (!cur.empty()) { auto a=cur; size_t a1=a.find_first_not_of(" \t\r\n"); size_t a2=a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a=a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a);} return out; };
 
     AgeCardBuilder b;
     b.setName(get(0)).setResourceCost(resourceCost).setResourceProduction(resourceProduction)
-      .setVictoryPoints(victoryPoints).setShieldPoints(shieldPoints).setCoinWorth(coinWorth)
-      .setCoinReward(coinReward).setCaption(caption).setColor(color).setAge(age)
-      .addOnPlayAction(make_payCoins(coinReward));
+      .setVictoryPoints(victoryPoints).setShieldPoints(shieldPoints).setCaption(caption);
+    if (color.has_value()) b.setColor(color.value());
+    b.setAge(age);
+    if (scientificSymbols.has_value()) b.setScientificSymbols(scientificSymbols);
+    if (hasLinkingSymbol.has_value()) b.setHasLinkingSymbol(hasLinkingSymbol);
+    if (requiresLinkingSymbol.has_value()) b.setRequiresLinkingSymbol(requiresLinkingSymbol);
+    if (!tradeRules.empty()) b.setTradeRules(tradeRules);
+
+    std::string playField = get(13);
+    if (!playField.empty()) {
+        for (auto &act : split_actions(playField)) {
+            if (act == "getResource") {
+                if (!resourceProduction.empty()) {
+                    auto kv = *resourceProduction.begin();
+                    b.addOnPlayAction(getResource(kv.second, kv.first));
+                }
+            } else if (act == "payCoins") {
+                uint8_t amt = coinCost;
+                if (amt==0) {
+                    std::string num;
+                    for (char c : caption) if (isdigit((unsigned char)c)) num.push_back(c);
+                    if (!num.empty()) amt = static_cast<uint8_t>(std::stoi(num));
+                }
+                if (amt>0) b.addOnPlayAction(payCoins(amt));
+            } else if (act == "getCoins") {
+                uint8_t amt = 0; std::string num; for (char c: caption) if (isdigit((unsigned char)c)) num.push_back(c); if (!num.empty()) amt=static_cast<uint8_t>(std::stoi(num));
+                if (amt>0) b.addOnPlayAction(getCoins(amt));
+            } else if (act == "getShieldPoints") {
+                if (shieldPoints>0) b.addOnPlayAction(getShieldPoints(shieldPoints));
+            } else if (act == "getVictoryPoints") {
+                if (victoryPoints>0) b.addOnPlayAction(getVictoryPoints(victoryPoints));
+            } else if (act == "getScientificSymbol") {
+                if (scientificSymbols.has_value()) b.addOnPlayAction(getScientificSymbol(scientificSymbols.value()));
+            } else if (act == "getTradeRule") {
+                 for (const auto &kv : tradeRules) if (kv.second) b.addOnPlayAction(getTradeRule(kv.first));
+             } else if (act.rfind("applyAgeCoinWorth",0)==0) {
+                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1!=std::string::npos && p2!=std::string::npos && p2>p1) {
+                     std::string arg = act.substr(p1+1,p2-p1-1);
+                     if (auto ct = StringToCoinWorthType(arg); ct.has_value()) {
+                        b.addOnPlayAction(applyAgeCoinWorth(ct.value()));
+                     }
+                 }
+             }
+         }
+     }
+
+    std::string discField = get(14);
+    if (!discField.empty()) {
+        for (auto &act : split_actions(discField)) {
+            if (act == "takeResource") {
+                if (!resourceProduction.empty()) { auto kv = *resourceProduction.begin(); b.addOnDiscardAction(takeResource(kv.second, kv.first)); }
+            }
+        }
+    }
+
     return b.build();
 }
 
 GuildCard GuildCardFactory(const std::vector<std::string>& columns) {
-    std::vector<std::string> scoringRules;
-    if (columns.size() > 1) {
-        std::istringstream rs(columns[1]);
-        std::string token;
-        while (std::getline(rs, token, ';')) {
-            if (!token.empty()) scoringRules.push_back(token);
-        }
-    }
     std::string name = columns.size() > 0 ? columns[0] : std::string{};
-    return GuildCard(name, scoringRules);
+    GuildCardBuilder b;
+    b.setName(name);
+    return b.build();
 }
 
 Wonder WonderFactory(const std::vector<std::string>& columns) {
@@ -341,34 +386,34 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
 
     std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
     uint8_t victoryPoints = parse_u8(2);
-    CoinWorthType coinWorth = ParseEnum(StringToCoinWorthType(get(3)), CoinWorthType::VALUE);
+    CoinWorthType coinWorth = CoinWorthType::WONDER;
+    if (auto opt = StringToCoinWorthType(get(3)); opt.has_value()) coinWorth = opt.value();
     uint8_t coinReward = parse_u8(4);
     std::string caption = get(5);
-    ColorType color = ParseEnum(StringToColorType(get(6)), ColorType::NO_COLOR);
+    ColorType color = ColorType::NO_COLOR;
+    if (auto opt = StringToColorType(get(6)); opt.has_value()) color = opt.value();
     bool isVisible = parse_bool(7);
     std::string modelPath = get(8);
-    ResourceType resourceProduction = ParseEnum(StringToResourceType(get(9)), ResourceType::NO_RESOURCE);
+    ResourceType resourceProduction = ResourceType::NO_RESOURCE;
+    if (auto opt = StringToResourceType(get(9)); opt.has_value()) resourceProduction = opt.value();
     uint8_t shieldPoints = parse_u8(10);
     uint8_t opponentLosesMoney = parse_u8(11);
     bool discardCardFromOpponent = parse_bool(12);
     bool playSecondTurn = parse_bool(13);
     bool drawProgressTokens = parse_bool(14);
     bool chooseAndConstructBuilding = parse_bool(15);
-    ColorType discardedCardColor = ParseEnum(StringToColorType(get(16)), ColorType::NO_COLOR);
+    ColorType discardedCardColor = ColorType::NO_COLOR;
+    if (auto opt = StringToColorType(get(16)); opt.has_value()) discardedCardColor = opt.value();
 
     WonderBuilder b;
-    std::bitset<5> flags;
-    flags.set(0, playSecondTurn);
-    flags.set(1, drawProgressTokens);
-    flags.set(2, chooseAndConstructBuilding);
-    flags.set(3, discardCardFromOpponent);
     b.setName(get(0)).setResourceCost(resourceCost).setVictoryPoints(victoryPoints)
      .setCoinWorth(coinWorth).setCoinReward(coinReward).setCaption(caption).setColor(color)
      .setOpponentLosesMoney(opponentLosesMoney).setShieldPoints(shieldPoints).setResourceProduction(resourceProduction)
-     .setFlags(flags).setDiscardedCardColor(discardedCardColor)
-     .addOnPlayAction(make_payCoins(coinReward));
+     .setConstructed(false);
+
+    if (coinReward > 0) b.addOnPlayAction(payCoins(coinReward));
     return b.build();
-}
+ }
 
 std::vector<Token> ParseTokensFromCSV(const std::string& path) {
     std::ifstream ifs(path);

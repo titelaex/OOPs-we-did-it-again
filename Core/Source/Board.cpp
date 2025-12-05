@@ -14,13 +14,17 @@ import Models.Bank;
 
 using namespace Core;
 
+Models::Bank& Core::GetBank() {
+    return bank;
+}
+
 void SetupCardPools()
 {
-	unusedAgeOneCards.reserve(23);
-    Board::unusedAgeTwoCards.reserve(23);
-    Board::unusedAgeThreeCards.reserve(20);
-    Board::unusedGuildCards.reserve(7);
-    Board::unusedWonders.reserve(12);
+    Core::unusedAgeOneCards.reserve(23);
+    Core::unusedAgeTwoCards.reserve(23);
+    Core::unusedAgeThreeCards.reserve(20);
+    Core::unusedGuildCards.reserve(7);
+    Core::unusedWonders.reserve(12);
 }
 
 void displayProgressTokens()

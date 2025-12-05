@@ -3,10 +3,6 @@ import <iostream>;
 
 using namespace Models;
 
-GuildCard::GuildCard()
-{
-}
-
 GuildCard::GuildCard(GuildCard&& other) noexcept
 	: Card(std::move(other)) {}
 GuildCard& GuildCard::operator=(GuildCard&& other) noexcept { if (this != &other) { Card::operator=(std::move(other));  } return *this; }
@@ -53,4 +49,5 @@ GuildCardBuilder& GuildCardBuilder::setCoinReward(const uint8_t& coinReward) { m
 GuildCardBuilder& GuildCardBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
 GuildCardBuilder& GuildCardBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
 GuildCardBuilder& GuildCardBuilder::addOnPlayAction(const std::function<void()>& action) { m_card.addOnPlayAction(action); return *this; }
+GuildCardBuilder& GuildCardBuilder::addOnDiscardAction(const std::function<void()>& action) { m_card.addOnDiscardAction(action); return *this; }
 GuildCard GuildCardBuilder::build() { return std::move(m_card); }

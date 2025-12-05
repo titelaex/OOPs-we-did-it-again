@@ -133,9 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AgeCard.cpp" />
     <ClCompile Include="GameState.ixx" />
-    <ClCompile Include="GuildCard.cpp" />
     <ClCompile Include="Source/AgeTree.cpp" />
     <ClCompile Include="Header/AgeTree.ixx" />
     <ClCompile Include="Source/Board.cpp" />
@@ -151,7 +149,6 @@
     <ClCompile Include="Header/Player.ixx" />
     <ClCompile Include="Source/Preparation.cpp" />
     <ClCompile Include="Header/Preparation.ixx" />
-    <ClCompile Include="Wonder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/AgeCards.csv" />

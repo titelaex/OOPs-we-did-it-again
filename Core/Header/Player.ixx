@@ -4,6 +4,7 @@ import Models.Wonder;
 import Models.Card;
 import Models.Player;
 import Models.Token;
+import Models.ColorType;
 import Models.LinkingSymbolType;
 import <iostream>;
 import <vector>;
@@ -34,12 +35,11 @@ export namespace Core
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
 	};
 
-	// current player context helpers
 	export void SetCurrentPlayer(Player* p);
 	export Player* GetCurrentPlayer();
-	export struct ScopedPlayerContext {
-		Player* m_prev;
-		ScopedPlayerContext(Player* p);
-		~ScopedPlayerContext();
-	};
+	export Player* GetOpponentPlayer();
+	export void playTurnForCurrentPlayer();
+	export void drawTokenForCurrentPlayer();
+	export void discardOpponentCardOfColor(Models::ColorType color);
+	export void buildCardFromAge1Pool(size_t index);
 }

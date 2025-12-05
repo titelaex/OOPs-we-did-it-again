@@ -108,16 +108,6 @@ CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action
     return *this;
 }
 
-CardBuilder& CardBuilder::setIsVisible(const bool& isVisible) {
-    m_card.setIsVisible(isVisible);
-    return *this;
-}
-
-CardBuilder& CardBuilder::setIsAvailable(const bool& isAvailable) {
-    m_card.setIsAvailable(isAvailable);
-    return *this;
-}
-
 Card CardBuilder::build() {
     return std::move(m_card);
 }

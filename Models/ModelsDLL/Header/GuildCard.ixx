@@ -22,7 +22,7 @@ export namespace Models
 	private:
 		static const Age m_age = Age::AGE_III;
 	public:
-		GuildCard();
+		GuildCard() = default;
 
 		// Copy constructor (deleted because base Card is non-copyable)
 		GuildCard(const GuildCard& other) = delete;
@@ -56,6 +56,7 @@ export namespace Models
 		GuildCardBuilder& setCaption(const std::string& caption);
 		GuildCardBuilder& setColor(const ColorType& color);
 		GuildCardBuilder& addOnPlayAction(const std::function<void()>& action);
+		GuildCardBuilder& addOnDiscardAction(const std::function<void()>& action);
 		GuildCard build();
 	};
 }

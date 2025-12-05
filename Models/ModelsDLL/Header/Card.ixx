@@ -17,14 +17,14 @@ export namespace Models
 	{
 	private:
 		std::string m_name;
-		std::unordered_map<ResourceType, uint8_t> m_resourceCost;
+		std::unordered_map<ResourceType, uint8_t> m_resourceCost{};
 		uint8_t m_victoryPoints{};
 		CoinWorthType m_coinWorth{};
 		uint8_t m_coinReward{};
-		std::string m_caption;
+		std::string m_caption{};
 		ColorType m_color{};
-		std::vector<std::function<void()>> m_onPlayActions;
-		std::vector<std::function<void()>> m_onDiscardActions;
+		std::vector<std::function<void()>> m_onPlayActions{};
+		std::vector<std::function<void()>> m_onDiscardActions{};
 		bool m_isVisible{ false };
 		bool m_isAvailable{ false };
 		//std::string m_modelPath = "UI path placeholder";
@@ -80,8 +80,6 @@ export namespace Models
 		CardBuilder& setColor(const ColorType& color);
 		CardBuilder& addOnPlayAction(const std::function<void()>& action);
 		CardBuilder& addOnDiscardAction(const std::function<void()>& action);
-		CardBuilder& setIsVisible(const bool& isVisible);
-		CardBuilder& setIsAvailable(const bool& isAvailable);
 		Card build();
 	};
 }
