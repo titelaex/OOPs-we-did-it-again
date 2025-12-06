@@ -39,16 +39,16 @@ std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& disca
 	return selectedTokens;
 }
 
-std::pair<std::vector<Models::Token>, std::vector<Models::Token>> startGameTokens(const std::vector<Models::Token>& allTokens)
+std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_ptr<Models::Token>>> startGameTokens(const std::vector<std::unique_ptr<Models::Token>>& allTokens)
 {
-	std::vector<Models::Token> progress;
-	std::vector<Models::Token> military;
+    std::vector<std::unique_ptr<Models::Token>> progress;
+    std::vector<std::unique_ptr<Models::Token>> military;
 	for (const auto& t : allTokens) {
-		if (t.getType() == Models::TokenType::PROGRESS) progress.push_back(t);
-		else if (t.getType() == Models::TokenType::MILITARY) military.push_back(t);
+		if (t->getType() == Models::TokenType::PROGRESS) progress.push_back(t);
+		else if (t->getType() == Models::TokenType::MILITARY) military.push_back(t);
 	}
 
-	std::vector<Models::Token> selectedProgress;
+    std::vector<std::unique_ptr<Models::Token>> selectedProgress;
 	constexpr size_t kSelectCount = 5;
 	if (progress.size() <= kSelectCount) {
 		selectedProgress = progress;
@@ -71,9 +71,13 @@ void m_chooseAndConstructBuildingAction(const std::vector<Models::AgeCard>& disc
 void m_discardCardFromOpponentAction(class Player& opponent, Models::ColorType color) {}
 
 void movePawn(int steps) {
-	Core::pawnTrack.reset();
-	Core::pawnPos = std::clamp(Core::pawnPos + steps, 0, 18);
-	Core::pawnTrack.set(Core::pawnPos);
+	auto track= Core::Board::getInstance().getPawnTrack();
+	track.reset();
+	auto position = Core::Board::getInstance().getPawnPos();
+	position = std::clamp(position + steps, 0, 18);
+	Core::Board::getInstance().setPawnPos(position);
+	track.set(position);
+    Core::Board::getInstance().setPawnTrack(track);
 }
 
 namespace Core {
@@ -83,9 +87,9 @@ namespace Core {
 			Core::PrepareBoardCardPools();
 
 			auto allTokens = ParseTokensFromCSV("Tokens.csv");
-			auto [progressSelected, military] = startGameTokens(allTokens);
-			Core::progressTokens = std::move(progressSelected);
-			Core::militaryTokens = std::move(military);
+			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
+            Core::Board::getInstance().setProgressTokens(progressSelected);
+			Core::Board::getInstance().setMilitaryTokens(military);
 		}
 		catch (const std::exception& ex) {
 			std::cerr << "Preparation exception: " << ex.what() << std::endl;
@@ -148,6 +152,6 @@ namespace Core {
 
         for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
             if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); break; }
-        }*/
-    }
+        }
+    }*/
 }

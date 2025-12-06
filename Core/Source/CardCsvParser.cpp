@@ -415,7 +415,7 @@ Wonder WonderFactory(const std::vector<std::string>& columns) {
     return b.build();
  }
 
-std::vector<Token> ParseTokensFromCSV(const std::string& path) {
+std::vector<std::unique_ptr<Token>> ParseTokensFromCSV(const std::string& path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) throw std::runtime_error("Unable to open Token CSV file: " + path);
     std::string header;
