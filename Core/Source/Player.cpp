@@ -15,6 +15,7 @@ import Models.Token;
 import Models.LinkingSymbolType;
 import GameState;
 import Core.Board;
+import Models.AgeCard;
 
 static thread_local Core::Player* g_current_player = nullptr;
 
@@ -57,7 +58,7 @@ void Core::drawTokenForCurrentPlayer()
     size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
     // give token to player and remove it from board pool where found
     const auto &chosen = combined[choice];
-    cp->m_player.addToken(chosen);
+    cp->m_player->addToken(chosen);
     // remove first occurrence from progress or military
     for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
         if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); return; }
@@ -74,22 +75,22 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
     if (!cp) return;
     Core::Player* opponent = GetOpponentPlayer();
     if (!opponent) return;
-    auto &owned = opponent->m_player.getOwnedCards();
+    auto &owned = opponent->m_player->getOwnedCards();
     std::vector<size_t> candidates;
     for (size_t i = 0; i < owned.size(); ++i) {
         if (!owned[i]) continue;
-        if (owned[i]->GetColor() == color) candidates.push_back(i);
+        if (owned[i]->getColor() == color) candidates.push_back(i);
     }
     if (candidates.empty()) return;
     std::cout << "Choose opponent card to discard:\n";
     for (size_t idx = 0; idx < candidates.size(); ++idx) {
         size_t i = candidates[idx];
-        std::cout << "[" << idx << "] " << owned[i]->GetName() << "\n";
+        std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
     }
     size_t choice = 0; std::cin >> choice; if (choice >= candidates.size()) choice = 0;
     size_t removeIdx = candidates[choice];
     // move card into board::discardedCards
-    auto moved = opponent->m_player.removeOwnedCardAt(removeIdx);
+    auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
     if (moved) Core::discardedCards.push_back(std::move(moved));
 }
 
@@ -102,7 +103,7 @@ void Core::buildCardFromAge1Pool(size_t index)
     // move card into buildDiscardedCard pool (as requested)
     auto cardPtr = std::move(Core::buildDiscardedCard[index]);
     if (!cardPtr) return;
-    cp->m_player.addCard(cardPtr);
+    cp->m_player->addCard(cardPtr);
     Core::buildDiscardedCard.erase(Core::buildDiscardedCard.begin() + index);
 }
 
@@ -116,9 +117,9 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
 
     if(availableWonders.size() == 1)
     {
-        m_player.addWonder(std::move(availableWonders[0]));
+        m_player->addWonder(std::move(availableWonders[0]));
         availableWonders.erase(availableWonders.begin());
-        std::cout << "Only one wonder available. Automatically chosen: " << m_player.getOwnedWonders().back()->GetName() << "->\n";
+        std::cout << "Only one wonder available. Automatically chosen: " << m_player->getOwnedWonders().back()->getName() << "->\n";
         return;
 	}
 
@@ -128,9 +129,9 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
         return;
     }
     auto& chosenWonder = availableWonders[chosenIndex];
-    m_player.addWonder(std::move(chosenWonder));
+    m_player->addWonder(std::move(chosenWonder));
     availableWonders.erase(availableWonders.begin() + chosenIndex);
-    std::cout << "Chosen wonder: " << m_player.getOwnedWonders().back()->GetName() << "->\n";
+    std::cout << "Chosen wonder: " << m_player->getOwnedWonders().back()->getName() << "->\n";
 
 }
 
@@ -156,157 +157,78 @@ void Core::Player::sellCard()
 uint8_t Core::Player::countYellowCards()
 {
     uint8_t count = 0;
-    for (const auto& p : m_player.getOwnedCards()) {
+    for (const auto& p : m_player->getOwnedCards()) {
         if (!p) continue;
-        if (p->GetColor() == Models::ColorType::YELLOW) ++count;
+        if (p->getColor() == Models::ColorType::YELLOW) ++count;
     }
     return count;
 }
 
-//de refacut functia asta
+
+// WONDER GAMEPLAY METHODS
+
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
-    std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
-    uint8_t& totalWondersBuilt)
+    std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards, uint8_t& totalWondersBuilt)
 {
     // check if WondersBuilt < 7
-
-    // 1-> Check if Wonder is already built
-    if (wonder->getIsVisible())
+    if (Models::Wonder::wondersBuilt < 7)
     {
-        std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
-        return;
-    }
-
-    // 2-> Check affordability 
-    if (!canAffordWonder(wonder, opponent))
-    {
-        std::cout << "Cannot afford Wonder \"" << wonder->getName() << "\"->\n";
-        return;
-    }
-
-    // 3-> Pay cost (resources + coins)
-    payForWonder(wonder, opponent);
-
-    // 4-> Use Age card to build Wonder
-    ageCard->toggleVisibility(); // mark as discarded
-
-    // 5-> Trigger Wonder effects
-    if (wonder->GetCoinReward() > 0)
-    {
-        // placeholder: give coins to player
-    }
-
-    if (wonder->getOpponentLosesMoney() > 0)
-    {
-        // placeholder: opponent loses money
-    }
-
-    if (wonder->getPlaySecondTurn())
-    {
-        // placeholder: schedule second turn
-    }
-
-    if (wonder->getDrawProgressTokens())
-    {
-        // placeholder: draw progress tokens
-    }
-
-    if (wonder->getChooseAndConstructBuilding())
-    {
-        // placeholder: allow choose and construct building
-    }
-
-    if (wonder->getDiscardCardFromOpponent())
-    {
-        // placeholder: discard an opponent's card
-    }
-
-    // 6-> Add Wonder to player's built list
-    //m_player->addWonder(wonder);
-    wonder->setIsVisible(true); // mark as constructed
-
-    // 7-> Check if 7 Wonders have been built
-    ++totalWondersBuilt;
-    if (totalWondersBuilt == 7)
-    {
-        discardRemainingWonder();
-    }
-
-    std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
-}
-
-void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
-{
-    if (!card->getIsVisible())
-    {
-        std::cout << "Card \"" << card->getName() << "\" is not accessible->\n";
-        return;
-    }
-
-    // Chain construction logic requires specific card APIs; commented out for now
-    /*
-    if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
-    {
-        for (const auto& ownedCard : m_player->getOwnedCards())
+        if (!wonder->IsConstructed())
         {
-            if (ownedCard->GetHasLinkingSymbol() == card->GetRequiresLinkingSymbol())
+            if(canAffordWonder(wonder, opponent))
             {
-                m_player->addCard(card);
-                card->SetIsVisible(false);
-                std::cout << "Card \"" << card->GetName() << "\" constructed for free via chain->\n";
-                applyCardEffects(card);
-                return;
+                payForWonder(wonder, opponent);
+
+                Models::Wonder* rawWonderPtr = wonder.release();
+                std::unique_ptr<Models::Card> tempCard(rawWonderPtr);
+                applyCardEffects(tempCard);
+                rawWonderPtr = static_cast<Models::Wonder*>(tempCard.release());
+                wonder.reset(rawWonderPtr);
+
+                wonder->setConstructed(true);
+                Models::Wonder::wondersBuilt++;
+                if(Models::Wonder::wondersBuilt == 7)
+                {
+                    std::cout << "All wonders have been built in the game->\n";
+                    discardRemainingWonder();
+                }
+
+				ageCard.reset(); // remove reference to the age card used to build the wonder
+                /*
+                discardedCards.push_back(std::move(ageCard));
+                
+                De ce e greșit: Tu arunci cartea în pachetul de discard (discardedCards).
+                Acest lucru afectează minunea The Mausoleum, care permite jucătorului să ia o carte din "discard pile". 
+                Dacă pui cărțile folosite la minuni acolo, vei permite Mausoleului să recupereze cărți care ar trebui să fie scoase definitiv din joc 
+                (ascunse sub minuni).
+                Corecție: Cartea trebuie stocată într-un vector intern al minunii sau pur și simplu "ștearsă" logic, dar NU adăugată la discardedCards.     
+                */
             }
+            else
+            {
+                std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\"->\n";
+                return;
+		    }
         }
+        else 
+            std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
+            return;
     }
-    */
-
-    // Check if card is free (resource cost only checked; coin-cost logic omitted)
-    //if (card.GetResourceCost()->empty() /* && coin-cost logic omitted */)
-    //{
-    //    m_player->addCard(card);
-    //    card->SetIsVisible(false);
-    //    std::cout << "Card \"" << card->GetName() << "\" constructed for free->\n";
-    //    applyCardEffects(card);
-    //    return;
-    //}
-
-    // Check affordability
-    if (!canAffordCard(card, opponent))
+    else
     {
-        std::cout << "Cannot afford to construct \"" << card->GetName() << "\"->\n";
+        std::cout << "All wonders have been built in the game->\n";
         return;
-    }
-
-    // Pay cost
-    payForCard(card, opponent);
-
-    // Construct card
-    /*m_player->addCard(card);
-    card->SetIsVisible(false);
-    std::cout << "Card \"" << card->GetName() << "\" constructed->\n";
-    applyCardEffects(card);*/
+	}
+    std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
 }
 
 bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
+
     const auto& cost = wonder->getResourceCost();
     const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
-
-    // 1. Correctly calculate opponent's production from only brown and grey cards
-    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
-    for (const auto& card : opponent->getOwnedCards())
-    {
-        if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY))
-        {
-            for (const auto& resourcePair : card->getResourceCost()) // Assuming GetResourceCost holds production for resource cards
-            {
-                opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
-            }
-        }
-    }
 
     std::unordered_map<Models::ResourceType, uint8_t> missingResources;
     for (const auto& [resource, requiredAmount] : cost) {
@@ -340,30 +262,46 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
         }
     }
 
-    // Helper to check for commercial discounts
+    // Helper to check for commercial discounts using m_tradeRules
     auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
-        for (const auto& card : m_player->getOwnedCards()) {
-            if (card && card->getColor() == Models::ColorType::YELLOW) {
-                // Check for specific yellow cards that grant resource discounts
-                const std::string& cardName = card->getName();
-				// Brown Resource Discounts
-                if ((cardName == "Wood Reserve" && resource == Models::ResourceType::WOOD) ||
-                    (cardName == "Stone Reserve" && resource == Models::ResourceType::STONE) ||
-                    (cardName == "Clay Reserve" && resource == Models::ResourceType::CLAY))
-                {
-                    return 1;
-                }
+        const auto& tradeRules = m_player->getTradeRules();
+        Models::TradeRuleType ruleType;
+        switch (resource) {
+        case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
+        case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
+        case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
+        case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
+        case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
+        default: return -1; // Not a resource that can have a trade rule
+        }
 
-				// Grey Resource Discounts
-                if (cardName == "Customs House" &&
-                    (resource == Models::ResourceType::PAPYRUS || resource == Models::ResourceType::GLASS))
+        auto it = tradeRules.find(ruleType);
+        if (it != tradeRules.end() && it->second) {
+            return 1; // Cost is 1 coin
+        }
+
+        return -1; // No discount
+        };
+
+    // 1. Correctly calculate opponent's production from only brown and grey cards
+    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+    for (const auto& card : opponent->getOwnedCards())
+    {
+        if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY))
+        {
+            if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get()))
+            {
+                for (const auto& resourcePair : ageCard->getResourceProduction())
                 {
-                    return 1;
+                    // Only count opponent's production if we don't have a trade discount for it
+                    if (getTradeDiscount(resourcePair.first) == -1)
+                    {
+                        opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
+                    }
                 }
             }
         }
-        return -1; // No discount
-        };
+    }
 
 
     uint8_t totalCost = 0;
@@ -414,6 +352,61 @@ void Core::Player::discardRemainingWonder()
     uint8_t builtCount = 0;
     // placeholder - actual list of all wonders should be provided by caller or game state
     // this implementation keeps method for API compatibility
+}
+
+
+
+void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
+{
+    if (!card->getIsVisible())
+    {
+        std::cout << "Card \"" << card->getName() << "\" is not accessible->\n";
+        return;
+    }
+
+    // Chain construction logic requires specific card APIs; commented out for now
+    /*
+    if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    {
+        for (const auto& ownedCard : m_player->getOwnedCards())
+        {
+            if (ownedCard->GetHasLinkingSymbol() == card->GetRequiresLinkingSymbol())
+            {
+                m_player->addCard(card);
+                card->SetIsVisible(false);
+                std::cout << "Card \"" << card->GetName() << "\" constructed for free via chain->\n";
+                applyCardEffects(card);
+                return;
+            }
+        }
+    }
+    */
+
+    // Check if card is free (resource cost only checked; coin-cost logic omitted)
+    //if (card.GetResourceCost()->empty() /* && coin-cost logic omitted */)
+    //{
+    //    m_player->addCard(card);
+    //    card->SetIsVisible(false);
+    //    std::cout << "Card \"" << card->GetName() << "\" constructed for free->\n";
+    //    applyCardEffects(card);
+    //    return;
+    //}
+
+    // Check affordability
+    if (!canAffordCard(card, opponent))
+    {
+        std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
+        return;
+    }
+
+    // Pay cost
+    payForCard(card, opponent);
+
+    // Construct card
+    /*m_player->addCard(card);
+    card->SetIsVisible(false);
+    std::cout << "Card \"" << card->GetName() << "\" constructed->\n";
+    applyCardEffects(card);*/
 }
 
 bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
@@ -531,30 +524,30 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
         Core::scopedPlayerContext ctx(this);
         newCard->onPlay();
     }
-    m_player.addCard(std::move(newCard));
+    m_player->addCard(std::move(newCard));
 }
 
 void Core::Player::addCoins(uint8_t amt)
 {
-    auto coins = m_player.getRemainingCoins();
-    uint32_t total = m_player.totalCoins(coins) + amt;
+    auto coins = m_player->getkPlayerIdgetRemainingCoins();
+    uint32_t total = m_player->totalCoins(coins) + amt;
     uint8_t sixes = static_cast<uint8_t>(total / 6u);
     uint8_t rem = static_cast<uint8_t>(total % 6u);
     uint8_t threes = static_cast<uint8_t>(rem / 3u);
     uint8_t ones = static_cast<uint8_t>(rem % 3u);
-    m_player.setRemainingCoins({ones, threes, sixes});
+    m_player->setRemainingCoins({ones, threes, sixes});
 }
 
 void Core::Player::subtractCoins(uint8_t amt)
 {
-    auto coins = m_player.getRemainingCoins();
-    uint32_t total = m_player.totalCoins(coins);
-    if (amt >= total) { m_player.setRemainingCoins({0,0,0}); return; }
+    auto coins = m_player->getRemainingCoins();
+    uint32_t total = m_player->totalCoins(coins);
+    if (amt >= total) { m_player->setRemainingCoins({0,0,0}); return; }
     uint32_t newTotal = total - amt;
     uint8_t sixes = static_cast<uint8_t>(newTotal / 6u);
     uint8_t rem = static_cast<uint8_t>(newTotal % 6u);
     uint8_t threes = static_cast<uint8_t>(rem / 3u);
     uint8_t ones = static_cast<uint8_t>(rem % 3u);
-    m_player.setRemainingCoins({ones, threes, sixes});
+    m_player->setRemainingCoins({ones, threes, sixes});
 }
 
