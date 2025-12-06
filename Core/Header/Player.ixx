@@ -14,10 +14,9 @@ export namespace Core
 	export class Player
 	{
 	public:
-		Models::Player m_player;
+		std::unique_ptr<Models::Player> m_player;
 		virtual void playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
-			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
-			uint8_t& totalWondersBuilt);
+			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 		virtual void playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player > &opponent);
 		void takeCard(std::unique_ptr<Models::Card> card);
 		void addCoins(uint8_t amt);
@@ -27,9 +26,9 @@ export namespace Core
 
 	private:
 		uint8_t countYellowCards();
-		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent);
-		void payForWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent);
-		void discardRemainingWonder();
+		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
+		void payForWonder(std::unique_ptr<Models::Wonder>& wonder,const std::unique_ptr<Models::Player>& opponent);
+		void discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);

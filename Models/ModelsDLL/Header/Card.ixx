@@ -40,17 +40,17 @@ export namespace Models
 		virtual void onPlay();
 		virtual void onDiscard();
 
-		const std::string& GetName() const;
-		const std::unordered_map<ResourceType, uint8_t>& GetResourceCost() const;
-		const uint8_t& GetVictoryPoints() const;
-		const CoinWorthType& GetCoinWorth() const;
-		const uint8_t& GetCoinReward() const;
-		const std::string& GetCaption() const;
-		const ColorType& GetColor() const;
-		const std::vector<std::function<void()>>& GetOnPlayActions() const;
-		const std::vector<std::function<void()>>& GetOnDiscardActions() const;
-		const bool& IsVisible() const;
-		const bool& IsAvailable() const;
+		const std::string& getName() const;
+		const std::unordered_map<ResourceType, uint8_t>& getResourceCost() const;
+		const uint8_t& getVictoryPoints() const;
+		const CoinWorthType& getCoinWorth() const;
+		const uint8_t& getCoinReward() const;
+		const std::string& getCaption() const;
+		const ColorType& getColor() const;
+		const std::vector<std::function<void()>>& getOnPlayActions() const;
+		const std::vector<std::function<void()>>& getOnDiscardActions() const;
+		const bool& isVisible() const;
+		const bool& isAvailable() const;
 
 		void setName(const std::string& name);
 		void setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);

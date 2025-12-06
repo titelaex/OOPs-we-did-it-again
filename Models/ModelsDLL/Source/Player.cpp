@@ -26,9 +26,8 @@ void Player::setPoints(const Points& playerPoints) { m_playerPoints = playerPoin
 void Player::addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity) { m_ownedScientificSymbols[symbol] += quantity; }
 const uint8_t Player::getkPlayerId() const { return kplayerId; }
 const std::string& Player::getPlayerUsername() const { return m_playerUsername; }
-const std::vector<std::unique_ptr<Wonder>>& Player::getOwnedWonders() const { return m_ownedWonders; }
-const std::vector<std::unique_ptr<Card>>& Player::getOwnedCards() const { return m_ownedCards; }
-const std::vector<std::unique_ptr<Token>>& Player::getOwnedTokens() const { return m_ownedTokens; }
+std::vector<std::unique_ptr<Models::Wonder>>& Models::Player::getOwnedWonders() {return m_ownedWonders;}
+const std::vector<Token>& Player::getOwnedTokens() const { return m_ownedTokens; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedPermanentResources() const { return m_ownedPermanentResources; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedTradingResources() const { return m_ownedTradingResources; }
 const std::tuple<uint8_t,uint8_t,uint8_t> Player::getRemainingCoins() const { return m_remainingCoins; }

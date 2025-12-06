@@ -54,7 +54,7 @@ namespace Models
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		const uint8_t getkPlayerId() const;
 		const std::string& getPlayerUsername() const;
-		const std::vector<std::unique_ptr<Wonder>>& getOwnedWonders() const;
+		std::vector<std::unique_ptr<Models::Wonder>>& getOwnedWonders();
 		const std::vector<std::unique_ptr<Card>>& getOwnedCards() const;
 		const std::vector<std::unique_ptr<Token>>& getOwnedTokens() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const;
