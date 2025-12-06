@@ -190,7 +190,7 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
                 if(Models::Wonder::wondersBuilt == 7)
                 {
                     std::cout << "All wonders have been built in the game->\n";
-                    discardRemainingWonder();
+                    discardRemainingWonder(opponent);
                 }
 
 				ageCard.reset(); // remove reference to the age card used to build the wonder
@@ -473,11 +473,41 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
     }
 }
 
-void Core::Player::discardRemainingWonder()
+void Core::Player::discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent)
 {
-    uint8_t builtCount = 0;
-    // placeholder - actual list of all wonders should be provided by caller or game state
-    // this implementation keeps method for API compatibility
+    // Definim un lambda pentru a nu scrie codul de căutare de două ori
+    // Observă parametrul: std::vector<...>& (Referință, ca să putem face erase pe original)
+    auto discardFromList = [](std::vector<std::unique_ptr<Models::Wonder>>& wonderList) -> bool {
+
+        for (auto it = wonderList.begin(); it != wonderList.end(); ++it) {
+            // Verificăm dacă minunea există și NU este construită
+            // (*it) este unique_ptr-ul, (*it)-> accesează metodele din Wonder
+            if (*it && !(*it)->IsConstructed()) {
+
+                std::cout << "7 Wonders Rule: Removing unbuilt wonder \""
+                    << (*it)->getName() << "\" from the game.\n";
+
+                // erase șterge elementul din vector și unique_ptr-ul dealocă automat memoria.
+                // Minunea este "returned to the box".
+                wonderList.erase(it);
+                return true; // Am găsit-o și am eliminat-o
+            }
+        }
+        return false; // Nu s-a găsit în această listă
+        };
+
+    // 1. Căutăm în lista jucătorului curent
+    // Apelează getter-ul care returnează referința la vectorul m_ownedWonders
+    if (discardFromList(m_player->getOwnedWonders())) {
+        return; // Am găsit-o la noi, am terminat.
+    }
+
+    // 2. Căutăm în lista adversarului
+    if (discardFromList(opponent->getOwnedWonders())) {
+        return; // Am găsit-o la adversar, am terminat.
+    }
+
+    std::cout << "Warning: Could not find the 8th unbuilt wonder to discard.\n";
 }
 
 

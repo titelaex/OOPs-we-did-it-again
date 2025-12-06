@@ -28,7 +28,7 @@ export namespace Core
 		uint8_t countYellowCards();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		void payForWonder(std::unique_ptr<Models::Wonder>& wonder,const std::unique_ptr<Models::Player>& opponent);
-		void discardRemainingWonder();
+		void discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
