@@ -105,7 +105,8 @@ namespace Core {
 
     void PrepareBoardCardPools()
     {
-        Core::SetupCardPools();
+		auto& board = Board::getInstance();
+		board.setupCardPools();
 
         uint32_t seed = static_cast<uint32_t>(std::random_device{}());
         std::ofstream log("Preparation.log", std::ios::app);
@@ -154,29 +155,33 @@ namespace Core {
                 loadGenericFile(agePath, loadFn, log);
             }
 
-            for (size_t i = 0; i < allAgeCards.size(); ++i) {
+            // Move into board pools and shuffle (preserve logic)
+            std::vector<std::unique_ptr<Models::Card>> age1, age2, age3;
+            for (size_t i =0; i < allAgeCards.size(); ++i) {
                 auto& c = allAgeCards[i];
                 switch (c.getAge()) {
                 case Models::Age::AGE_I:
-                    Core::unusedAgeOneCards.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
+                    age1.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
                     break;
                 case Models::Age::AGE_II:
-                    Core::unusedAgeTwoCards.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
+                    age2.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
                     break;
                 case Models::Age::AGE_III:
                 default:
-                    Core::unusedAgeThreeCards.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
+                    age3.push_back(std::make_unique<Models::AgeCard>(std::move(c)));
                     break;
                 }
             }
-
-            ShuffleInplace(Core::unusedAgeOneCards, seed);
-            ShuffleInplace(Core::unusedAgeTwoCards, seed + 1);
-            ShuffleInplace(Core::unusedAgeThreeCards, seed + 2);
-            if (log.is_open()) log << "Loaded ages: I=" << Core::unusedAgeOneCards.size()
-                << " II=" << Core::unusedAgeTwoCards.size() << " III=" << Core::unusedAgeThreeCards.size() << "\n";
-            std::cout << "Loaded ages: I=" << Core::unusedAgeOneCards.size()
-                << " II=" << Core::unusedAgeTwoCards.size() << " III=" << Core::unusedAgeThreeCards.size() << "\n";
+            ShuffleInplace(age1, seed);
+            ShuffleInplace(age2, seed +1);
+            ShuffleInplace(age3, seed +2);
+            board.setUnusedAgeOneCards(std::move(age1));
+            board.setUnusedAgeTwoCards(std::move(age2));
+            board.setUnusedAgeThreeCards(std::move(age3));
+            if (log.is_open()) log << "Loaded ages: I=" << board.getUnusedAgeOneCards().size()
+                << " II=" << board.getUnusedAgeTwoCards().size() << " III=" << board.getUnusedAgeThreeCards().size() << "\n";
+            std::cout << "Loaded ages: I=" << board.getUnusedAgeOneCards().size()
+                << " II=" << board.getUnusedAgeTwoCards().size() << " III=" << board.getUnusedAgeThreeCards().size() << "\n";
         }
         catch (const std::exception& ex) {
             if (log.is_open()) log << "[Exception] While processing age cards: " << ex.what() << "\n";
@@ -208,9 +213,11 @@ namespace Core {
                 loadGenericFile(guildPath, loadG, log);
             }
             ShuffleInplace(tempGuilds, seed);
-            for (auto& g : tempGuilds) Core::unusedGuildCards.push_back(std::make_unique<Models::GuildCard>(std::move(g)));
-            if (log.is_open()) log << "Loaded guilds: " << Core::unusedGuildCards.size() << "\n";
-            std::cout << "Loaded guilds: " << Core::unusedGuildCards.size() << "\n";
+            std::vector<std::unique_ptr<Models::Card>> guildPool;
+            for (auto& g : tempGuilds) guildPool.push_back(std::make_unique<Models::GuildCard>(std::move(g)));
+            board.setUnusedGuildCards(std::move(guildPool));
+            if (log.is_open()) log << "Loaded guilds: " << board.getUnusedGuildCards().size() << "\n";
+            std::cout << "Loaded guilds: " << board.getUnusedGuildCards().size() << "\n";
         }
         catch (const std::exception& ex) {
             if (log.is_open()) log << "[Exception] While processing guild cards: " << ex.what() << "\n";
@@ -242,49 +249,68 @@ namespace Core {
                 loadGenericFile(wonderPath, loadW, log);
             }
             ShuffleInplace(tempWonders, seed);
-            for (auto& w : tempWonders) Core::unusedWonders.push_back(std::make_unique<Models::Wonder>(std::move(w)));
-            if (log.is_open()) log << "Loaded wonders: " << Core::unusedWonders.size() << "\n";
-            std::cout << "Loaded wonders: " << Core::unusedWonders.size() << "\n";
+            std::vector<std::unique_ptr<Models::Card>> wonderPool;
+            for (auto& w : tempWonders) wonderPool.push_back(std::make_unique<Models::Wonder>(std::move(w)));
+            board.setUnusedWonders(std::move(wonderPool));
+            if (log.is_open()) log << "Loaded wonders: " << board.getUnusedWonders().size() << "\n";
+            std::cout << "Loaded wonders: " << board.getUnusedWonders().size() << "\n";
         }
         catch (const std::exception& ex) {
             if (log.is_open()) log << "[Exception] While processing wonder cards: " << ex.what() << "\n";
         }
 
+        // Build node trees
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            size_t take = std::min<size_t>(20, Core::unusedAgeOneCards.size());
-            for (size_t i = 0; i < take; ++i) selected.push_back(std::move(Core::unusedAgeOneCards[i]));
-            Core::unusedAgeOneCards.erase(Core::unusedAgeOneCards.begin(), Core::unusedAgeOneCards.begin() + take);
+            const auto& pool = board.getUnusedAgeOneCards();
+            size_t take = std::min<size_t>(20, pool.size());
+            for (size_t i =0; i < take; ++i) {
+                const Models::Card* base = pool[i].get();
+                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
+                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+                }
+            }
             selected = ShuffleAndMove(std::move(selected), seed);
             Core::Age1Tree tree(std::move(selected));
-            Core::age1Nodes = tree.releaseNodes();
+            board.setAge1Nodes(tree.releaseNodes());
         }
-
 
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            size_t take = std::min<size_t>(20, Core::unusedAgeTwoCards.size());
-            for (size_t i = 0; i < take; ++i) selected.push_back(std::move(Core::unusedAgeTwoCards[i]));
-            Core::unusedAgeTwoCards.erase(Core::unusedAgeTwoCards.begin(), Core::unusedAgeTwoCards.begin() + take);
-            selected = ShuffleAndMove(std::move(selected), seed + 1);
+            const auto& pool = board.getUnusedAgeTwoCards();
+            size_t take = std::min<size_t>(20, pool.size());
+            for (size_t i =0; i < take; ++i) {
+                const Models::Card* base = pool[i].get();
+                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
+                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+                }
+            }
+            selected = ShuffleAndMove(std::move(selected), seed +1);
             Core::Age2Tree tree(std::move(selected));
-            Core::age2Nodes = tree.releaseNodes();
+            board.setAge2Nodes(tree.releaseNodes());
         }
-
 
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            size_t take = std::min<size_t>(17, Core::unusedAgeThreeCards.size());
-            for (size_t i = 0; i < take; ++i) selected.push_back(std::move(Core::unusedAgeThreeCards[i]));
-            Core::unusedAgeThreeCards.erase(Core::unusedAgeThreeCards.begin(), Core::unusedAgeThreeCards.begin() + take);
-
-            size_t guildTake = std::min<size_t>(3, Core::unusedGuildCards.size());
-            for (size_t i = 0; i < guildTake; ++i) selected.push_back(std::move(Core::unusedGuildCards[i]));
-            Core::unusedGuildCards.erase(Core::unusedGuildCards.begin(), Core::unusedGuildCards.begin() + guildTake);
-
-            selected = ShuffleAndMove(std::move(selected), seed + 2);
+            const auto& pool3 = board.getUnusedAgeThreeCards();
+            const auto& poolG = board.getUnusedGuildCards();
+            size_t take3 = std::min<size_t>(17, pool3.size());
+            size_t takeG = std::min<size_t>(3, poolG.size());
+            for (size_t i =0; i < take3; ++i) {
+                const Models::Card* base = pool3[i].get();
+                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
+                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+                }
+            }
+            for (size_t i =0; i < takeG; ++i) {
+                const Models::Card* base = poolG[i].get();
+                if (const auto* gc = dynamic_cast<const Models::GuildCard*>(base)) {
+                    selected.push_back(std::make_unique<Models::GuildCard>(*gc));
+                }
+            }
+            selected = ShuffleAndMove(std::move(selected), seed +2);
             Core::Age3Tree tree(std::move(selected));
-            Core::age3Nodes = tree.releaseNodes();
+            board.setAge3Nodes(tree.releaseNodes());
         }
     }
 
@@ -310,11 +336,11 @@ namespace Core {
 
 		// get the first 4 wonders from the unusedWonders pool
 		std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
-        for (size_t i = 0; i <= 3; i++)
+        const auto& wondersPool = Board::getInstance().getUnusedWonders();
+        for (size_t i =0; i <=3 && i < wondersPool.size(); i++)
         {
-            availableWonders.push_back(
-                std::unique_ptr<Models::Wonder>(std::move(static_cast<Models::Wonder*>(Core::unusedWonders[i].release())))
-            );
+            if (const auto* w = dynamic_cast<const Models::Wonder*>(wondersPool[i].get()))
+                availableWonders.push_back(std::make_unique<Models::Wonder>(*w));
         }
 
 		displayAvailableWonders(availableWonders);
@@ -347,11 +373,10 @@ namespace Core {
 
 
         // get the next 4 wonders from the unusedWonders pool
-        for (size_t i = 0; i <= 3; i++)
+        for (size_t i =0; i <=3 && i < wondersPool.size(); i++)
         {
-            availableWonders.push_back(
-                std::unique_ptr<Models::Wonder>(std::move(static_cast<Models::Wonder*>(Core::unusedWonders[i].release())))
-            );
+            if (const auto* w = dynamic_cast<const Models::Wonder*>(wondersPool[i].get()))
+                availableWonders.push_back(std::make_unique<Models::Wonder>(*w));
         }
 
 

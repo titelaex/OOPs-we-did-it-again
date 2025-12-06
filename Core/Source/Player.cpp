@@ -3,7 +3,7 @@
 import <iostream>;
 import <vector>;
 import <tuple>;
-
+import <random>;
 import Models.Wonder;
 import Models.Card;
 import Models.Player;
@@ -11,6 +11,7 @@ import Models.Token;
 import Models.LinkingSymbolType;
 import GameState;
 import Core.Board;
+
 
 static thread_local Core::Player* g_current_player = nullptr;
 
@@ -40,27 +41,37 @@ void Core::drawTokenForCurrentPlayer()
 {
     Core::Player* cp = GetCurrentPlayer();
     if (!cp) return;
-    std::vector<Models::Token> combined;
-    for (const auto &t : Core::progressTokens) combined.push_back(t);
-    for (const auto &t : Core::militaryTokens) combined.push_back(t);
+    std::vector<std::unique_ptr<Models::Token>> combined;
+    auto progressTokens = Board::getInstance().getProgressTokens();
+    auto militaryTokens = Board::getInstance().getMilitaryTokens();
+    for (const auto& t : progressTokens) combined.push_back(t);
+    for (const auto& t : militaryTokens) combined.push_back(t);
     if (combined.empty()) return;
     std::random_device rd; std::mt19937 gen(rd());
     std::shuffle(combined.begin(), combined.end(), gen);
     size_t pickCount = std::min<size_t>(3, combined.size());
-    // show options
+   
     std::cout << "Choose a token: \n";
-    for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i] << "\n";
+    for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
     size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
-    // give token to player and remove it from board pool where found
-    const auto &chosen = combined[choice];
+    
+    std::unique_ptr<Models::Token>& chosen = combined[choice];
     cp->m_player.addToken(chosen);
-    // remove first occurrence from progress or military
-    for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
-        if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); return; }
+ 
+    for (auto it = progressTokens.begin(); it != progressTokens.end(); ++it) {
+        if ((*it) && (*it)->getName() == chosen->getName()) {
+            progressTokens.erase(it);
+            return;
+        }
     }
-    for (auto it = Core::militaryTokens.begin(); it != Core::militaryTokens.end(); ++it) {
-        if (it->getName() == chosen.getName()) { Core::militaryTokens.erase(it); return; }
+    for (auto it = militaryTokens.begin(); it != militaryTokens.end(); ++it) {
+        if ((*it) && (*it)->getName() == chosen->getName()) {
+            militaryTokens.erase(it);
+            return;
+        }
     }
+	Board::getInstance().setProgressTokens(progressTokens);
+	Board::getInstance().setMilitaryTokens(militaryTokens);
 }
 
 // Discard an opponent card of given color (grey or brown). Let current player choose index among opponent owned cards filtered by color.

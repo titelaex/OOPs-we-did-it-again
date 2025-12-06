@@ -18,7 +18,7 @@ Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), 
 
 void Player::addCard(const std::unique_ptr<Card>& card) { m_ownedCards.push_back(std::move(const_cast<std::unique_ptr<Card>&>(card))); }
 void Player::addWonder(const std::unique_ptr<Wonder>& wonder) { m_ownedWonders.push_back(std::move(const_cast<std::unique_ptr<Wonder>&>(wonder))); }
-void Player::addToken(const Token& token) { m_ownedTokens.push_back(token); }
+void Player::addToken(const std::unique_ptr<Token>& token) { m_ownedTokens.push_back(std::move(const_cast<std::unique_ptr<Token>&>(token))); }
 void Player::addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedPermanentResources[resourceType] += quantity; }
 void Player::addTradingResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedTradingResources[resourceType] += quantity; }
 void Player::setRemainingCoins(const std::tuple<uint8_t,uint8_t,uint8_t>& remainingCoins) { m_remainingCoins = remainingCoins; }
@@ -28,7 +28,7 @@ const uint8_t Player::getkPlayerId() const { return kplayerId; }
 const std::string& Player::getPlayerUsername() const { return m_playerUsername; }
 const std::vector<std::unique_ptr<Wonder>>& Player::getOwnedWonders() const { return m_ownedWonders; }
 const std::vector<std::unique_ptr<Card>>& Player::getOwnedCards() const { return m_ownedCards; }
-const std::vector<Token>& Player::getOwnedTokens() const { return m_ownedTokens; }
+const std::vector<std::unique_ptr<Token>>& Player::getOwnedTokens() const { return m_ownedTokens; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedPermanentResources() const { return m_ownedPermanentResources; }
 const std::unordered_map<ResourceType,uint8_t>& Player::getOwnedTradingResources() const { return m_ownedTradingResources; }
 const std::tuple<uint8_t,uint8_t,uint8_t> Player::getRemainingCoins() const { return m_remainingCoins; }

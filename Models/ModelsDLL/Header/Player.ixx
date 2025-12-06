@@ -22,7 +22,7 @@ namespace Models
 		std::string m_playerUsername;
 		std::vector<std::unique_ptr<Wonder>> m_ownedWonders;
 		std::vector<std::unique_ptr<Card>> m_ownedCards;
-		std::vector<Token> m_ownedTokens;
+		std::vector<std::unique_ptr<Token>> m_ownedTokens;
 		std::unordered_map<ResourceType, uint8_t> m_ownedPermanentResources;
 		std::unordered_map<ResourceType, uint8_t> m_ownedTradingResources;
 		std::unordered_map<ScientificSymbolType, uint8_t> m_ownedScientificSymbols;
@@ -45,7 +45,7 @@ namespace Models
 		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
 		void addCard(const std::unique_ptr<Card>& card);
 		void addWonder(const std::unique_ptr<Wonder>& wonder);
-		void addToken(const Token& token);
+		void addToken(const std::unique_ptr<Token>& token);
 		void addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity);
 		void addTradingResource(const ResourceType& resourceType, const uint8_t& quantity);
 		void setRemainingCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& remainingCoins);
@@ -56,7 +56,7 @@ namespace Models
 		const std::string& getPlayerUsername() const;
 		const std::vector<std::unique_ptr<Wonder>>& getOwnedWonders() const;
 		const std::vector<std::unique_ptr<Card>>& getOwnedCards() const;
-		const std::vector<Token>& getOwnedTokens() const;
+		const std::vector<std::unique_ptr<Token>>& getOwnedTokens() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedTradingResources() const;
 		const std::tuple<uint8_t, uint8_t, uint8_t> getRemainingCoins() const;
