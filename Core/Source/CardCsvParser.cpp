@@ -27,7 +27,7 @@ using namespace Models;
 
 auto payCoins = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
         cp->subtractCoins(amt);
     };
@@ -35,7 +35,7 @@ auto payCoins = [](uint8_t amt) {
 
 auto getCoins = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
         cp->addCoins(amt);
     };
@@ -43,25 +43,25 @@ auto getCoins = [](uint8_t amt) {
 
 auto getResource = [](uint8_t amt, Models::ResourceType res) {
     return [amt, res]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        cp->m_player.addPermanentResource(res, amt);
+        cp->m_player->addPermanentResource(res, amt);
     };
 };
 
 auto takeResource = [](uint8_t amt, Models::ResourceType res) {
     return [amt, res]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-		auto owned = cp->m_player.getOwnedPermanentResources();
+		auto owned = cp->m_player->getOwnedPermanentResources();
 		auto it = owned.find(res);
         if (it != owned.end()) {
             uint8_t currentAmt = it->second;
             if (currentAmt >= amt) {
-                cp->m_player.addPermanentResource(res, -static_cast<int8_t>(amt));
+                cp->m_player->addPermanentResource(res, -static_cast<int8_t>(amt));
             }
             else {
-                cp->m_player.addPermanentResource(res, -static_cast<int8_t>(currentAmt));
+                cp->m_player->addPermanentResource(res, -static_cast<int8_t>(currentAmt));
             }
         }
     };
@@ -69,45 +69,45 @@ auto takeResource = [](uint8_t amt, Models::ResourceType res) {
 
 auto getShieldPoints = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        auto points = cp->m_player.getPoints();
+        auto points = cp->m_player->getPoints();
         points.m_militaryVictoryPoints += amt;
-        cp->m_player.setPoints(points);
+        cp->m_player->setPoints(points);
     };
 };
 
 auto getVictoryPoints = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        auto points = cp->m_player.getPoints();
+        auto points = cp->m_player->getPoints();
         points.m_buildingVictoryPoints += amt;
-        cp->m_player.setPoints(points);
+        cp->m_player->setPoints(points);
     };
 };
 
 auto getScientificSymbol = [](ScientificSymbolType symbol) {
     return [symbol]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-		cp->m_player.addScientificSymbol(symbol, 1);
+		cp->m_player->addScientificSymbol(symbol, 1);
     };
 };
 
 auto getTradeRule = [](TradeRuleType rule) {
     return [rule]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        auto tradeRules = cp->m_player.getTradeRules();
+        auto tradeRules = cp->m_player->getTradeRules();
         tradeRules[rule] = true;
-        cp->m_player.setTradeRules(tradeRules);
+        cp->m_player->setTradeRules(tradeRules);
     };
 };
 
 auto applyAgeCoinWorth = [](CoinWorthType type) {
     return [type]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
         switch (type) {
         case CoinWorthType::GREY:
@@ -131,9 +131,9 @@ auto applyAgeCoinWorth = [](CoinWorthType type) {
     };
 };
 
-auto applyGuildCointWorth = [](CoinWorthType type) {
+auto applyGuildCoinWorth = [](CoinWorthType type) {
     return [type]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
         switch (type) {
         case CoinWorthType::GREYBROWN:
@@ -169,9 +169,9 @@ auto applyGuildCointWorth = [](CoinWorthType type) {
 
 auto returnCoinsFromOpponent = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        Core::Player* opponent = Core::GetOpponentPlayer();
+        Core::Player* opponent = Core::getOpponentPlayer();
         if (!opponent) return;
         opponent->subtractCoins(amt);
         cp->addCoins(amt);
@@ -179,30 +179,30 @@ auto returnCoinsFromOpponent = [](uint8_t amt) {
 };
 
 auto playAnotherTurn = []() {
-    Core::Player* cp = Core::GetCurrentPlayer();
+    Core::Player* cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->setHasAnotherTurn(true);
 };
 
 auto discardOpponentCard = [](ColorType type) {
-    Core::Player* opponent = Core::GetOpponentPlayer();
+    Core::Player* opponent = Core::getOpponentPlayer();
     if (!opponent) return;
     opponent->discardCard(type);
 };
 
 auto drawToken = []() {
-    Core::Player* cp = Core::GetCurrentPlayer();
+    Core::Player* cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->drawToken();
 };
 
 auto takeNewCard = []() {
-    Core::Player* cp = Core::GetCurrentPlayer();
+    Core::Player* cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->takeNewCard();
 };
 
-std::vector<std::string> ParseCsvLine(const std::string& line) {
+std::vector<std::string> parseCsvLine(const std::string& line) {
     std::vector<std::string> columns;
     std::stringstream ss(line);
     std::string cell;
@@ -225,7 +225,7 @@ std::vector<std::string> ParseCsvLine(const std::string& line) {
     return columns;
 }
 
-std::unordered_map<ResourceType, uint8_t> ParseResourceMap(const std::string& str) {
+std::unordered_map<ResourceType, uint8_t> parseResourceMap(const std::string& str) {
     std::unordered_map<ResourceType, uint8_t> map;
     std::istringstream ss(str);
     std::string token;
@@ -243,7 +243,7 @@ std::unordered_map<ResourceType, uint8_t> ParseResourceMap(const std::string& st
     return map;
 }
 
-std::unordered_map<TradeRuleType, bool> ParseTradeRuleMap(const std::string& str) {
+std::unordered_map<TradeRuleType, bool> parseTradeRuleMap(const std::string& str) {
     std::unordered_map<TradeRuleType, bool> map;
     std::istringstream ss(str);
     std::string token;
@@ -262,12 +262,12 @@ std::unordered_map<TradeRuleType, bool> ParseTradeRuleMap(const std::string& str
 }
 
 template<typename E>
-E ParseEnum(const std::optional<E>& opt, E fallback) {
+E parseEnum(const std::optional<E>& opt, E fallback) {
     return opt.has_value() ? opt.value() : fallback;
 }
 
 template<typename T, typename Factory>
-std::vector<T> ParseCardsFromCSV(const std::string& path, Factory factory) {
+std::vector<T> parseCardsFromCSV(const std::string& path, Factory factory) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) throw std::runtime_error("Unable to open CSV file: " + path);
     std::string header;
@@ -282,13 +282,13 @@ std::vector<T> ParseCardsFromCSV(const std::string& path, Factory factory) {
     return cards;
 }
 
-AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
+AgeCard ageCardFactory(const std::vector<std::string>& columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
     auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
-    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? ParseResourceMap(get(2)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? parseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? parseResourceMap(get(2)) : std::unordered_map<ResourceType, uint8_t>{};
     uint8_t victoryPoints = parse_u8(3);
     uint8_t shieldPoints = parse_u8(4);
     uint8_t coinCost = parse_u8(5);
@@ -298,7 +298,7 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     if (auto opt = StringToLinkingSymbolType(get(7)); opt.has_value()) hasLinkingSymbol = opt;
     std::optional<LinkingSymbolType> requiresLinkingSymbol;
     if (auto opt = StringToLinkingSymbolType(get(8)); opt.has_value()) requiresLinkingSymbol = opt;
-    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 9 ? ParseTradeRuleMap(get(9)) : std::unordered_map<TradeRuleType, bool>{};
+    std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 9 ? parseTradeRuleMap(get(9)) : std::unordered_map<TradeRuleType, bool>{};
     std::string caption = get(10);
     std::optional<ColorType> color;
     if (auto opt = StringToColorType(get(11)); opt.has_value()) color = opt;
@@ -372,19 +372,19 @@ AgeCard AgeCardFactory(const std::vector<std::string>& columns) {
     return b.build();
 }
 
-GuildCard GuildCardFactory(const std::vector<std::string>& columns) {
+GuildCard guildCardFactory(const std::vector<std::string>& columns) {
     std::string name = columns.size() > 0 ? columns[0] : std::string{};
     GuildCardBuilder b;
     b.setName(name);
     return b.build();
 }
 
-Wonder WonderFactory(const std::vector<std::string>& columns) {
+Wonder wonderFactory(const std::vector<std::string>& columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
     auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? ParseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? parseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
     uint8_t victoryPoints = parse_u8(2);
     CoinWorthType coinWorth = CoinWorthType::WONDER;
     if (auto opt = StringToCoinWorthType(get(3)); opt.has_value()) coinWorth = opt.value();
@@ -443,11 +443,11 @@ std::vector<std::unique_ptr<Token>> ParseTokensFromCSV(const std::string& path) 
         return {va,vb,vc};
     };
 
-    std::vector<Token> tokens;
+    std::vector<std::unique_ptr<Token>> tokens;
     std::string line;
     while (std::getline(ifs, line)) {
         if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) continue;
-        std::vector<std::string> rawCols = ParseCsvLine(line);
+        std::vector<std::string> rawCols = parseCsvLine(line);
         if (rawCols.size() <6) {
             // Attempt to recover if fewer columns (skip for now)
             continue;

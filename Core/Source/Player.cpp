@@ -143,23 +143,28 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
 
 }
 
-void Core::Player::sellCard()
+void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
-    uint8_t yellowCards = countYellowCards();
-    uint8_t coinsEarned = 2 + yellowCards;
-	//addCoins(coinsEarned);
+    // 1. Calculate Base Value
+    // Rule: "You discard the card and take 2 coins..." 
+    uint8_t coinsToGain = 2;
 
-	/*
-        auto it = std::find_if(m_player.getOwnedCards().begin(), m_player.getOwnedCards().end(), [&](const std::unique_ptr<Models::Card>& p) { return p && p.get() == &card; });
-	if (it != m_player.getOwnedCards().end()) {
-		(*it)->SetIsVisible(false);
-		std::cout << "Card \"" << (*it)->GetName() << "\" discarded. Player \"" << m_player.getPlayerUsername() << "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
-	//	m_player.getOwnedCards().erase(it);
-	} else {
-		card.SetIsVisible(false);
-		std::cout << "Card \"" << card.GetName() << "\" discarded. Player \"" << m_player.getPlayerUsername() << "\" gains " << static_cast<int>(coinsEarned) << " coins.\n";
-	}
-    */
+    // 2. Calculate Yellow Card Bonus
+    
+	uint8_t yellowCardCount = countYellowCards();
+	coinsToGain += yellowCardCount;
+
+    // 3. Add coins to Treasury
+    // Rule: "The money is added to your city's treasury." 
+    addCoins(coinsToGain);
+
+    std::cout << "Player sold \"" << ageCard->getName() << "\" for "
+        << static_cast<int>(coinsToGain) << " coins.\n";
+
+    // 4. Move card to Discard Pile
+    // Rule: "The discarded cards are placed face-down next to the board." 
+    // We use std::move because we are transferring ownership from the game board (structure) to the discard pile.
+    discardedCards.push_back(std::move(ageCard));
 }
 
 uint8_t Core::Player::countYellowCards()

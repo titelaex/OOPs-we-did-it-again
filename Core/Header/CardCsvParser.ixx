@@ -11,8 +11,8 @@ import <memory>;
 
 export
 {
-    Models::AgeCard AgeCardFactory(const std::vector<std::string>& columns);
-    Models::GuildCard GuildCardFactory(const std::vector<std::string>& columns);
-    Models::Wonder WonderFactory(const std::vector<std::string>& columns);
-    std::vector<std::unique_ptr<Models::Token>> ParseTokensFromCSV(const std::string& path);
+    Models::AgeCard ageCardFactory(const std::vector<std::string>& columns);
+    Models::GuildCard guildCardFactory(const std::vector<std::string>& columns);
+    Models::Wonder wonderFactory(const std::vector<std::string>& columns);
+    std::vector<std::unique_ptr<Models::Token>> parseTokensFromCSV(const std::string& path);
 }

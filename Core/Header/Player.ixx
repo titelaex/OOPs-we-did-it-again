@@ -22,7 +22,7 @@ export namespace Core
 		void addCoins(uint8_t amt);
 		void subtractCoins(uint8_t amt);
 		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
-		void sellCard();
+		void sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 
 	private:
 		uint8_t countYellowCards();
@@ -34,9 +34,9 @@ export namespace Core
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
 	};
 
-	export void SetCurrentPlayer(Player* p);
-	export Player* GetCurrentPlayer();
-	export Player* GetOpponentPlayer();
+	export void setCurrentPlayer(Player* p);
+	export Player* getCurrentPlayer();
+	export Player* getOpponentPlayer();
 	export void playTurnForCurrentPlayer();
 	export void drawTokenForCurrentPlayer();
 	export void discardOpponentCardOfColor(Models::ColorType color);
