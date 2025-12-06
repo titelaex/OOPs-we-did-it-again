@@ -8,17 +8,17 @@ using namespace Models;
 Card::Card(Card&& other) = default;
 Card& Card::operator=(Card&& other) = default;
 
-const std::string& Card::GetName() const { return m_name; }
-const std::unordered_map<ResourceType, uint8_t>& Card::GetResourceCost() const { return m_resourceCost; }
-const std::string& Card::GetCaption() const { return m_caption; }
-const ColorType& Card::GetColor() const { return m_color; }
-const uint8_t& Card::GetVictoryPoints() const { return m_victoryPoints; }
-const CoinWorthType& Card::GetCoinWorth() const { return m_coinWorth; }
-const uint8_t& Card::GetCoinReward() const { return m_coinReward; }
-const std::vector<std::function<void()>>& Card::GetOnPlayActions() const { return m_onPlayActions; }
-const std::vector<std::function<void()>>& Card::GetOnDiscardActions() const { return m_onDiscardActions; }
-const bool& Card::IsVisible() const { return m_isVisible; }
-const bool& Card::IsAvailable() const { return m_isAvailable; }
+const std::string& Card::getName() const { return m_name; }
+const std::unordered_map<ResourceType, uint8_t>& Card::getResourceCost() const { return m_resourceCost; }
+const std::string& Card::getCaption() const { return m_caption; }
+const ColorType& Card::getColor() const { return m_color; }
+const uint8_t& Card::getVictoryPoints() const { return m_victoryPoints; }
+const CoinWorthType& Card::getCoinWorth() const { return m_coinWorth; }
+const uint8_t& Card::getCoinReward() const { return m_coinReward; }
+const std::vector<std::function<void()>>& Card::getOnPlayActions() const { return m_onPlayActions; }
+const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
+const bool& Card::isVisible() const { return m_isVisible; }
+const bool& Card::isAvailable() const { return m_isAvailable; }
 
 void Card::onPlay()
 {

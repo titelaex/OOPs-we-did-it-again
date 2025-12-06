@@ -3,6 +3,10 @@
 import <iostream>;
 import <vector>;
 import <tuple>;
+import <unordered_map>;
+import <memory>;
+import <random>;
+import <algorithm>;
 
 import Models.Wonder;
 import Models.Card;
@@ -64,7 +68,7 @@ void Core::drawTokenForCurrentPlayer()
 }
 
 // Discard an opponent card of given color (grey or brown). Let current player choose index among opponent owned cards filtered by color.
-void Core::discardOpponentCardOfColor(ColorType color)
+void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
     Core::Player* cp = GetCurrentPlayer();
     if (!cp) return;
@@ -167,16 +171,16 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
     // check if WondersBuilt < 7
 
     // 1-> Check if Wonder is already built
-    if (wonder->GetIsVisible())
+    if (wonder->getIsVisible())
     {
-        std::cout << "Wonder \"" << wonder->GetName() << "\" is already constructed->\n";
+        std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
         return;
     }
 
     // 2-> Check affordability 
     if (!canAffordWonder(wonder, opponent))
     {
-        std::cout << "Cannot afford Wonder \"" << wonder->GetName() << "\"->\n";
+        std::cout << "Cannot afford Wonder \"" << wonder->getName() << "\"->\n";
         return;
     }
 
@@ -219,7 +223,7 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 
     // 6-> Add Wonder to player's built list
     //m_player->addWonder(wonder);
-    wonder->SetIsVisible(true); // mark as constructed
+    wonder->setIsVisible(true); // mark as constructed
 
     // 7-> Check if 7 Wonders have been built
     ++totalWondersBuilt;
@@ -228,14 +232,14 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
         discardRemainingWonder();
     }
 
-    std::cout << "Wonder \"" << wonder->GetName() << "\" constructed successfully->\n";
+    std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
 }
 
 void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-    if (!card->GetIsVisible())
+    if (!card->getIsVisible())
     {
-        std::cout << "Card \"" << card->GetName() << "\" is not accessible->\n";
+        std::cout << "Card \"" << card->getName() << "\" is not accessible->\n";
         return;
     }
 
@@ -284,69 +288,125 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     applyCardEffects(card);*/
 }
 
-bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent)
+bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
-    const auto& cost = wonder->GetResourceCost();
-    /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& cost = wonder->getResourceCost();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
-    const auto& opponentPermanent = opponent->getOwnedPermanentResources();
+    uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
 
-    uint8_t totalAvailableCoins = m_player->totalCoins(m_player->getRemainingCoins());
-
-    for (const auto& kv : cost)
+    // 1. Correctly calculate opponent's production from only brown and grey cards
+    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+    for (const auto& card : opponent->getOwnedCards())
     {
-        auto resource = kv->first;
-        auto requiredAmount = kv->second;
-
-        uint8_t produced = 0;
-        if (ownPermanent->find(resource) != ownPermanent->end()) produced += ownPermanent->at(resource);
-        if (ownTrading->find(resource) != ownTrading->end()) produced += ownTrading->at(resource);
-
-        if (produced >= requiredAmount)
-            continue;
-
-        uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = (opponentPermanent->find(resource) != opponentPermanent->end()) ? opponentPermanent->at(resource) : 0;
-        uint8_t costPerUnit = 2 + opponentProduction;
-        uint8_t totalCost = costPerUnit * missing;
-
-        if (totalAvailableCoins < totalCost)
-            return false;
-
-        totalAvailableCoins -= totalCost;
-    }*/
-    return true;
-}
-
-void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Player>& opponent)
-{
-    const auto& cost = wonder->GetResourceCost();
-    /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
-    const auto& ownTrading = m_player->getOwnedTradingResources();
-    const auto& opponentPermanent = opponent->getOwnedPermanentResources();
-
-    uint8_t totalCoinsToPay = 0;
-
-    for (const auto& kv : cost)
-    {
-        auto resource = kv->first;
-        auto requiredAmount = kv->second;
-
-        uint8_t produced = 0;
-        if (ownPermanent->find(resource) != ownPermanent->end()) produced += ownPermanent->at(resource);
-        if (ownTrading->find(resource) != ownTrading->end()) produced += ownTrading->at(resource);
-
-        if (produced >= requiredAmount)
-            continue;
-
-        uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = (opponentPermanent->find(resource) != opponentPermanent->end()) ? opponentPermanent->at(resource) : 0;
-        uint8_t costPerUnit = 2 + opponentProduction;
-
-        totalCoinsToPay += costPerUnit * missing;
+        if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY))
+        {
+            for (const auto& resourcePair : card->getResourceCost()) // Assuming GetResourceCost holds production for resource cards
+            {
+                opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
+            }
+        }
     }
 
-    m_player->subtractCoins(totalCoinsToPay);*/
+    std::unordered_map<Models::ResourceType, uint8_t> missingResources;
+    for (const auto& [resource, requiredAmount] : cost) {
+        uint8_t produced = 0;
+        if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
+        if (ownTrading.count(resource)) produced += ownTrading.at(resource);
+
+        if (produced < requiredAmount) {
+            missingResources[resource] = requiredAmount - produced;
+        }
+    }
+
+    if (missingResources.empty()) {
+        return true; // No resources needed, so it's affordable.
+    }
+
+    // 2. Check for Architecture token discount
+
+    //apply the discount givem from the Architecture token if the player has it
+    /*
+    Architecture
+        Any future Wonders built by you will cost 2 fewer resources.
+        At each construction, you are free to choose which resources this rebate affects.
+    */
+
+    bool hasArchitectureToken = false;
+    for (const auto& token : m_player->getOwnedTokens()) {
+        if (token.getName() == "Architecture") {
+            hasArchitectureToken = true;
+            break;
+        }
+    }
+
+    // Helper to check for commercial discounts
+    auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
+        for (const auto& card : m_player->getOwnedCards()) {
+            if (card && card->getColor() == Models::ColorType::YELLOW) {
+                // Check for specific yellow cards that grant resource discounts
+                const std::string& cardName = card->getName();
+				// Brown Resource Discounts
+                if ((cardName == "Wood Reserve" && resource == Models::ResourceType::WOOD) ||
+                    (cardName == "Stone Reserve" && resource == Models::ResourceType::STONE) ||
+                    (cardName == "Clay Reserve" && resource == Models::ResourceType::CLAY))
+                {
+                    return 1;
+                }
+
+				// Grey Resource Discounts
+                if (cardName == "Customs House" &&
+                    (resource == Models::ResourceType::PAPYRUS || resource == Models::ResourceType::GLASS))
+                {
+                    return 1;
+                }
+            }
+        }
+        return -1; // No discount
+        };
+
+
+    uint8_t totalCost = 0;
+
+   // apply the discount from Architecture token in the most beneficial way -> eliminate the cost of the
+   // resources the player doen't produce at all first and are the most expensive to buy from the bank
+    if (hasArchitectureToken) {
+        std::vector<std::pair<uint8_t, Models::ResourceType>> purchaseCosts;
+        for (const auto& [resource, amount] : missingResources) {
+            int discountedCost = getTradeDiscount(resource);
+            uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+            uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
+            purchaseCosts.push_back({ costPerUnit, resource });
+        }
+        std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
+
+        int discount = 2;
+        for (auto& costPair : purchaseCosts) {
+            auto resource = costPair.second;
+            uint8_t needed = missingResources[resource];
+            uint8_t discountedAmount = std::min((int)needed, discount);
+            missingResources[resource] -= discountedAmount;
+            discount -= discountedAmount;
+            if (discount <= 0) break;
+        }
+    }
+
+    for (const auto& [resource, amount] : missingResources) {
+        if (amount == 0) continue;
+        int discountedCost = getTradeDiscount(resource);
+        uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+        uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
+        totalCost += costPerUnit * amount;
+    }
+
+    return availableCoins >= totalCost;
+}
+
+void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
+{
+    const auto& cost = wonder->getResourceCost();
+
+    
 }
 
 void Core::Player::discardRemainingWonder()
@@ -375,7 +435,7 @@ bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::uniqu
     */
 
     // 3-> Resource cost
-    const auto& cost = card->GetResourceCost();
+    const auto& cost = card->getResourceCost();
     /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentProduction = opponent->getOwnedPermanentResources();
@@ -408,7 +468,7 @@ bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::uniqu
 // Need to include payForCard, applyCardEffects, etc
 void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-    const auto& cost = card->GetResourceCost();
+    const auto& cost = card->getResourceCost();
     /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentPermanent = opponent->getOwnedPermanentResources();
@@ -439,36 +499,36 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 
 void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
-    std::cout << "Applying effects of card \"" << card->GetName() << "\"->\n";
+    std::cout << "Applying effects of card \"" << card->getName() << "\"->\n";
 }
 
 void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 {
     // Rebuild the card to bind its onPlay actions to this Core::Player
-    const auto& oldActions = card->GetOnPlayActions();
+    const auto& oldActions = card->getOnPlayActions();
     Models::CardBuilder builder;
-    builder.setName(card->GetName())
-        .setResourceCost(card->GetResourceCost())
-        .setVictoryPoints(card->GetVictoryPoints())
-        .setCoinWorth(card->GetCoinWorth())
-        .setCoinReward(card->GetCoinReward())
-        .setCaption(card->GetCaption())
-        .setColor(card->GetColor());
+    builder.setName(card->getName())
+        .setResourceCost(card->getResourceCost())
+        .setVictoryPoints(card->getVictoryPoints())
+        .setCoinWorth(card->getCoinWorth())
+        .setCoinReward(card->getCoinReward())
+        .setCaption(card->getCaption())
+        .setColor(card->getColor());
 
     for (const auto& act : oldActions) {
         // wrap original action so it always runs with this player as current context
         builder.addOnPlayAction([this, act]() {
-            Core::ScopedPlayerContext ctx(this);
+            Core::scopedPlayerContext ctx(this);
             if (act) act();
         });
     }
 
     auto newCard = std::make_unique<Models::Card>(builder.build());
 
-    std::cout << "Player takes card: " << newCard->GetName() << "\n";
+    std::cout << "Player takes card: " << newCard->getName() << "\n";
     // play the card immediately in the context of this player
     {
-        Core::ScopedPlayerContext ctx(this);
+        Core::scopedPlayerContext ctx(this);
         newCard->onPlay();
     }
     m_player.addCard(std::move(newCard));
