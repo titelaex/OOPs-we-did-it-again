@@ -23,6 +23,7 @@ import Models.TradeRuleType;
 import Models.Token; // ensures TokenType is available
 import Models.Card;
 import Core.CardCsvParser;
+import Core.Player;
 
 void m_receiveMoneyAction(class Player& player) {}
 void m_opponentLosesMoneyAction(class Player& opponent) {}
@@ -93,4 +94,60 @@ namespace Core {
 			std::cerr << "Unknown exception during preparation" << std::endl;
 		}
 	}
+
+
+    /*
+    void chooseToken()
+    {
+        Core::Player* cp = Core::GetCurrentPlayer();
+        if (!cp) return;
+
+        //scientific symbols?
+        bool eligible = false;
+        const auto& syms = cp->m_player.getOwnedScientificSymbols();
+        for (const auto& kv : syms) {
+            if (kv.second >= 2) { eligible = true; break; }
+        }
+
+        //wonder "The Great Library" 
+        if (!eligible) {
+            const auto& wonders = cp->m_player.getOwnedWonders();
+            for (const auto& wptr : wonders) {
+                if (!wptr) continue;
+                if (!wptr->IsConstructed()) continue;
+                if (wptr->GetName() == "The Great Library") { eligible = true; break; }
+            }
+        }
+
+        if (!eligible) return;
+        if (Core::progressTokens.empty()) return;
+
+        // 3 random tokens 
+        std::vector<Models::Token> options = Core::progressTokens;
+        size_t maxOptions = std::min<size_t>(3, options.size());
+        if (options.size() > maxOptions) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::shuffle(options.begin(), options.end(), gen);
+            options.resize(maxOptions);
+        }
+
+        std::cout << "Alege un progress token:\n";
+        for (size_t i = 0; i < options.size(); ++i) {
+            std::cout << "[" << i << "] " << options[i] << "\n";
+        }
+
+        size_t choice = 0;
+        if (!(std::cin >> choice) || choice >= options.size()) {
+            choice = 0;
+            if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
+        }
+
+        const Models::Token& chosen = options[choice];
+        cp->m_player.addToken(chosen);
+
+        for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
+            if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); break; }
+        }*/
+    }
 }
