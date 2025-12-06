@@ -16,8 +16,7 @@ export namespace Core
 	public:
 		std::unique_ptr<Models::Player> m_player;
 		virtual void playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
-			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards,
-			uint8_t& totalWondersBuilt);
+			std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 		virtual void playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player > &opponent);
 		void takeCard(std::unique_ptr<Models::Card> card);
 		void addCoins(uint8_t amt);

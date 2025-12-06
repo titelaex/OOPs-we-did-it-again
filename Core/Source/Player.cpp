@@ -168,7 +168,7 @@ uint8_t Core::Player::countYellowCards()
 // WONDER GAMEPLAY METHODS
 
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
-    std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards, uint8_t& totalWondersBuilt)
+    std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
     // check if WondersBuilt < 7
     if (Models::Wonder::wondersBuilt < 7)
@@ -342,9 +342,135 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
 
 void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
-    const auto& cost = wonder->getResourceCost();
 
-    
+    const auto& cost = wonder->getResourceCost();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownTrading = m_player->getOwnedTradingResources();
+
+    std::unordered_map<Models::ResourceType, uint8_t> missingResources;
+    int totalMissingUnits = 0;
+
+    for (const auto& [resource, requiredAmount] : cost) {
+ 
+        uint8_t produced = 0;
+        if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
+        if (ownTrading.count(resource)) produced += ownTrading.at(resource);
+
+        if (produced < requiredAmount) {
+            uint8_t missing = requiredAmount - produced;
+            missingResources[resource] = missing;
+            totalMissingUnits += missing;
+        }
+	}
+
+    if (missingResources.empty()) {
+        std::cout << "Player constructed the wonder for free (sufficient resources owned).\n";
+        return;
+    }
+
+    bool hasArchitectureToken = false;
+    for (const auto& token : m_player->getOwnedTokens()) {
+        if (token.getName() == "Architecture") {
+            hasArchitectureToken = true;
+            break;
+        }
+    }
+
+
+    if (hasArchitectureToken && totalMissingUnits <= 2) {
+        std::cout << "Player constructed the wonder for free (covered fully by Architecture token).\n";
+        return;
+    }
+
+
+	// if we get there, that means we have to pay some coins for missing resources
+
+    auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
+        const auto& tradeRules = m_player->getTradeRules();
+        Models::TradeRuleType ruleType;
+        switch (resource) {
+        case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
+        case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
+        case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
+        case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
+        case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
+        default: return -1;
+        }
+        auto it = tradeRules.find(ruleType);
+        if (it != tradeRules.end() && it->second) return 1; // Cost fix 1
+        return -1;
+        };
+
+    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+    bool opponentCheckNeeded = false;
+
+	//verify if we need to check opponent production at all
+    for (const auto& [resource, amount] : missingResources) {
+        if (getTradeDiscount(resource) == -1) {
+            opponentCheckNeeded = true;
+            break;
+        }
+    }
+
+    if (opponentCheckNeeded) {
+        for (const auto& card : opponent->getOwnedCards()) {
+            if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY)) {
+                if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
+                    for (const auto& resourcePair : ageCard->getResourceProduction()) {
+                        if (missingResources.find(resourcePair.first) != missingResources.end()) {
+                            opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+	/// final calculation of total cost
+    std::vector<uint8_t> purchaseCosts;
+
+    for (const auto& [resource, amount] : missingResources) {
+        int discountedCost = getTradeDiscount(resource);
+        uint8_t costPerUnit = 0;
+
+        if (discountedCost != -1) {
+			// from yellow cards or trade rules -> 1 coin each
+            costPerUnit = 1;
+        }
+        else {
+			// from opponent production 
+            uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+            costPerUnit = 2 + opponentAmount;
+        }
+
+        for (int i = 0; i < amount; ++i) {
+            purchaseCosts.push_back(costPerUnit);
+        }
+    }
+
+	/// apply Architecture token discount if available
+	/// we already verified above that there are more than 2 missing units
+    if (hasArchitectureToken) {
+        std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
+		/// eliminate the two most expensive resources
+        if (purchaseCosts.size() >= 2) {
+            purchaseCosts.erase(purchaseCosts.begin(), purchaseCosts.begin() + 2);
+        }
+    }
+
+    uint8_t totalTradingCost = 0;
+    for (uint8_t price : purchaseCosts) {
+        totalTradingCost += price;
+    }
+
+    if (totalTradingCost > 0) {
+        subtractCoins(totalTradingCost);
+        std::cout << "Player paid " << static_cast<int>(totalTradingCost) << " coins for trading resources.\n";
+    }
+    else {
+		/// for safety, should not happen
+        std::cout << "Player constructed the wonder for free.\n";
+    }
 }
 
 void Core::Player::discardRemainingWonder()
