@@ -1,6 +1,6 @@
 export module Core.Game;
 
-import Core.Preparation;
+import Core.Phase;
 import Core.Board;
 import Core.Node;
 

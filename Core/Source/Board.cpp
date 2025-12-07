@@ -155,8 +155,8 @@ static void displayAgeCards(const char* title, const std::vector<std::unique_ptr
 		c->displayCardInfo();
 		auto p1 = n->getParent1();
 		auto p2 = n->getParent2();
-		std::cout << " Parents=(" << (p1 ? p1->getCard()->GetName() : " ")
-			<< "," << (p2 ? p2->getCard()->GetName() : " ") << ")\n";
+		std::cout << " Parents=(" << (p1 ? p1->getCard()->getName() : " ")
+			<< "," << (p2 ? p2->getCard()->getName() : " ") << ")\n";
 	}
 }
 

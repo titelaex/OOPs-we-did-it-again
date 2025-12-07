@@ -51,22 +51,22 @@ void AgeCard::displayCardInfo() {
 
 std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
 {
-	os << "Card Name: " << card.GetName() << '\n';
-	os << "Color: " << ColorTypeToString(card.GetColor()) << '\n';
-	os << "Caption: " << card.GetCaption() << '\n';
+	os << "Card Name: " << card.getName() << '\n';
+	os << "Color: " << ColorTypeToString(card.getColor()) << '\n';
+	os << "Caption: " << card.getCaption() << '\n';
 	os << "Resource Cost:" << '\n';
-	for (const auto& [res, amt] : card.GetResourceCost())
+	for (const auto& [res, amt] : card.getResourceCost())
 		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
 	os << "Resource Production:" << '\n';
 	for (const auto& [res, amt] : card.getResourceProduction())
 		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
-	os << "Victory Points: " << static_cast<int>(card.GetVictoryPoints()) << '\n';
+	os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
 	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
 	if (card.getScientificSymbols().has_value()) os << "Scientific Symbol: " << ScientificSymbolTypeToString(card.getScientificSymbols().value()) << '\n';
 	if (card.getHasLinkingSymbol().has_value()) os << "Linking Symbol Provided: " << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value()) << '\n';
 	if (card.getRequiresLinkingSymbol().has_value()) os << "Linking Symbol Required: " << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value()) << '\n';
-	os << "Coin Worth Type: " << CoinWorthTypeToString(card.GetCoinWorth()) << '\n';
-	os << "Coin Reward: " << static_cast<int>(card.GetCoinReward()) << '\n';
+	os << "Coin Worth Type: " << CoinWorthTypeToString(card.getCoinWorth()) << '\n';
+	os << "Coin Reward: " << static_cast<int>(card.getCoinReward()) << '\n';
 	os << "Trade Rules:" << '\n';
 	for (const auto& [rule, enabled] : card.getTradeRules())
 		os << " - " << ResourceTypeToString(static_cast<ResourceType>(rule)) << ": " << (enabled ? "Enabled" : "Disabled") << '\n';

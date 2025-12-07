@@ -23,7 +23,7 @@ static thread_local Core::Player* g_current_player = nullptr;
 void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
 Core::Player* GetCurrentPlayer() { return g_current_player; }
 
-Core::Player* Core::GetOpponentPlayer()
+Core::Player* Core::getOpponentPlayer()
 {
     Core::Player* cp = GetCurrentPlayer();
     if (!cp) return nullptr;
@@ -64,7 +64,7 @@ void Core::drawTokenForCurrentPlayer()
     cp->m_player->addToken(chosen);
     // remove first occurrence from progress or military
     for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
-        if (it->getName() == chosen.getName()) { Core::progressTokens.erase(it); return; }
+        if (it->getName() == chosen->getName()) { Core::progressTokens.erase(it); return; }
     }
     for (auto it = militaryTokens.begin(); it != militaryTokens.end(); ++it) {
         if ((*it) && (*it)->getName() == chosen->getName()) {
@@ -81,7 +81,7 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
     Core::Player* cp = GetCurrentPlayer();
     if (!cp) return;
-    Core::Player* opponent = GetOpponentPlayer();
+    Core::Player* opponent = getOpponentPlayer();
     if (!opponent) return;
     auto &owned = opponent->m_player->getOwnedCards();
     std::vector<size_t> candidates;

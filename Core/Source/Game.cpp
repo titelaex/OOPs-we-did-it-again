@@ -8,7 +8,7 @@ import <algorithm>;
 import <utility>;
 
 
-import Core.Preparation;
+import Core.Phase;
 import Core.Board;
 import Core.Node;
 
@@ -98,7 +98,7 @@ namespace Core {
 		try {
 			Core::PrepareBoardCardPools();
 
-			auto allTokens = ParseTokensFromCSV("Tokens.csv");
+			auto allTokens = parseTokensFromCSV("Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(progressSelected);
 			Core::Board::getInstance().setMilitaryTokens(military);
@@ -111,9 +111,29 @@ namespace Core {
 		}
 	}
 
+    std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove)
+    {
+        auto tokens = Core::Board::getInstance().getProgressTokens();
+        std::vector<std::unique_ptr<Models::Token>> remaining;
+        remaining.reserve(tokens.size());
+
+        std::unique_ptr<Models::Token> found;
+        for (auto& tptr : tokens) {
+            if (!tptr) continue;
+            if (!found && tptr->getName() == nameToRemove) {
+                found = std::move(tptr);
+                continue;
+            }
+            remaining.push_back(std::move(tptr));
+        }
+
+        Core::Board::getInstance().setProgressTokens(std::move(remaining));
+        return found;
+    }
+
     void greatLibraryDrawFromSetup()
     {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
         const auto& pool = g_setupDiscardedProgressTokens.empty() ? Core::Board::getInstance().getProgressTokens() : g_setupDiscardedProgressTokens;
         if (pool.empty()) return;
@@ -155,31 +175,10 @@ namespace Core {
         }
     }
 
-    std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove)
-    {
-        // Attempt to remove by name from the Board's progressTokens vector by moving the matching unique_ptr
-        auto tokens = Core::Board::getInstance().getProgressTokens();
-        std::vector<std::unique_ptr<Models::Token>> remaining;
-        remaining.reserve(tokens.size());
-
-        std::unique_ptr<Models::Token> found;
-        for (auto& tptr : tokens) {
-            if (!tptr) continue;
-            if (!found && tptr->getName() == nameToRemove) {
-                // move out
-                found = std::move(tptr);
-                continue;
-            }
-            remaining.push_back(std::move(tptr));
-        }
-
-        Core::Board::getInstance().setProgressTokens(std::move(remaining));
-        return found;
-    }
     
     void chooseToken()
     {
-        Core::Player* cp = Core::GetCurrentPlayer();
+        Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
 
         bool eligible = false;

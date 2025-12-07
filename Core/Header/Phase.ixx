@@ -1,4 +1,4 @@
-export module Core.Preparation;
+export module Core.Phase;
 
 import Core.Board;
 
