@@ -27,7 +27,7 @@ import Models.Card;
 import Core.CardCsvParser;
 import Core.Player;
 
-std::vector<std::unique_ptr<Models::Token>> g_setupDiscardedProgressTokens;
+std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupDiscardedProgressTokens;
 
 void m_receiveMoneyAction(class Player& player) {}
 void m_opponentLosesMoneyAction(class Player& opponent) {}
@@ -47,7 +47,8 @@ std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& disca
 std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_ptr<Models::Token>>> startGameTokens(const std::vector<std::unique_ptr<Models::Token>>& allTokens)
 {
   
-    g_setupDiscardedProgressTokens.clear();
+    if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
+    setupDiscardedProgressTokens->clear();
 
     std::vector<std::unique_ptr<Models::Token>> progress;
     std::vector<std::unique_ptr<Models::Token>> military;
@@ -68,11 +69,17 @@ std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_p
         std::shuffle(idx.begin(), idx.end(), gen);
         for (size_t i = 0; i < idx.size(); ++i) {
             if (i < kSelectCount) selectedProgress.push_back(std::make_unique<Models::Token>(*progress[idx[i]]));
-            else g_setupDiscardedProgressTokens.push_back(std::make_unique<Models::Token>(*progress[idx[i]]));
+            else setupDiscardedProgressTokens->push_back(std::make_unique<Models::Token>(*progress[idx[i]]));
         }
     }
 
 	return { selectedProgress, military };
+}
+
+std::vector<std::unique_ptr<Models::Token>>& UnusedTokens()
+{
+    if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
+    return *setupDiscardedProgressTokens;
 }
 
 void m_drawProgressTokenAction(std::vector<Models::Token>& discardedTokens)
@@ -111,6 +118,8 @@ namespace Core {
 		}
 	}
 
+    ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
+    /*
     std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove)
     {
         auto tokens = Core::Board::getInstance().getProgressTokens();
@@ -130,12 +139,13 @@ namespace Core {
         Core::Board::getInstance().setProgressTokens(std::move(remaining));
         return found;
     }
-
-    void greatLibraryDrawFromSetup()
+    */
+    ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
+    /*void greatLibraryDrawFromSetup()
     {
         Core::Player* cp = Core::getCurrentPlayer();
         if (!cp) return;
-        const auto& pool = g_setupDiscardedProgressTokens.empty() ? Core::Board::getInstance().getProgressTokens() : g_setupDiscardedProgressTokens;
+        const auto& pool = (setupDiscardedProgressTokens && !setupDiscardedProgressTokens->empty()) ? *setupDiscardedProgressTokens : Core::Board::getInstance().getProgressTokens();
         if (pool.empty()) return;
 
         std::vector<size_t> indices(pool.size());
@@ -161,11 +171,11 @@ namespace Core {
         const auto& chosenPtr = pool[indices[choice]];
         if (!chosenPtr) return;
 
-        if (!g_setupDiscardedProgressTokens.empty()) {
+        if (setupDiscardedProgressTokens && !setupDiscardedProgressTokens->empty()) {
             size_t chosenIndex = indices[choice];
-            if (chosenIndex < g_setupDiscardedProgressTokens.size()) {
-                std::unique_ptr<Models::Token> movedToken = std::move(g_setupDiscardedProgressTokens[chosenIndex]);
-                g_setupDiscardedProgressTokens.erase(g_setupDiscardedProgressTokens.begin() + chosenIndex);
+            if (chosenIndex < setupDiscardedProgressTokens->size()) {
+                std::unique_ptr<Models::Token> movedToken = std::move((*setupDiscardedProgressTokens)[chosenIndex]);
+                setupDiscardedProgressTokens->erase(setupDiscardedProgressTokens->begin() + chosenIndex);
                 if (movedToken) cp->m_player->addToken(std::move(movedToken));
             }
         }
@@ -174,8 +184,9 @@ namespace Core {
             if (moved) cp->m_player->addToken(std::move(moved));
         }
     }
+    */
 
-    
+    /*
     void chooseToken()
     {
         Core::Player* cp = Core::getCurrentPlayer();
@@ -225,6 +236,6 @@ namespace Core {
             if (moved) cp->m_player->addToken(moved);
         }
 
-    }
+    }*/
 
 }

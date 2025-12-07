@@ -269,7 +269,7 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
 
     bool hasArchitectureToken = false;
     for (const auto& token : m_player->getOwnedTokens()) {
-        if (token.getName() == "Architecture") {
+        if (token->getName() == "Architecture") {
             hasArchitectureToken = true;
             break;
         }
@@ -383,7 +383,7 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
 
     bool hasArchitectureToken = false;
     for (const auto& token : m_player->getOwnedTokens()) {
-        if (token.getName() == "Architecture") {
+        if (token->getName() == "Architecture") {
             hasArchitectureToken = true;
             break;
         }
@@ -718,5 +718,31 @@ void Core::Player::subtractCoins(uint8_t amt)
     uint8_t threes = static_cast<uint8_t>(rem / 3u);
     uint8_t ones = static_cast<uint8_t>(rem % 3u);
     m_player->setRemainingCoins({ones, threes, sixes});
+}
+
+namespace Core
+{
+    void chooseToken(std::vector<std::unique_ptr<Models::Token>>& tokens)
+    {
+        Core::Player* cp = GetCurrentPlayer();
+        if (!cp) return;
+
+        if (tokens.empty()) return;
+
+        std::cout << "Choose a progress token (0 based):\n";
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
+        }
+
+        size_t idx = 0;
+        if (!(std::cin >> idx) || idx >= tokens.size()) {
+            if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
+            idx = 0;
+        }
+
+        std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
+        tokens.erase(tokens.begin() + idx);
+        if (taken) cp->m_player->addToken(std::move(taken));
+    }
 }
 
