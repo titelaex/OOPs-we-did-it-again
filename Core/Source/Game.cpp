@@ -8,7 +8,7 @@ import <algorithm>;
 import <utility>;
 
 
-import Core.Phase;
+import Core.GamePhases;
 import Core.Board;
 import Core.Node;
 

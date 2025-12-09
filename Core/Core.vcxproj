@@ -147,8 +147,8 @@
     <ClCompile Include="Header/Node.ixx" />
     <ClCompile Include="Source/Player.cpp" />
     <ClCompile Include="Header/Player.ixx" />
-    <ClCompile Include="Source\Phase.cpp" />
-    <ClCompile Include="Header\Phase.ixx" />
+    <ClCompile Include="Source\GamePhases.cpp" />
+    <ClCompile Include="Header\GamePhases.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/AgeCards.csv" />

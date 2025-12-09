@@ -1,4 +1,4 @@
-export module Core.Phase;
+export module Core.GamePhases;
 
 import Core.Board;
 
