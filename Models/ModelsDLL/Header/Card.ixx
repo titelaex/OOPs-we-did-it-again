@@ -92,5 +92,5 @@ export namespace Models
 
 	};
 
-	export std::ostream& operator<<(std::ostream& cout, const Card& card);
+	export __declspec(dllexport) std::ostream& operator<<(std::ostream& out, const Card& card);
 }
