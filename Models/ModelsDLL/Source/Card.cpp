@@ -109,6 +109,26 @@ CardBuilder& CardBuilder::setCaption(const std::string& caption) {
     return *this;
 }
 
+CardBuilder& CardBuilder::setName(const std::string& name) {
+    m_card.setName(name);
+    return *this;
+}
+
+CardBuilder& CardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) {
+    m_card.setResourceCost(resourceCost);
+    return *this;
+}
+
+CardBuilder& CardBuilder::setColor(const ColorType& color) {
+    m_card.setColor(color);
+    return *this;
+}
+
+CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
+    m_card.addOnPlayAction(action);
+    return *this;
+}
+
 	CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
 		m_card.addOnDiscardAction(action);
 		return *this;

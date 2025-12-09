@@ -13,6 +13,11 @@ import <bitset>;
 
 using namespace Models;
 
+uint8_t Wonder::wondersBuilt = 0;
+
+uint8_t Wonder::getWondersBuilt() { return wondersBuilt; }
+uint8_t Wonder::incrementWondersBuilt() { return ++wondersBuilt; }
+void Wonder::resetWondersBuilt() { wondersBuilt = 0; }
 
 // Core Wonder-specific getters
 const uint8_t& Wonder::getShieldPoints() const { return m_shieldPoints; }

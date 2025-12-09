@@ -136,6 +136,9 @@ namespace Core {
                 };
 
             const std::vector<std::string> ageCandidates = {
+                "Core/Config/AgeCards.csv",
+                "../Core/Config/AgeCards.csv",
+                "../../Core/Config/AgeCards.csv",
                 "AgeCards.csv",
                 "Resources/AgeCards.csv",
                 "Core/Resources/AgeCards.csv",
@@ -194,6 +197,9 @@ namespace Core {
                 tempGuilds.push_back(std::move(g));
                 };
             const std::vector<std::string> guildCandidates = {
+                "Core/Config/Guilds.csv",
+                "../Core/Config/Guilds.csv",
+                "../../Core/Config/Guilds.csv",
                 "Guilds.csv",
                 "Resources/Guilds.csv",
                 "Core/Resources/Guilds.csv",
@@ -230,6 +236,9 @@ namespace Core {
                 tempWonders.push_back(std::move(w));
                 };
             const std::vector<std::string> wonderCandidates = {
+                "Core/Config/Wonders.csv",
+                "../Core/Config/Wonders.csv",
+                "../../Core/Config/Wonders.csv",
                 "Wonders.csv",
                 "Resources/Wonders.csv",
                 "Core/Resources/Wonders.csv",
@@ -354,13 +363,23 @@ namespace Core {
 		std::uniform_int_distribution<> dis(0, 1);
 		playerOneTurn = (dis(gen) == 0) ? true : false;
 
-		// get the first 4 wonders from the unusedWonders pool
+		// get the first 4 wonders from the unusedWonders pool (move, don't copy)
 		std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
-        const auto& wondersPool = Board::getInstance().getUnusedWonders();
-        for (size_t i =0; i <=3 && i < wondersPool.size(); i++)
-        {
-            if (const auto* w = dynamic_cast<const Models::Wonder*>(wondersPool[i].get()))
-                availableWonders.push_back(std::make_unique<Models::Wonder>(*w));
+        auto& wondersPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getUnusedWonders());
+        // select up to 4 wonder objects by moving them out of the pool
+        for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {  
+            // find next wonder-derived card in the pool
+            size_t idx = 0; bool found = false;
+            for (; idx < wondersPool.size(); ++idx) {
+                if (!wondersPool[idx]) continue;
+                if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
+            }
+            if (!found) break;
+            // move the unique_ptr<Card> out, convert to unique_ptr<Wonder>
+            std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+            wondersPool.erase(wondersPool.begin() + idx);
+            Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
+            availableWonders.emplace_back(raw);
         }
 
 		displayAvailableWonders(availableWonders);
@@ -392,11 +411,18 @@ namespace Core {
             p2->chooseWonder(availableWonders, 0));
 
 
-        // get the next 4 wonders from the unusedWonders pool
-        for (size_t i =0; i <=3 && i < wondersPool.size(); i++)
-        {
-            if (const auto* w = dynamic_cast<const Models::Wonder*>(wondersPool[i].get()))
-                availableWonders.push_back(std::make_unique<Models::Wonder>(*w));
+        // get the next 4 wonders from the unusedWonders pool (move)
+        for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
+            size_t idx = 0; bool found = false;
+            for (; idx < wondersPool.size(); ++idx) {
+                if (!wondersPool[idx]) continue;
+                if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
+            }
+            if (!found) break;
+            std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+            wondersPool.erase(wondersPool.begin() + idx);
+            Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
+            availableWonders.emplace_back(raw);
         }
 
 

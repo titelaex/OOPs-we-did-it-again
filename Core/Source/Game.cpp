@@ -110,8 +110,8 @@ namespace Core {
 
 			auto allTokens = parseTokensFromCSV("Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
-			Core::Board::getInstance().setProgressTokens(progressSelected);
-			Core::Board::getInstance().setMilitaryTokens(military);
+			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
+			Core::Board::getInstance().setMilitaryTokens(std::move(military));
 		}
 		catch (const std::exception& ex) {
 			std::cerr << "Preparation exception: " << ex.what() << std::endl;
