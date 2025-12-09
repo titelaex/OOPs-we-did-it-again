@@ -46,5 +46,4 @@ export namespace Core
 	export void playTurnForCurrentPlayer();
 	export void drawTokenForCurrentPlayer();
 	export void discardOpponentCardOfColor(Models::ColorType color);
-	export void buildCardFromAge1Pool(size_t index);
 }

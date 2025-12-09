@@ -20,7 +20,7 @@ import Models.AgeCard;
 
 static thread_local Core::Player* g_current_player = nullptr;
 
-void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
+void setCurrentPlayer(Core::Player* p) { g_current_player = p; }
 Core::Player* getCurrentPlayer() { return g_current_player; }
 
 Core::Player* Core::getOpponentPlayer()
