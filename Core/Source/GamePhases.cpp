@@ -262,12 +262,18 @@ namespace Core {
         // Build node trees
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            const auto& pool = board.getUnusedAgeOneCards();
+            auto& pool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeOneCards());
             size_t take = std::min<size_t>(20, pool.size());
-            for (size_t i =0; i < take; ++i) {
-                const Models::Card* base = pool[i].get();
-                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
-                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+            // move matching AgeCard entries out of the pool into selected, removing from pool
+            size_t i = 0;
+            while (i < pool.size() && selected.size() < take) {
+                if (!pool[i]) { ++i; continue; }
+                if (dynamic_cast<Models::AgeCard*>(pool[i].get())) {
+                    selected.push_back(std::move(pool[i]));
+                    pool.erase(pool.begin() + i);
+                    // do not increment i, next element shifted into this index
+                } else {
+                    ++i;
                 }
             }
             selected = ShuffleAndMove(std::move(selected), seed);
@@ -277,12 +283,16 @@ namespace Core {
 
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            const auto& pool = board.getUnusedAgeTwoCards();
+            auto& pool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeTwoCards());
             size_t take = std::min<size_t>(20, pool.size());
-            for (size_t i =0; i < take; ++i) {
-                const Models::Card* base = pool[i].get();
-                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
-                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+            size_t i = 0;
+            while (i < pool.size() && selected.size() < take) {
+                if (!pool[i]) { ++i; continue; }
+                if (dynamic_cast<Models::AgeCard*>(pool[i].get())) {
+                    selected.push_back(std::move(pool[i]));
+                    pool.erase(pool.begin() + i);
+                } else {
+                    ++i;
                 }
             }
             selected = ShuffleAndMove(std::move(selected), seed +1);
@@ -292,20 +302,30 @@ namespace Core {
 
         {
             std::vector<std::unique_ptr<Models::Card>> selected;
-            const auto& pool3 = board.getUnusedAgeThreeCards();
-            const auto& poolG = board.getUnusedGuildCards();
+            auto& pool3 = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeThreeCards());
+            auto& poolG = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedGuildCards());
             size_t take3 = std::min<size_t>(17, pool3.size());
             size_t takeG = std::min<size_t>(3, poolG.size());
-            for (size_t i =0; i < take3; ++i) {
-                const Models::Card* base = pool3[i].get();
-                if (const auto* ac = dynamic_cast<const Models::AgeCard*>(base)) {
-                    selected.push_back(std::make_unique<Models::AgeCard>(*ac));
+            size_t i = 0;
+            while (i < pool3.size() && selected.size() < take3) {
+                if (!pool3[i]) { ++i; continue; }
+                if (dynamic_cast<Models::AgeCard*>(pool3[i].get())) {
+                    selected.push_back(std::move(pool3[i]));
+                    pool3.erase(pool3.begin() + i);
+                } else {
+                    ++i;
                 }
             }
-            for (size_t i =0; i < takeG; ++i) {
-                const Models::Card* base = poolG[i].get();
-                if (const auto* gc = dynamic_cast<const Models::GuildCard*>(base)) {
-                    selected.push_back(std::make_unique<Models::GuildCard>(*gc));
+            i = 0;
+            size_t movedG = 0;
+            while (i < poolG.size() && movedG < takeG) {
+                if (!poolG[i]) { ++i; continue; }
+                if (dynamic_cast<Models::GuildCard*>(poolG[i].get())) {
+                    selected.push_back(std::move(poolG[i]));
+                    poolG.erase(poolG.begin() + i);
+                    ++movedG;
+                } else {
+                    ++i;
                 }
             }
             selected = ShuffleAndMove(std::move(selected), seed +2);
