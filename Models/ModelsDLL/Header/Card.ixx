@@ -24,8 +24,6 @@ export namespace Models
 		std::string m_name;
 		std::unordered_map<ResourceType, uint8_t> m_resourceCost{};
 		uint8_t m_victoryPoints{};
-		CoinWorthType m_coinWorth{};
-		uint8_t m_coinReward{};
 		std::string m_caption{};
 		ColorType m_color{};
 		std::vector<std::function<void()>> m_onPlayActions{};
@@ -48,8 +46,6 @@ export namespace Models
 		const std::string& getName() const;
 		const std::unordered_map<ResourceType, uint8_t>& getResourceCost() const;
 		const uint8_t& getVictoryPoints() const;
-		const CoinWorthType& getCoinWorth() const;
-		const uint8_t& getCoinReward() const;
 		const std::string& getCaption() const;
 		const ColorType& getColor() const;
 		const std::vector<std::function<void()>>& getOnPlayActions() const;
@@ -71,8 +67,6 @@ export namespace Models
 		void setName(const std::string& name);
 		void setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		void setVictoryPoints(const uint8_t& victoryPoints);
-		void setCoinWorth(const CoinWorthType& coinWorth);
-		void setCoinReward(const uint8_t& coinReward);
 		void setCaption(const std::string& caption);
 		void setColor(const ColorType& color);
 		void addOnPlayAction(const std::function<void()>& action);
@@ -90,8 +84,6 @@ export namespace Models
 		CardBuilder& setName(const std::string& name);
 		CardBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		CardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
-		CardBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		CardBuilder& setCoinReward(const uint8_t& coinReward);
 		CardBuilder& setCaption(const std::string& caption);
 		CardBuilder& setColor(const ColorType& color);
 		CardBuilder& addOnPlayAction(const std::function<void()>& action);

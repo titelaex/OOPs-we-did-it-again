@@ -737,3 +737,10 @@ namespace Core
     }
 }
 
+
+// Minimal no-op implementations for methods referenced by CSV-defined lambdas
+void Core::Player::setHasAnotherTurn(bool) { /* no-op for now */ }
+void Core::Player::discardCard(Models::ColorType) { /* no-op for now */ }
+void Core::Player::drawToken() { /* no-op for now */ }
+void Core::Player::takeNewCard() { /* no-op for now */ }
+

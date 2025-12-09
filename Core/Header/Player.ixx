@@ -24,6 +24,12 @@ export namespace Core
 		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
 		void sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 
+		// minimal stubs used by CSV-defined actions (implemented as no-ops)
+		void setHasAnotherTurn(bool has);
+		void discardCard(Models::ColorType color);
+		void drawToken();
+		void takeNewCard();
+
 	private:
 		uint8_t countYellowCards();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);

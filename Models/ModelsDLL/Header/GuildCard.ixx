@@ -62,8 +62,6 @@ export namespace Models
 		GuildCardBuilder& setName(const std::string& name);
 		GuildCardBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		GuildCardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
-		GuildCardBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		GuildCardBuilder& setCoinReward(const uint8_t& coinReward);
 		GuildCardBuilder& setCaption(const std::string& caption);
 		GuildCardBuilder& setColor(const ColorType& color);
 		GuildCardBuilder& addOnPlayAction(const std::function<void()>& action);
