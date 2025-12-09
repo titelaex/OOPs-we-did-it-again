@@ -22,7 +22,7 @@ const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeOneCards() 
 void Board::setUnusedAgeOneCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedAgeOneCards = std::move(v); }
 const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeTwoCards() const { return unusedAgeTwoCards; }
 void Board::setUnusedAgeTwoCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedAgeTwoCards = std::move(v); }
-const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeThreeCards() const { return unusedAgeThreeCards; }
+const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeThreeCards() const { return	unusedAgeThreeCards; }
 void Board::setUnusedAgeThreeCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedAgeThreeCards = std::move(v); }
 const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedGuildCards() const { return unusedGuildCards; }
 void Board::setUnusedGuildCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedGuildCards = std::move(v); }
@@ -170,4 +170,74 @@ void Board::displayEntireBoard()
 	displayAgeCards("--- Age I Cards", age1Nodes);
 	displayAgeCards("--- Age II Cards", age2Nodes);
 	displayAgeCards("--- Age III Cards", age3Nodes);
+}
+
+namespace Core {
+	std::ostream& operator<<(std::ostream& out, const Board& board)
+	{
+		out << "Section,Type,Data\n";
+
+		// Pawn Track and Position
+		out << "Pawn,Track," << board.getPawnTrack().to_string() << "\n";
+		out << "Pawn,Position," << static_cast<int>(board.getPawnPos()) << "\n";
+
+		// Progress Tokens
+		for (const auto& token : board.getProgressTokens()) {
+			if (token) {
+				out << "Token,Progress," << *token << "\n";
+			}
+		}
+
+		// Military Tokens
+		for (const auto& token : board.getMilitaryTokens()) {
+			if (token) {
+				out << "Token,Military," << *token << "\n";
+			}
+		}
+
+		// Age 1 Nodes
+		for (const auto& node : board.getAge1Nodes()) {
+			if (node && node->getCard()) {
+				out << "Node,Age1," << *node->getCard() << "\n";
+			}
+		}
+
+		// Age 2 Nodes
+		for (const auto& node : board.getAge2Nodes()) {
+			if (node && node->getCard()) {
+				out << "Node,Age2," << *node->getCard() << "\n";
+			}
+		}
+
+		// Age 3 Nodes
+		for (const auto& node : board.getAge3Nodes()) {
+			if (node && node->getCard()) {
+				out << "Node,Age3," << *node->getCard() << "\n";
+			}
+		}
+
+		// Unused Cards
+		for (const auto& card : board.getUnusedAgeOneCards()) {
+			if (card) out << "Unused,Age1," << *card << "\n";
+		}
+		for (const auto& card : board.getUnusedAgeTwoCards()) {
+			if (card) out << "Unused,Age2," << *card << "\n";
+		}
+		for (const auto& card : board.getUnusedAgeThreeCards()) {
+			if (card) out << "Unused,Age3," << *card << "\n";
+		}
+		for (const auto& card : board.getUnusedGuildCards()) {
+			if (card) out << "Unused,Guild," << *card << "\n";
+		}
+		for (const auto& card : board.getUnusedWonders()) {
+			if (card) out << "Unused,Wonder," << *card << "\n";
+		}
+
+		// Discarded Cards
+		for (const auto& card : board.getDiscardedCards()) {
+			if (card) out << "Discarded,Card," << *card << "\n";
+		}
+
+		return out;
+	}
 }

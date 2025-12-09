@@ -9,6 +9,7 @@ import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
 import Models.Token;
+import Models.Card;
 import Models.Bank;
 
 export namespace Core {

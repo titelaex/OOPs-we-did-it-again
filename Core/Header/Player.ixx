@@ -40,6 +40,8 @@ export namespace Core
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
 	};
 
+	export __declspec(dllexport) std::ostream& operator<<(std::ostream& out, const Player& player);
+
 	export void setCurrentPlayer(Player* p);
 	export Player* getCurrentPlayer();
 	export Player* getOpponentPlayer();

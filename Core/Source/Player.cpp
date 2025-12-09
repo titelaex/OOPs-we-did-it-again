@@ -20,8 +20,8 @@ import Models.AgeCard;
 
 static thread_local Core::Player* g_current_player = nullptr;
 
-void setCurrentPlayer(Core::Player* p) { g_current_player = p; }
-Core::Player* getCurrentPlayer() { return g_current_player; }
+void Core::setCurrentPlayer(Core::Player* p) { g_current_player = p; }
+Core::Player* Core::getCurrentPlayer() { return g_current_player; }
 
 Core::Player* Core::getOpponentPlayer()
 {
@@ -288,7 +288,7 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
     uint8_t totalCost = 0;
 
    // apply the discount from Architecture token in the most beneficial way -> eliminate the cost of the
-   // resources the player doen't produce at all first and are the most expensive to buy from the bank
+   // resources the player doesn't produce at all first and are the most expensive to buy from the bank
     if (hasArchitectureToken) {
         std::vector<std::pair<uint8_t, Models::ResourceType>> purchaseCosts;
         for (const auto& [resource, amount] : missingResources) {
@@ -711,6 +711,56 @@ namespace Core
     }
 }
 
+namespace Core {
+	std::ostream& operator<<(std::ostream& out, const Player& player)
+	{
+		if (!player.m_player) {
+			return out;
+		}
+
+		const auto& p = player.m_player;
+		out << "Player,Username," << p->getPlayerUsername() << "\n";
+		out << "Player,Coins," << static_cast<int>(p->totalCoins(p->getRemainingCoins())) << "\n";
+
+		// Constructed Buildings (Owned Cards)
+		for (const auto& card : p->getOwnedCards()) {
+			if (card) {
+				out << "Player,Constructed," << *card << "\n";
+			}
+		}
+
+		// Wonders
+		for (const auto& wonder : p->getOwnedWonders()) {
+			if (wonder) {
+				out << "Player,Wonder," << *wonder << "\n";
+			}
+		}
+
+		// Progress Tokens
+		for (const auto& token : p->getOwnedTokens()) {
+			if (token) {
+				out << "Player,Token," << *token << "\n";
+			}
+		}
+
+		// Permanent Resources
+		for (const auto& resource : p->getOwnedPermanentResources()) {
+			out << "Player,PermanentResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
+		}
+
+		// Trading Resources
+		for (const auto& resource : p->getOwnedTradingResources()) {
+			out << "Player,TradingResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
+		}
+
+		// Scientific Symbols
+		for (const auto& symbol : p->getOwnedScientificSymbols()) {
+			out << "Player,ScientificSymbol," << static_cast<int>(symbol.first) << ":" << static_cast<int>(symbol.second) << "\n";
+		}
+
+		return out;
+	}
+}
 
 // Minimal no-op implementations for methods referenced by CSV-defined lambdas
 void Core::Player::setHasAnotherTurn(bool) { /* no-op for now */ }
