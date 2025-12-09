@@ -29,16 +29,6 @@ namespace Models {
 		}
 	}
 
-const std::string& Card::getName() const { return m_name; }
-const std::unordered_map<ResourceType, uint8_t>& Card::getResourceCost() const { return m_resourceCost; }
-const std::string& Card::getCaption() const { return m_caption; }
-const ColorType& Card::getColor() const { return m_color; }
-const uint8_t& Card::getVictoryPoints() const { return m_victoryPoints; }
-const std::vector<std::function<void()>>& Card::getOnPlayActions() const { return m_onPlayActions; }
-const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
-const bool& Card::isVisible() const { return m_isVisible; }
-const bool& Card::isAvailable() const { return m_isAvailable; }
-
 // Default neutral implementations for virtual getters
 const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
     static const std::unordered_map<ResourceType, uint8_t> empty{};
@@ -74,12 +64,6 @@ const ResourceType& Card::getResourceProduction() const {
 }
 bool Card::IsConstructed() const { return false; }
 
-void Card::onPlay()
-{
-    for (const auto& action : m_onPlayActions) {
-        if (action) action();
-    }
-}
 
 	void Card::displayCardInfo() {
 		std::cout << "Card Name: " << m_name << '\n';
@@ -106,21 +90,6 @@ void Card::addOnDiscardAction(const std::function<void()>& action) { m_onDiscard
 void Card::setIsVisible(const bool& isVisible) { m_isVisible = isVisible; }
 void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable; }
 
-void Card::displayCardInfo() {
-    std::cout << "Card Name: " << m_name << '\n';
-    std::cout << "Caption: " << m_caption << '\n';
-    std::cout << "Color: " << ColorTypeToString(m_color) << '\n';
-    std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
-    std::cout << "Resource Cost:" << '\n';
-    for (const auto& kv : m_resourceCost) {
-        std::cout << " - " << ResourceTypeToString(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
-    }
-    std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
-    std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
-    std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
-    std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
-}
-
 	CardBuilder& CardBuilder::setVictoryPoints(const uint8_t& victoryPoints) {
 		m_card.setVictoryPoints(victoryPoints);
 		return *this;
@@ -141,21 +110,21 @@ CardBuilder& CardBuilder::setCaption(const std::string& caption) {
 		return std::move(m_card);
 	}
 
-	std::ostream& operator<<(std::ostream& cout, const Card& card)
+	std::ostream& operator<<(std::ostream& out, const Card& card)
 	{
-		cout << "Card(Name: " << card.getName()
+		out << "Card(Name: " << card.getName()
 			<< ", Color: " << static_cast<int>(card.getColor())
 			<< ", Victory Points: " << static_cast<int>(card.getVictoryPoints())
 			<< ", Caption: " << card.getCaption()
 			<< ", Resource Cost: {";
 		const auto& cost = card.getResourceCost();
 		for (auto it = cost.begin(); it != cost.end(); ++it) {
-			cout << static_cast<int>(it->first) << ": " << static_cast<int>(it->second);
+			out << static_cast<int>(it->first) << ": " << static_cast<int>(it->second);
 			if (std::next(it) != cost.end()) {
-				cout << ", ";
+				out << ", ";
 			}
 		}
-		cout << "})";
-		return cout;
+		out << "})";
+		return out;
 	}
 }
