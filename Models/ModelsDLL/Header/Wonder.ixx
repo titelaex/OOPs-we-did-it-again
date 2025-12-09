@@ -9,6 +9,7 @@ import <random>;
 import <algorithm>;
 import <iterator>;
 import <bitset>;
+import <ostream>;
 
 namespace Models
 {
@@ -54,7 +55,20 @@ namespace Models
 		void onDiscard() override;
 
 	};
-	export std::ostream& operator<<(std::ostream& os, const Wonder& card);
+	export inline std::ostream& operator<<(std::ostream& os, const Wonder& card)
+	{
+		os << "Card Name: " << card.getName() << '\n';
+		os << "Color: " << static_cast<int>(card.getColor()) << '\n';
+		os << "Caption: " << card.getCaption() << '\n';
+		os << "Resource Cost:" << '\n';
+		for (const auto& [res, amt] : card.getResourceCost())
+			os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
+		os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
+		os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
+		os << "Resource Production: " << static_cast<int>(card.getResourceProduction()) << '\n';
+		os << "Constructed: " << (card.IsConstructed() ? "Yes" : "No") << '\n';
+		return os;
+	}
 
 	export class __declspec(dllexport) WonderBuilder : public CardBuilder
 	{

@@ -51,21 +51,6 @@ void Wonder::setShieldPoints(uint8_t pts) { m_shieldPoints = pts; }
 void Wonder::setResourceProduction(ResourceType r) { m_resourceProduction = r; }
 void Wonder::setConstructed(bool constructed) { isConstructed = constructed; }
 
-std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
-{
-	os << "Card Name: " << card.getName() << '\n';
-	os << "Color: " << static_cast<int>(card.getColor()) << '\n';
-	os << "Caption: " << card.getCaption() << '\n';
-	os << "Resource Cost:" << '\n';
-	for (const auto& [res, amt] : card.getResourceCost())
-		os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
-	os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
-	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
-	os << "Resource Production: " << static_cast<int>(card.getResourceProduction()) << '\n';
-	os << "Constructed: " << (card.IsConstructed() ? "Yes" : "No") << '\n';
-	return os;
-}
-
 void Wonder::displayCardInfo()
 {
 	Card::displayCardInfo();

@@ -26,16 +26,9 @@ namespace {
 thread_local Player* g_current_player = nullptr;
 }
 
-<<<<<<< HEAD
-static thread_local Core::Player* g_current_player = nullptr;
-
-void Core::setCurrentPlayer(Core::Player* p) { g_current_player = p; }
-Core::Player* Core::getCurrentPlayer() { return g_current_player; }
-=======
 void setCurrentPlayer(Player* p) { g_current_player = p; }
 Player* getCurrentPlayer() { return g_current_player; }
 }
->>>>>>> GameLogic
 
 Core::Player* Core::getOpponentPlayer()
 {
