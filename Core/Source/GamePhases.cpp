@@ -1,4 +1,4 @@
-module Core.Phase;
+module Core.GamePhases;
 
 #include <vector>
 #include <string>
