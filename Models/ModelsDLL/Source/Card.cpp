@@ -17,8 +17,6 @@ namespace Models {
 	const std::string& Card::getCaption() const { return m_caption; }
 	const ColorType& Card::getColor() const { return m_color; }
 	const uint8_t& Card::getVictoryPoints() const { return m_victoryPoints; }
-	const CoinWorthType& Card::getCoinWorth() const { return m_coinWorth; }
-	const uint8_t& Card::getCoinReward() const { return m_coinReward; }
 	const std::vector<std::function<void()>>& Card::getOnPlayActions() const { return m_onPlayActions; }
 	const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
 	const bool& Card::isVisible() const { return m_isVisible; }
@@ -88,8 +86,6 @@ void Card::onPlay()
 		std::cout << "Caption: " << m_caption << '\n';
 		std::cout << "Color: " << static_cast<int>(m_color) << '\n';
 		std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
-		std::cout << "Coin Worth: " << static_cast<int>(m_coinWorth)
-			<< ", Coin Reward: " << static_cast<int>(m_coinReward) << '\n';
 		std::cout << "Resource Cost:" << '\n';
 		for (const auto& kv : m_resourceCost) {
 			std::cout << " - " << static_cast<int>(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
@@ -130,15 +126,6 @@ void Card::displayCardInfo() {
 		return *this;
 	}
 
-	CardBuilder& CardBuilder::setCoinWorth(const CoinWorthType& coinWorth) {
-		m_card.setCoinWorth(coinWorth);
-		return *this;
-	}
-
-	CardBuilder& CardBuilder::setCoinReward(const uint8_t& coinReward) {
-		m_card.setCoinReward(coinReward);
-		return *this;
-	}
 
 CardBuilder& CardBuilder::setCaption(const std::string& caption) {
     m_card.setCaption(caption);
@@ -159,8 +146,6 @@ CardBuilder& CardBuilder::setCaption(const std::string& caption) {
 		cout << "Card(Name: " << card.getName()
 			<< ", Color: " << static_cast<int>(card.getColor())
 			<< ", Victory Points: " << static_cast<int>(card.getVictoryPoints())
-			<< ", Coin Worth: " << static_cast<int>(card.getCoinWorth())
-			<< ", Coin Reward: " << static_cast<int>(card.getCoinReward())
 			<< ", Caption: " << card.getCaption()
 			<< ", Resource Cost: {";
 		const auto& cost = card.getResourceCost();
