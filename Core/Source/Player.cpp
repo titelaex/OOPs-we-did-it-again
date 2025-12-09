@@ -76,7 +76,7 @@ void Core::drawTokenForCurrentPlayer()
 	Board::getInstance().setMilitaryTokens(militaryTokens);
 }
 
-// Discard an opponent card of given color (grey or brown). Let current player choose index among opponent owned cards filtered by color.
+
 void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
     Core::Player* cp = GetCurrentPlayer();
@@ -138,7 +138,6 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
 void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
     // 1. Calculate Base Value
-    // Rule: "You discard the card and take 2 coins..." 
     uint8_t coinsToGain = 2;
 
     // 2. Calculate Yellow Card Bonus
@@ -147,15 +146,12 @@ void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<
 	coinsToGain += yellowCardCount;
 
     // 3. Add coins to Treasury
-    // Rule: "The money is added to your city's treasury." 
     addCoins(coinsToGain);
 
     std::cout << "Player sold \"" << ageCard->getName() << "\" for "
         << static_cast<int>(coinsToGain) << " coins.\n";
 
     // 4. Move card to Discard Pile
-    // Rule: "The discarded cards are placed face-down next to the board." 
-    // We use std::move because we are transferring ownership from the game board (structure) to the discard pile.
     discardedCards.push_back(std::move(ageCard));
 }
 
@@ -198,16 +194,7 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
                     discardRemainingWonder(opponent);
                 }
 
-				ageCard.reset(); // remove reference to the age card used to build the wonder
-                /*
-                discardedCards.push_back(std::move(ageCard));
-                
-                De ce e greșit: Tu arunci cartea în pachetul de discard (discardedCards).
-                Acest lucru afectează minunea The Mausoleum, care permite jucătorului să ia o carte din "discard pile". 
-                Dacă pui cărțile folosite la minuni acolo, vei permite Mausoleului să recupereze cărți care ar trebui să fie scoase definitiv din joc 
-                (ascunse sub minuni).
-                Corecție: Cartea trebuie stocată într-un vector intern al minunii sau pur și simplu "ștearsă" logic, dar NU adăugată la discardedCards.     
-                */
+				ageCard.reset();
             }
             else
             {
@@ -247,17 +234,8 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
     }
 
     if (missingResources.empty()) {
-        return true; // No resources needed, so it's affordable.
+        return true;
     }
-
-    // 2. Check for Architecture token discount
-
-    //apply the discount givem from the Architecture token if the player has it
-    /*
-    Architecture
-        Any future Wonders built by you will cost 2 fewer resources.
-        At each construction, you are free to choose which resources this rebate affects.
-    */
 
     bool hasArchitectureToken = false;
     for (const auto& token : m_player->getOwnedTokens()) {
@@ -266,8 +244,6 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
             break;
         }
     }
-
-    // Helper to check for commercial discounts using m_tradeRules
     auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
         const auto& tradeRules = m_player->getTradeRules();
         Models::TradeRuleType ruleType;
@@ -663,8 +639,6 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
     builder.setName(card->getName())
         .setResourceCost(card->getResourceCost())
         .setVictoryPoints(card->getVictoryPoints())
-        .setCoinWorth(card->getCoinWorth())
-        .setCoinReward(card->getCoinReward())
         .setCaption(card->getCaption())
         .setColor(card->getColor());
 
