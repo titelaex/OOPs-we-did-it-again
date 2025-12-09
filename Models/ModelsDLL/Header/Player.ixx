@@ -56,6 +56,7 @@ namespace Models
 		const std::string& getPlayerUsername() const;
 		std::vector<std::unique_ptr<Models::Wonder>>& getOwnedWonders();
 		const std::vector<std::unique_ptr<Card>>& getOwnedCards() const;
+		std::unique_ptr<Card> removeOwnedCardAt(size_t idx);
 		const std::vector<std::unique_ptr<Token>>& getOwnedTokens() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedPermanentResources() const;
 		const std::unordered_map<ResourceType, uint8_t>& getOwnedTradingResources() const;
