@@ -29,6 +29,14 @@ namespace Models {
 		}
 	}
 
+
+	void Card::onDiscard()
+	{
+		for (const auto& action : m_onDiscardActions) {
+			if (action) action();
+		}
+	}
+
 // Default neutral implementations for virtual getters
 const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
     static const std::unordered_map<ResourceType, uint8_t> empty{};
