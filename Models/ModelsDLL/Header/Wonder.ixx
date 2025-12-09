@@ -31,9 +31,16 @@ namespace Models
 		Wonder& operator=(Wonder&& other) = default;
 		~Wonder() = default;
 
-		const uint8_t& getShieldPoints() const;
-		const ResourceType& getResourceProduction() const;
-		bool IsConstructed() const;
+		const uint8_t& getShieldPoints() const override;
+		const ResourceType& getResourceProduction() const override;
+		bool IsConstructed() const override;
+
+		virtual const std::unordered_map<ResourceType, uint8_t>& getResourcesProduction() const;
+		virtual const std::optional<ScientificSymbolType>& getScientificSymbols() const;
+		virtual const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
+		virtual const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
+		virtual const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		virtual const Age& getAge() const;
 
 		void setShieldPoints(uint8_t pts);
 		void setResourceProduction(ResourceType r);
@@ -52,8 +59,6 @@ namespace Models
 		WonderBuilder& setName(const std::string& name);
 		WonderBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		WonderBuilder& setVictoryPoints(const uint8_t& victoryPoints);
-		WonderBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		WonderBuilder& setCoinReward(const uint8_t& coinReward);
 		WonderBuilder& setCaption(const std::string& caption);
 		WonderBuilder& setColor(const ColorType& color);
 		WonderBuilder& setShieldPoints(const uint8_t& pts);

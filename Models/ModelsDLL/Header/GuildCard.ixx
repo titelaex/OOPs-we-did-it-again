@@ -39,6 +39,17 @@ export namespace Models
 
 		~GuildCard() override = default;
 
+		virtual const std::unordered_map<ResourceType, uint8_t>& getResourcesProduction() const;
+		virtual const uint8_t& getShieldPoints() const;
+		virtual const std::optional<ScientificSymbolType>& getScientificSymbols() const;
+		virtual const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
+		virtual const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
+		virtual const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		virtual const Age& getAge() const;
+
+		virtual const ResourceType& getResourceProduction() const;
+		virtual bool IsConstructed() const;
+
 		 void displayCardInfo() override;
 		 void onDiscard() override;
 	};
@@ -51,8 +62,6 @@ export namespace Models
 		GuildCardBuilder& setName(const std::string& name);
 		GuildCardBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		GuildCardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
-		GuildCardBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		GuildCardBuilder& setCoinReward(const uint8_t& coinReward);
 		GuildCardBuilder& setCaption(const std::string& caption);
 		GuildCardBuilder& setColor(const ColorType& color);
 		GuildCardBuilder& addOnPlayAction(const std::function<void()>& action);

@@ -14,9 +14,33 @@ import <bitset>;
 using namespace Models;
 
 
+// Core Wonder-specific getters
 const uint8_t& Wonder::getShieldPoints() const { return m_shieldPoints; }
 const ResourceType& Wonder::getResourceProduction() const { return m_resourceProduction; }
 bool Wonder::IsConstructed() const { return isConstructed; }
+
+// Non-applicable getters return neutral defaults
+const std::unordered_map<ResourceType, uint8_t>& Wonder::getResourcesProduction() const {
+	static const std::unordered_map<ResourceType, uint8_t> empty{};
+	return empty;
+}
+const std::optional<ScientificSymbolType>& Wonder::getScientificSymbols() const {
+	static const std::optional<ScientificSymbolType> none{}; return none;
+}
+const std::optional<LinkingSymbolType>& Wonder::getHasLinkingSymbol() const {
+	static const std::optional<LinkingSymbolType> none{}; return none;
+}
+const std::optional<LinkingSymbolType>& Wonder::getRequiresLinkingSymbol() const {
+	static const std::optional<LinkingSymbolType> none{}; return none;
+}
+const std::unordered_map<TradeRuleType,bool>& Wonder::getTradeRules() const {
+	static const std::unordered_map<TradeRuleType,bool> empty{}; return empty;
+}
+const Age& Wonder::getAge() const {
+	// Wonders do not have an Age in this model; return a neutral default
+	static const Age kNeutral = Age::AGE_III; // or Age::AGE_I if you prefer
+	return kNeutral;
+}
 
 void Wonder::setShieldPoints(uint8_t pts) { m_shieldPoints = pts; }
 void Wonder::setResourceProduction(ResourceType r) { m_resourceProduction = r; }
@@ -31,8 +55,6 @@ std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
 	for (const auto& [res, amt] : card.getResourceCost())
 		os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
 	os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
-	os << "Coin Worth Type: " << static_cast<int>(card.getCoinWorth()) << '\n';
-	os << "Coin Reward: " << static_cast<int>(card.getCoinReward()) << '\n';
 	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
 	os << "Resource Production: " << static_cast<int>(card.getResourceProduction()) << '\n';
 	os << "Constructed: " << (card.IsConstructed() ? "Yes" : "No") << '\n';
@@ -50,8 +72,6 @@ void Wonder::displayCardInfo()
 WonderBuilder& WonderBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
 WonderBuilder& WonderBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }
 WonderBuilder& WonderBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card.setVictoryPoints(victoryPoints); return *this; }
-WonderBuilder& WonderBuilder::setCoinWorth(const CoinWorthType& coinWorth) { m_card.setCoinWorth(coinWorth); return *this; }
-WonderBuilder& WonderBuilder::setCoinReward(const uint8_t& coinReward) { m_card.setCoinReward(coinReward); return *this; }
 WonderBuilder& WonderBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
 WonderBuilder& WonderBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
 WonderBuilder& WonderBuilder::setShieldPoints(const uint8_t& pts) { m_card.setShieldPoints(pts); return *this; }
@@ -63,5 +83,5 @@ Wonder WonderBuilder::build() { return std::move(m_card); }
 
 void Wonder::onDiscard()
 {
-    Card::onDiscard();
+	Card::onDiscard();
 }

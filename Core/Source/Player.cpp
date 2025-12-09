@@ -63,8 +63,8 @@ void Core::drawTokenForCurrentPlayer()
     const auto &chosen = combined[choice];
     cp->m_player->addToken(chosen);
     // remove first occurrence from progress or military
-    for (auto it = Core::progressTokens.begin(); it != Core::progressTokens.end(); ++it) {
-        if (it->getName() == chosen->getName()) { Core::progressTokens.erase(it); return; }
+    for (auto it = progressTokens.begin(); it != progressTokens.end(); ++it) {
+        if ((*it)->getName() == chosen->getName()) { progressTokens.erase(it); return; }
     }
     for (auto it = militaryTokens.begin(); it != militaryTokens.end(); ++it) {
         if ((*it) && (*it)->getName() == chosen->getName()) {
@@ -99,20 +99,12 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
     size_t removeIdx = candidates[choice];
     // move card into board::discardedCards
     auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
-    if (moved) Core::discardedCards.push_back(std::move(moved));
-}
-
-// Build a chosen card from Core::unusedAgeOneCards (index into that vector)
-void Core::buildCardFromAge1Pool(size_t index)
-{
-    Core::Player* cp = GetCurrentPlayer();
-    if (!cp) return;
-    if (index >= Core::unusedAgeOneCards.size()) return;
-    // move card into buildDiscardedCard pool (as requested)
-    auto cardPtr = std::move(Core::buildDiscardedCard[index]);
-    if (!cardPtr) return;
-    cp->m_player->addCard(cardPtr);
-    Core::buildDiscardedCard.erase(Core::buildDiscardedCard.begin() + index);
+    if (moved)
+    {
+        auto discarded = Core::Board::getInstance().getDiscardedCards();
+        discarded.push_back(std::move(moved));
+        Core::Board::getInstance().setDiscardedCards(std::move(discarded));
+    }
 }
 
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
@@ -304,7 +296,7 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
         {
             if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get()))
             {
-                for (const auto& resourcePair : ageCard->getResourceProduction())
+                for (const auto& resourcePair : ageCard->getResourcesProduction())
                 {
                     // Only count opponent's production if we don't have a trade discount for it
                     if (getTradeDiscount(resourcePair.first) == -1)
@@ -408,7 +400,7 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
         case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
         default: return -1;
-        }
+        };
         auto it = tradeRules.find(ruleType);
         if (it != tradeRules.end() && it->second) return 1; // Cost fix 1
         return -1;
@@ -429,7 +421,7 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         for (const auto& card : opponent->getOwnedCards()) {
             if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY)) {
                 if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
-                    for (const auto& resourcePair : ageCard->getResourceProduction()) {
+                    for (const auto& resourcePair : ageCard->getResourcesProduction()) {
                         if (missingResources.find(resourcePair.first) != missingResources.end()) {
                             opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
                         }
@@ -527,39 +519,38 @@ void Core::Player::discardRemainingWonder(const std::unique_ptr<Models::Player>&
 
 void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-    if (!card->getIsVisible())
+    if (!card->isVisible())
     {
-        std::cout << "Card \"" << card->getName() << "\" is not accessible->\n";
+        std::cout << "Card \"" << card->getName() << "\" is not accessible\n";
         return;
     }
 
-    // Chain construction logic requires specific card APIs; commented out for now
-    /*
-    if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    
+    
+    if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
     {
         for (const auto& ownedCard : m_player->getOwnedCards())
         {
-            if (ownedCard->GetHasLinkingSymbol() == card->GetRequiresLinkingSymbol())
+            if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
             {
                 m_player->addCard(card);
-                card->SetIsVisible(false);
-                std::cout << "Card \"" << card->GetName() << "\" constructed for free via chain->\n";
+                card->setIsVisible(false);
+                std::cout << "Card \"" << card->getName() << "\" constructed for free via chain->\n";
                 applyCardEffects(card);
                 return;
             }
         }
     }
-    */
+    
 
-    // Check if card is free (resource cost only checked; coin-cost logic omitted)
-    //if (card.GetResourceCost()->empty() /* && coin-cost logic omitted */)
-    //{
-    //    m_player->addCard(card);
-    //    card->SetIsVisible(false);
-    //    std::cout << "Card \"" << card->GetName() << "\" constructed for free->\n";
-    //    applyCardEffects(card);
-    //    return;
-    //}
+    if (card->getResourceCost().empty())
+    {
+        m_player->addCard(card);
+        card->setIsVisible(false);
+        std::cout << "Card \"" << card->getName() << "\" constructed for free->\n";
+        applyCardEffects(card);
+        return;
+    }
 
     // Check affordability
     if (!canAffordCard(card, opponent))
@@ -572,10 +563,10 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
     payForCard(card, opponent);
 
     // Construct card
-    /*m_player->addCard(card);
-    card->SetIsVisible(false);
-    std::cout << "Card \"" << card->GetName() << "\" constructed->\n";
-    applyCardEffects(card);*/
+    m_player->addCard(card);
+    card->setIsVisible(false);
+    std::cout << "Card \"" << card->getName() << "\" constructed->\n";
+    applyCardEffects(card);
 }
 
 bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
@@ -679,8 +670,8 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 
     for (const auto& act : oldActions) {
         // wrap original action so it always runs with this player as current context
-        builder.addOnPlayAction([this, act]() {
-            Core::scopedPlayerContext ctx(this);
+        builder.addOnPlayAction([act]() {
+            Core::Player* cp = GetCurrentPlayer();
             if (act) act();
         });
     }
@@ -690,7 +681,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
     std::cout << "Player takes card: " << newCard->getName() << "\n";
     // play the card immediately in the context of this player
     {
-        Core::scopedPlayerContext ctx(this);
+        Core::Player* cp = GetCurrentPlayer();
         newCard->onPlay();
     }
     m_player->addCard(std::move(newCard));
@@ -698,7 +689,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 
 void Core::Player::addCoins(uint8_t amt)
 {
-    auto coins = m_player->getkPlayerIdgetRemainingCoins();
+	auto coins = m_player->getRemainingCoins();
     uint32_t total = m_player->totalCoins(coins) + amt;
     uint8_t sixes = static_cast<uint8_t>(total / 6u);
     uint8_t rem = static_cast<uint8_t>(total % 6u);
@@ -745,4 +736,11 @@ namespace Core
         if (taken) cp->m_player->addToken(std::move(taken));
     }
 }
+
+
+// Minimal no-op implementations for methods referenced by CSV-defined lambdas
+void Core::Player::setHasAnotherTurn(bool) { /* no-op for now */ }
+void Core::Player::discardCard(Models::ColorType) { /* no-op for now */ }
+void Core::Player::drawToken() { /* no-op for now */ }
+void Core::Player::takeNewCard() { /* no-op for now */ }
 

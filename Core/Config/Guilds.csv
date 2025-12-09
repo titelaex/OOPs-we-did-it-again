@@ -1,8 +1,8 @@
-name,resourceCost,victoryPoints,coinWorth,coinReward,caption,color,isVisible,modelPath
-"Builders Guild",,0,WONDER,0,"2 victory points for each Wonder constructed in the city which has the most wonders.",PURPLE,false,
-"Scientists Guild",,0,GREEN,0,"1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end)",PURPLE,false,
-"Shipowners Guild",,0,GREYBROWN,0,"1 coin/(gray+brown in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
-"Traders Guild",,0,YELLOW,0,"1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
-"Moneylenders Guild",,0,VALUE,0," at the end h 1 victory point for each set of 3 coins in the richest city.",PURPLE,false,
-"Tacticians Guild",,0,RED,0,"1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
-"Magistrates Guild",,0,BLUE,0,"1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,false,
+name,resourceCost,victoryPoints,caption,color,onPlayActions
+"Builders Guild",,0,"2 victory points for each Wonder constructed in the city which has the most wonders.",PURPLE,"applyGuildCoinWorth(WONDER)"
+"Scientists Guild",,0,"1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end)",PURPLE,"applyGuildCoinWorth(GREEN)"
+"Shipowners Guild",,0,"1 coin/(gray+brown in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,"applyGuildCoinWorth(GREYBROWN)"
+"Traders Guild",,0,"1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,"applyGuildCoinWorth(YELLOW)"
+"Moneylenders Guild",,0," at the end h 1 victory point for each set of 3 coins in the richest city.",PURPLE,"applyGuildCoinWorth()"
+"Tacticians Guild",,0,"1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,"applyGuildCoinWorth(RED)"
+"Magistrates Guild",,0,"1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end)",PURPLE,"applyGuildCoinWorth(BLUE)"
