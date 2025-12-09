@@ -44,7 +44,7 @@ std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& disca
 	return selectedTokens;
 }
 
-std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_ptr<Models::Token>>> startGameTokens(const std::vector<std::unique_ptr<Models::Token>>& allTokens)
+std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_ptr<Models::Token>>> startGameTokens(std::vector<std::unique_ptr<Models::Token>> allTokens)
 {
   
     if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
@@ -52,15 +52,18 @@ std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_p
 
     std::vector<std::unique_ptr<Models::Token>> progress;
     std::vector<std::unique_ptr<Models::Token>> military;
-	for (const auto& t : allTokens) {
-		if (t->getType() == Models::TokenType::PROGRESS) progress.push_back(t);
-		else if (t->getType() == Models::TokenType::MILITARY) military.push_back(t);
-	}
+    progress.reserve(allTokens.size()); military.reserve(allTokens.size());
+    for (auto &t : allTokens) {
+        if (!t) continue;
+        if (t->getType() == Models::TokenType::PROGRESS) progress.push_back(std::move(t));
+        else if (t->getType() == Models::TokenType::MILITARY) military.push_back(std::move(t));
+    }
 
     std::vector<std::unique_ptr<Models::Token>> selectedProgress;
     constexpr size_t kSelectCount = 5;
     if (progress.size() <= kSelectCount) {
-        selectedProgress = progress;
+        // move all
+        selectedProgress = std::move(progress);
     }
     else {
         std::random_device rd; std::mt19937 gen(rd());
@@ -68,12 +71,12 @@ std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_p
         for (size_t i = 0; i < idx.size(); ++i) idx[i] = i;
         std::shuffle(idx.begin(), idx.end(), gen);
         for (size_t i = 0; i < idx.size(); ++i) {
-            if (i < kSelectCount) selectedProgress.push_back(std::make_unique<Models::Token>(*progress[idx[i]]));
-            else setupDiscardedProgressTokens->push_back(std::make_unique<Models::Token>(*progress[idx[i]]));
+            if (i < kSelectCount) selectedProgress.push_back(std::move(progress[idx[i]]));
+            else setupDiscardedProgressTokens->push_back(std::move(progress[idx[i]]));
         }
     }
 
-	return { selectedProgress, military };
+	return { std::move(selectedProgress), std::move(military) };
 }
 
 std::vector<std::unique_ptr<Models::Token>>& UnusedTokens()

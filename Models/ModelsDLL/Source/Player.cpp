@@ -46,3 +46,10 @@ void Player::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeR
         }
     }
 }
+
+std::unique_ptr<Card> Player::removeOwnedCardAt(size_t idx) {
+    if (idx >= m_ownedCards.size()) return nullptr;
+    std::unique_ptr<Card> out = std::move(m_ownedCards[idx]);
+    m_ownedCards.erase(m_ownedCards.begin() + idx);
+    return out;
+}

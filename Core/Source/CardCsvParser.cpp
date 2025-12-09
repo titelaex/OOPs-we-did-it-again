@@ -479,7 +479,7 @@ Wonder wonderFactory(const std::vector<std::string>& columns) {
     return b.build();
  }
 
-std::vector<std::unique_ptr<Token>> ParseTokensFromCSV(const std::string& path) {
+std::vector<std::unique_ptr<Token>> parseTokensFromCSV(const std::string& path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) throw std::runtime_error("Unable to open Token CSV file: " + path);
     std::string header;
@@ -544,7 +544,7 @@ std::vector<std::unique_ptr<Token>> ParseTokensFromCSV(const std::string& path) 
         uint8_t victory =0; if (!victoryField.empty()) { try { victory = static_cast<uint8_t>(std::stoi(victoryField)); } catch(...){} }
         uint8_t shield =0; if (!shieldField.empty()) { try { shield = static_cast<uint8_t>(std::stoi(shieldField)); } catch(...){} }
 
-        tokens.emplace_back(type, name, description, coinsTuple, victory, shield);
+        tokens.emplace_back(std::make_unique<Token>(type, name, description, coinsTuple, victory, shield));
     }
     return tokens;
 }
