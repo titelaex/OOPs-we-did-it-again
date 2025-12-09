@@ -56,7 +56,7 @@ void Core::drawTokenForCurrentPlayer()
     std::vector<std::unique_ptr<Models::Token>> combined;
     auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
     auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
-    // move tokens into combined temporarily
+ 
     for (auto& t : progressTokens) combined.push_back(std::move(t));
     for (auto& t : militaryTokens) combined.push_back(std::move(t));
     if (combined.empty()) return;
@@ -67,10 +67,10 @@ void Core::drawTokenForCurrentPlayer()
     std::cout << "Choose a token: \n";
     for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
     size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
-    // give token to player and remove it from board pool where found
+
     auto chosen = std::move(combined[choice]);
     if (chosen) cp->m_player->addToken(std::move(chosen));
-    // rebuild board pools from remaining combined entries
+
     std::vector<std::unique_ptr<Models::Token>> newProgress;
     std::vector<std::unique_ptr<Models::Token>> newMilitary;
     for (auto& tptr : combined) {
@@ -253,18 +253,17 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
         case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
         case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
         case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
-        default: return -1; // Not a resource that can have a trade rule
+        default: return -1; 
         }
 
         auto it = tradeRules.find(ruleType);
         if (it != tradeRules.end() && it->second) {
-            return 1; // Cost is 1 coin
+            return 1;
         }
 
-        return -1; // No discount
+        return -1;
         };
 
-    // 1. Correctly calculate opponent's production from only brown and grey cards
     std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
     for (const auto& card : opponent->getOwnedCards())
     {
@@ -274,7 +273,6 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
             {
                 for (const auto& resourcePair : ageCard->getResourcesProduction())
                 {
-                    // Only count opponent's production if we don't have a trade discount for it
                     if (getTradeDiscount(resourcePair.first) == -1)
                     {
                         opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
@@ -287,8 +285,6 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
 
     uint8_t totalCost = 0;
 
-   // apply the discount from Architecture token in the most beneficial way -> eliminate the cost of the
-   // resources the player doesn't produce at all first and are the most expensive to buy from the bank
     if (hasArchitectureToken) {
         std::vector<std::pair<uint8_t, Models::ResourceType>> purchaseCosts;
         for (const auto& [resource, amount] : missingResources) {
@@ -363,9 +359,6 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         return;
     }
 
-
-	// if we get there, that means we have to pay some coins for missing resources
-
     auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
         const auto& tradeRules = m_player->getTradeRules();
         Models::TradeRuleType ruleType;
@@ -378,14 +371,13 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         default: return -1;
         };
         auto it = tradeRules.find(ruleType);
-        if (it != tradeRules.end() && it->second) return 1; // Cost fix 1
+        if (it != tradeRules.end() && it->second) return 1; 
         return -1;
         };
 
     std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
     bool opponentCheckNeeded = false;
 
-	//verify if we need to check opponent production at all
     for (const auto& [resource, amount] : missingResources) {
         if (getTradeDiscount(resource) == -1) {
             opponentCheckNeeded = true;
@@ -407,7 +399,6 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         }
     }
 
-	/// final calculation of total cost
     std::vector<uint8_t> purchaseCosts;
 
     for (const auto& [resource, amount] : missingResources) {
@@ -415,12 +406,10 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         uint8_t costPerUnit = 0;
 
         if (discountedCost != -1) {
-			// from yellow cards or trade rules -> 1 coin each
             costPerUnit = 1;
         }
         else {
-			// from opponent production 
-            uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+	        uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
             costPerUnit = 2 + opponentAmount;
         }
 
@@ -429,11 +418,8 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         }
     }
 
-	/// apply Architecture token discount if available
-	/// we already verified above that there are more than 2 missing units
     if (hasArchitectureToken) {
         std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
-		/// eliminate the two most expensive resources
         if (purchaseCosts.size() >= 2) {
             purchaseCosts.erase(purchaseCosts.begin(), purchaseCosts.begin() + 2);
         }
@@ -448,44 +434,34 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
         subtractCoins(totalTradingCost);
         std::cout << "Player paid " << static_cast<int>(totalTradingCost) << " coins for trading resources.\n";
     }
-    else {
-		/// for safety, should not happen
+	else {//n ar trebui sa se ajunga aici
         std::cout << "Player constructed the wonder for free.\n";
     }
 }
 
 void Core::Player::discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent)
 {
-    // Definim un lambda pentru a nu scrie codul de căutare de două ori
-    // Observă parametrul: std::vector<...>& (Referință, ca să putem face erase pe original)
     auto discardFromList = [](std::vector<std::unique_ptr<Models::Wonder>>& wonderList) -> bool {
 
         for (auto it = wonderList.begin(); it != wonderList.end(); ++it) {
-            // Verificăm dacă minunea există și NU este construită
-            // (*it) este unique_ptr-ul, (*it)-> accesează metodele din Wonder
             if (*it && !(*it)->IsConstructed()) {
 
                 std::cout << "7 Wonders Rule: Removing unbuilt wonder \""
                     << (*it)->getName() << "\" from the game.\n";
 
-                // erase șterge elementul din vector și unique_ptr-ul dealocă automat memoria.
-                // Minunea este "returned to the box".
                 wonderList.erase(it);
-                return true; // Am găsit-o și am eliminat-o
+                return true;
             }
         }
-        return false; // Nu s-a găsit în această listă
+        return false;
         };
 
-    // 1. Căutăm în lista jucătorului curent
-    // Apelează getter-ul care returnează referința la vectorul m_ownedWonders
     if (discardFromList(m_player->getOwnedWonders())) {
-        return; // Am găsit-o la noi, am terminat.
+        return;
     }
 
-    // 2. Căutăm în lista adversarului
     if (discardFromList(opponent->getOwnedWonders())) {
-        return; // Am găsit-o la adversar, am terminat.
+        return;
     }
 
     std::cout << "Warning: Could not find the 8th unbuilt wonder to discard.\n";
@@ -528,17 +504,14 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
         return;
     }
 
-    // Check affordability
     if (!canAffordCard(card, opponent))
     {
         std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
         return;
     }
 
-    // Pay cost
     payForCard(card, opponent);
 
-    // Construct card
     m_player->addCard(card);
     card->setIsVisible(false);
     std::cout << "Card \"" << card->getName() << "\" constructed->\n";
@@ -547,25 +520,21 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 
 bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-    // 1-> Free card (coin-cost omitted)
-    //if (card->GetResourceCost()->empty() /* && coin-cost omitted */)
-    //    return true;
+    if (card->getResourceCost().empty() )
+        return true;
 
-    // 2-> Chain construction (commented out; requires card linking APIs)
-    /*
-    if (card->GetRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    
+    if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
     {
         for (const auto& ownedCard : m_player->getOwnedCards())
         {
-            if (ownedCard->GetHasLinkingSymbol() == card->GetRequiresLinkingSymbol())
+            if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
                 return true;
         }
     }
-    */
-
-    // 3-> Resource cost
+    
     const auto& cost = card->getResourceCost();
-    /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentProduction = opponent->getOwnedPermanentResources();
 
@@ -573,32 +542,33 @@ bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::uniqu
 
     for (const auto& kv : cost)
     {
-        auto resource = kv->first;
-        auto requiredAmount = kv->second;
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
 
         uint8_t produced = 0;
-        if (ownPermanent->find(resource) != ownPermanent->end()) produced += ownPermanent->at(resource);
-        if (ownTrading->find(resource) != ownTrading->end()) produced += ownTrading->at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) 
+            produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) 
+            produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentAmount = (opponentProduction->find(resource) != opponentProduction->end()) ? opponentProduction->at(resource) : 0;
+        uint8_t opponentAmount = (opponentProduction.find(resource) != opponentProduction.end()) ? opponentProduction.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentAmount;
 
         uint8_t totalCost = costPerUnit * missing;
         if (availableCoins < totalCost)
             return false;
-    }*/
+    }
     return true;
 }
 
-// Need to include payForCard, applyCardEffects, etc
 void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
     const auto& cost = card->getResourceCost();
-    /*const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentPermanent = opponent->getOwnedPermanentResources();
 
@@ -606,24 +576,24 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 
     for (const auto& kv : cost)
     {
-        auto resource = kv->first;
-        auto requiredAmount = kv->second;
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
 
         uint8_t produced = 0;
-        if (ownPermanent->find(resource) != ownPermanent->end()) produced += ownPermanent->at(resource);
-        if (ownTrading->find(resource) != ownTrading->end()) produced += ownTrading->at(resource);
+        if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
 
         if (produced >= requiredAmount)
             continue;
 
         uint8_t missing = requiredAmount - produced;
-        uint8_t opponentProduction = (opponentPermanent->find(resource) != opponentPermanent->end()) ? opponentPermanent->at(resource) : 0;
+        uint8_t opponentProduction = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentProduction;
 
         totalCoinsToPay += costPerUnit * missing;
     }
 
-    m_player->subtractCoins(totalCoinsToPay);*/
+    subtractCoins(totalCoinsToPay);
 }
 
 void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
@@ -633,7 +603,6 @@ void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 
 void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 {
-    // Rebuild the card to bind its onPlay actions to this Core::Player
     const auto& oldActions = card->getOnPlayActions();
     Models::CardBuilder builder;
     builder.setName(card->getName())
@@ -643,7 +612,6 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
         .setColor(card->getColor());
 
     for (const auto& act : oldActions) {
-        // wrap original action so it always runs with this player as current context
         builder.addOnPlayAction([act]() {
             Core::Player* cp = getCurrentPlayer();
             if (act) act();
@@ -653,7 +621,6 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
     auto newCard = std::make_unique<Models::Card>(builder.build());
 
     std::cout << "Player takes card: " << newCard->getName() << "\n";
-    // play the card immediately in the context of this player
     {
         Core::Player* cp = getCurrentPlayer();
         newCard->onPlay();
@@ -722,38 +689,32 @@ namespace Core {
 		out << "Player,Username," << p->getPlayerUsername() << "\n";
 		out << "Player,Coins," << static_cast<int>(p->totalCoins(p->getRemainingCoins())) << "\n";
 
-		// Constructed Buildings (Owned Cards)
 		for (const auto& card : p->getOwnedCards()) {
 			if (card) {
 				out << "Player,Constructed," << *card << "\n";
 			}
 		}
 
-		// Wonders
 		for (const auto& wonder : p->getOwnedWonders()) {
 			if (wonder) {
 				out << "Player,Wonder," << *wonder << "\n";
 			}
 		}
 
-		// Progress Tokens
 		for (const auto& token : p->getOwnedTokens()) {
 			if (token) {
 				out << "Player,Token," << *token << "\n";
 			}
 		}
 
-		// Permanent Resources
 		for (const auto& resource : p->getOwnedPermanentResources()) {
 			out << "Player,PermanentResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
 		}
 
-		// Trading Resources
 		for (const auto& resource : p->getOwnedTradingResources()) {
 			out << "Player,TradingResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
 		}
 
-		// Scientific Symbols
 		for (const auto& symbol : p->getOwnedScientificSymbols()) {
 			out << "Player,ScientificSymbol," << static_cast<int>(symbol.first) << ":" << static_cast<int>(symbol.second) << "\n";
 		}
