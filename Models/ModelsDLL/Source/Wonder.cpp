@@ -31,8 +31,6 @@ std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
 	for (const auto& [res, amt] : card.getResourceCost())
 		os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
 	os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
-	os << "Coin Worth Type: " << static_cast<int>(card.getCoinWorth()) << '\n';
-	os << "Coin Reward: " << static_cast<int>(card.getCoinReward()) << '\n';
 	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
 	os << "Resource Production: " << static_cast<int>(card.getResourceProduction()) << '\n';
 	os << "Constructed: " << (card.IsConstructed() ? "Yes" : "No") << '\n';
@@ -50,8 +48,6 @@ void Wonder::displayCardInfo()
 WonderBuilder& WonderBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
 WonderBuilder& WonderBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }
 WonderBuilder& WonderBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card.setVictoryPoints(victoryPoints); return *this; }
-WonderBuilder& WonderBuilder::setCoinWorth(const CoinWorthType& coinWorth) { m_card.setCoinWorth(coinWorth); return *this; }
-WonderBuilder& WonderBuilder::setCoinReward(const uint8_t& coinReward) { m_card.setCoinReward(coinReward); return *this; }
 WonderBuilder& WonderBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
 WonderBuilder& WonderBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
 WonderBuilder& WonderBuilder::setShieldPoints(const uint8_t& pts) { m_card.setShieldPoints(pts); return *this; }

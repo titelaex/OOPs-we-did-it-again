@@ -52,8 +52,6 @@ namespace Models
 		WonderBuilder& setName(const std::string& name);
 		WonderBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
 		WonderBuilder& setVictoryPoints(const uint8_t& victoryPoints);
-		WonderBuilder& setCoinWorth(const CoinWorthType& coinWorth);
-		WonderBuilder& setCoinReward(const uint8_t& coinReward);
 		WonderBuilder& setCaption(const std::string& caption);
 		WonderBuilder& setColor(const ColorType& color);
 		WonderBuilder& setShieldPoints(const uint8_t& pts);
