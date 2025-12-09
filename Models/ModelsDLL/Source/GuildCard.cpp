@@ -1,5 +1,7 @@
 module Models.GuildCard;
+
 import <iostream>;
+
 
 using namespace Models;
 
@@ -9,8 +11,8 @@ GuildCard& GuildCard::operator=(GuildCard&& other) noexcept { if (this != &other
 
 void GuildCard::displayCardInfo() {
 	Card::displayCardInfo();
-	std::cout << "Guild Name: " << Card::GetName() << "\n";
-	auto type = Card::GetCoinWorth();
+	std::cout << "Guild Name: " << getName() << "\n";
+	auto type = getCoinWorth();
 	switch (type)
 	{
 		case CoinWorthType::WONDER:

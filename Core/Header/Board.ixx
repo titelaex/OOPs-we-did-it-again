@@ -55,6 +55,8 @@ export namespace Core {
 		void setPawnPos(uint8_t pos);
 		const std::vector<std::unique_ptr<Models::Token>>& getProgressTokens() const;
 		void setProgressTokens(std::vector<std::unique_ptr<Models::Token>> v);
+		//const std::vector<std::unique_ptr<Models::Token>>& getSetupDiscardedProgressTokens() const;
+		//void setSetupDiscardedProgressTokens(std::vector<std::unique_ptr<Models::Token>> v);
 		const std::vector<std::unique_ptr<Models::Token>>& getMilitaryTokens() const;
 		void setMilitaryTokens(std::vector<std::unique_ptr<Models::Token>> v);
 		const std::vector<std::unique_ptr<Node>>& getAge1Nodes() const;

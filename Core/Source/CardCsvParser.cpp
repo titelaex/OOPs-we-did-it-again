@@ -276,7 +276,7 @@ std::vector<T> parseCardsFromCSV(const std::string& path, Factory factory) {
     std::string line;
     while (std::getline(ifs, line)) {
         if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) continue;
-        std::vector<std::string> columns = ParseCsvLine(line);
+        std::vector<std::string> columns = parseCsvLine(line);
         cards.push_back(factory(columns));
     }
     return cards;

@@ -1,4 +1,4 @@
-module Core.Preparation;
+module Core.Phase;
 
 #include <vector>
 #include <string>
@@ -131,7 +131,7 @@ namespace Core {
         try {
             std::vector<Models::AgeCard> allAgeCards;
             auto loadFn = [&](const std::vector<std::string>& cols) {
-                Models::AgeCard card = AgeCardFactory(cols);
+                Models::AgeCard card = ageCardFactory(cols);
                 allAgeCards.push_back(std::move(card));
                 };
 
@@ -190,7 +190,7 @@ namespace Core {
         try {
             std::vector<Models::GuildCard> tempGuilds;
             auto loadG = [&](const std::vector<std::string>& cols) {
-                Models::GuildCard g = GuildCardFactory(cols);
+                Models::GuildCard g = guildCardFactory(cols);
                 tempGuilds.push_back(std::move(g));
                 };
             const std::vector<std::string> guildCandidates = {
@@ -226,7 +226,7 @@ namespace Core {
         try {
             std::vector<Models::Wonder> tempWonders;
             auto loadW = [&](const std::vector<std::string>& cols) {
-                Models::Wonder w = WonderFactory(cols);
+                Models::Wonder w = wonderFactory(cols);
                 tempWonders.push_back(std::move(w));
                 };
             const std::vector<std::string> wonderCandidates = {

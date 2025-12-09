@@ -33,7 +33,7 @@
     <ClCompile Include="Source/Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source/Preparation.cpp">
+    <ClCompile Include="Source\Phase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source/Board.cpp">
@@ -48,7 +48,7 @@
     <ClCompile Include="Header/CardCsvParser.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header/Preparation.ixx">
+    <ClCompile Include="Header\Phase.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Header/Game.ixx">
