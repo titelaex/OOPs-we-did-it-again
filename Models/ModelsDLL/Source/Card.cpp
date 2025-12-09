@@ -8,11 +8,26 @@ import Models.Age;
 import <optional>;
 import <unordered_map>;
 
-using namespace Models;
+namespace Models {
+	Card::Card(Card&& other) = default;
+	Card& Card::operator=(Card&& other) = default;
 
+	const std::string& Card::getName() const { return m_name; }
+	const std::unordered_map<ResourceType, uint8_t>& Card::getResourceCost() const { return m_resourceCost; }
+	const std::string& Card::getCaption() const { return m_caption; }
+	const ColorType& Card::getColor() const { return m_color; }
+	const uint8_t& Card::getVictoryPoints() const { return m_victoryPoints; }
+	const std::vector<std::function<void()>>& Card::getOnPlayActions() const { return m_onPlayActions; }
+	const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
+	const bool& Card::isVisible() const { return m_isVisible; }
+	const bool& Card::isAvailable() const { return m_isAvailable; }
 
-Card::Card(Card&& other) = default;
-Card& Card::operator=(Card&& other) = default;
+	void Card::onPlay()
+	{
+		for (const auto& action : m_onPlayActions) {
+			if (action) action();
+		}
+	}
 
 const std::string& Card::getName() const { return m_name; }
 const std::unordered_map<ResourceType, uint8_t>& Card::getResourceCost() const { return m_resourceCost; }
@@ -66,12 +81,20 @@ void Card::onPlay()
     }
 }
 
-void Card::onDiscard()
-{
-    for (const auto& action : m_onDiscardActions) {
-        if (action) action();
-    }
-}
+	void Card::displayCardInfo() {
+		std::cout << "Card Name: " << m_name << '\n';
+		std::cout << "Caption: " << m_caption << '\n';
+		std::cout << "Color: " << static_cast<int>(m_color) << '\n';
+		std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
+		std::cout << "Resource Cost:" << '\n';
+		for (const auto& kv : m_resourceCost) {
+			std::cout << " - " << static_cast<int>(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
+		}
+		std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
+		std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
+		std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
+		std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
+	}
 
 void Card::setName(const std::string& name) { m_name = name; }
 void Card::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
@@ -98,42 +121,41 @@ void Card::displayCardInfo() {
     std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
 }
 
-CardBuilder& CardBuilder::setName(const std::string& name) {
-    m_card.setName(name);
-    return *this;
-}
+	CardBuilder& CardBuilder::setVictoryPoints(const uint8_t& victoryPoints) {
+		m_card.setVictoryPoints(victoryPoints);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) {
-    m_card.setResourceCost(resourceCost);
-    return *this;
-}
-
-CardBuilder& CardBuilder::setVictoryPoints(const uint8_t& victoryPoints) {
-    m_card.setVictoryPoints(victoryPoints);
-    return *this;
-}
 
 CardBuilder& CardBuilder::setCaption(const std::string& caption) {
     m_card.setCaption(caption);
     return *this;
 }
 
-CardBuilder& CardBuilder::setColor(const ColorType& color) {
-    m_card.setColor(color);
-    return *this;
-}
+	CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
+		m_card.addOnDiscardAction(action);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
-    m_card.addOnPlayAction(action);
-    return *this;
-}
+	Card CardBuilder::build() {
+		return std::move(m_card);
+	}
 
-CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
-    m_card.addOnDiscardAction(action);
-    return *this;
+	std::ostream& operator<<(std::ostream& cout, const Card& card)
+	{
+		cout << "Card(Name: " << card.getName()
+			<< ", Color: " << static_cast<int>(card.getColor())
+			<< ", Victory Points: " << static_cast<int>(card.getVictoryPoints())
+			<< ", Caption: " << card.getCaption()
+			<< ", Resource Cost: {";
+		const auto& cost = card.getResourceCost();
+		for (auto it = cost.begin(); it != cost.end(); ++it) {
+			cout << static_cast<int>(it->first) << ": " << static_cast<int>(it->second);
+			if (std::next(it) != cost.end()) {
+				cout << ", ";
+			}
+		}
+		cout << "})";
+		return cout;
+	}
 }
-
-Card CardBuilder::build() {
-    return std::move(m_card);
-}
-

@@ -89,5 +89,8 @@ export namespace Models
 		CardBuilder& addOnPlayAction(const std::function<void()>& action);
 		CardBuilder& addOnDiscardAction(const std::function<void()>& action);
 		Card build();
+
 	};
+
+	export std::ostream& operator<<(std::ostream& cout, const Card& card);
 }
