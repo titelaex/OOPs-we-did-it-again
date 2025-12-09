@@ -21,9 +21,9 @@ import Models.AgeCard;
 static thread_local Core::Player* g_current_player = nullptr;
 
 void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
-Core::Player* GetCurrentPlayer() { return g_current_player; }
+Core::Player* getCurrentPlayer() { return g_current_player; }
 
-Core::Player* Core::GetOpponentPlayer()
+Core::Player* Core::getOpponentPlayer()
 {
     Core::Player* cp = GetCurrentPlayer();
     if (!cp) return nullptr;
@@ -269,7 +269,7 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
 
     bool hasArchitectureToken = false;
     for (const auto& token : m_player->getOwnedTokens()) {
-        if (token.getName() == "Architecture") {
+        if (token->getName() == "Architecture") {
             hasArchitectureToken = true;
             break;
         }
@@ -383,7 +383,7 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
 
     bool hasArchitectureToken = false;
     for (const auto& token : m_player->getOwnedTokens()) {
-        if (token.getName() == "Architecture") {
+        if (token->getName() == "Architecture") {
             hasArchitectureToken = true;
             break;
         }
