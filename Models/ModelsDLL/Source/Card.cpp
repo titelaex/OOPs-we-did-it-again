@@ -1,6 +1,12 @@
 module Models.Card;
-import <iostream>;
-import <functional>;
+import Models.Card;
+import Models.ResourceType;
+import Models.ScientificSymbolType;
+import Models.LinkingSymbolType;
+import Models.TradeRuleType;
+import Models.Age;
+import <optional>;
+import <unordered_map>;
 
 using namespace Models;
 
@@ -19,6 +25,41 @@ const std::vector<std::function<void()>>& Card::getOnPlayActions() const { retur
 const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
 const bool& Card::isVisible() const { return m_isVisible; }
 const bool& Card::isAvailable() const { return m_isAvailable; }
+
+// Default neutral implementations for virtual getters
+const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
+    static const std::unordered_map<ResourceType, uint8_t> empty{};
+    return empty;
+}
+const uint8_t& Card::getShieldPoints() const {
+    static const uint8_t zero = 0;
+    return zero;
+}
+const std::optional<ScientificSymbolType>& Card::getScientificSymbols() const {
+    static const std::optional<ScientificSymbolType> none{};
+    return none;
+}
+const std::optional<LinkingSymbolType>& Card::getHasLinkingSymbol() const {
+    static const std::optional<LinkingSymbolType> none{};
+    return none;
+}
+const std::optional<LinkingSymbolType>& Card::getRequiresLinkingSymbol() const {
+    static const std::optional<LinkingSymbolType> none{};
+    return none;
+}
+const std::unordered_map<TradeRuleType, bool>& Card::getTradeRules() const {
+    static const std::unordered_map<TradeRuleType, bool> empty{};
+    return empty;
+}
+const Age& Card::getAge() const {
+    static const Age kNeutral = Age::AGE_I;
+    return kNeutral;
+}
+const ResourceType& Card::getResourceProduction() const {
+    static const ResourceType kNone = ResourceType::NO_RESOURCE;
+    return kNone;
+}
+bool Card::IsConstructed() const { return false; }
 
 void Card::onPlay()
 {

@@ -3,12 +3,14 @@ export module Models.AgeCard;
 import <unordered_map>;
 import <ostream>;
 import <optional>;
+import <functional>;
 import Models.Card;
 import Models.ScientificSymbolType;
 import Models.ResourceType;
 import Models.LinkingSymbolType;
 import Models.TradeRuleType;
 import Models.Age;
+import Models.ColorType;
 
 namespace Models
 {
@@ -31,13 +33,16 @@ namespace Models
 		AgeCard& operator=(AgeCard&& other) = default;
 		~AgeCard() = default;
 
-		const std::unordered_map<ResourceType, uint8_t>& getResourceProduction() const;
-		const uint8_t& getShieldPoints() const;
-		const std::optional<ScientificSymbolType>& getScientificSymbols() const;
-		const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
-		const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
-		const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
-		const Age& getAge() const;
+		virtual const std::unordered_map<ResourceType, uint8_t>& getResourcesProduction() const;
+		virtual const uint8_t& getShieldPoints() const;
+		virtual const std::optional<ScientificSymbolType>& getScientificSymbols() const;
+		virtual const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
+		virtual const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
+		virtual const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		virtual const Age& getAge() const;
+
+		virtual const ResourceType& getResourceProduction() const;
+		virtual bool IsConstructed() const;
 
 		void setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
 		void setShieldPoints(const uint8_t& shieldPoints);
@@ -46,8 +51,8 @@ namespace Models
 		void setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol);
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		void setAge(const Age& age);
-		void onDiscard() override;
-		void displayCardInfo() override;
+		void onDiscard();
+		void displayCardInfo();
 	};
 	export std::ostream& operator<<(std::ostream& os, const AgeCard& card);
 

@@ -14,9 +14,33 @@ import <bitset>;
 using namespace Models;
 
 
+// Core Wonder-specific getters
 const uint8_t& Wonder::getShieldPoints() const { return m_shieldPoints; }
 const ResourceType& Wonder::getResourceProduction() const { return m_resourceProduction; }
 bool Wonder::IsConstructed() const { return isConstructed; }
+
+// Non-applicable getters return neutral defaults
+const std::unordered_map<ResourceType, uint8_t>& Wonder::getResourcesProduction() const {
+	static const std::unordered_map<ResourceType, uint8_t> empty{};
+	return empty;
+}
+const std::optional<ScientificSymbolType>& Wonder::getScientificSymbols() const {
+	static const std::optional<ScientificSymbolType> none{}; return none;
+}
+const std::optional<LinkingSymbolType>& Wonder::getHasLinkingSymbol() const {
+	static const std::optional<LinkingSymbolType> none{}; return none;
+}
+const std::optional<LinkingSymbolType>& Wonder::getRequiresLinkingSymbol() const {
+	static const std::optional<LinkingSymbolType> none{}; return none;
+}
+const std::unordered_map<TradeRuleType,bool>& Wonder::getTradeRules() const {
+	static const std::unordered_map<TradeRuleType,bool> empty{}; return empty;
+}
+const Age& Wonder::getAge() const {
+	// Wonders do not have an Age in this model; return a neutral default
+	static const Age kNeutral = Age::AGE_III; // or Age::AGE_I if you prefer
+	return kNeutral;
+}
 
 void Wonder::setShieldPoints(uint8_t pts) { m_shieldPoints = pts; }
 void Wonder::setResourceProduction(ResourceType r) { m_resourceProduction = r; }
@@ -63,5 +87,5 @@ Wonder WonderBuilder::build() { return std::move(m_card); }
 
 void Wonder::onDiscard()
 {
-    Card::onDiscard();
+	Card::onDiscard();
 }

@@ -5,11 +5,16 @@ import <array>;
 import <cstdint>;
 import <unordered_map>;
 import <string>;
+import <optional>;
 import Models.ResourceType;
 import Models.CoinWorthType;
 import Models.ColorType;
 import Models.ICard;
 import <iostream>;
+import Models.ScientificSymbolType;
+import Models.LinkingSymbolType;
+import Models.TradeRuleType;
+import Models.Age;
 
 export namespace Models
 {
@@ -51,6 +56,17 @@ export namespace Models
 		const std::vector<std::function<void()>>& getOnDiscardActions() const;
 		const bool& isVisible() const;
 		const bool& isAvailable() const;
+
+		virtual const std::unordered_map<ResourceType, uint8_t>& getResourcesProduction() const;
+		virtual const uint8_t& getShieldPoints() const;
+		virtual const std::optional<ScientificSymbolType>& getScientificSymbols() const;
+		virtual const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
+		virtual const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
+		virtual const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		virtual const Age& getAge() const;
+
+		virtual const ResourceType& getResourceProduction() const;
+		virtual bool IsConstructed() const;
 
 		void setName(const std::string& name);
 		void setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);
