@@ -20,12 +20,12 @@ import Models.AgeCard;
 
 static thread_local Core::Player* g_current_player = nullptr;
 
-void SetCurrentPlayer(Core::Player* p) { g_current_player = p; }
+void setCurrentPlayer(Core::Player* p) { g_current_player = p; }
 Core::Player* getCurrentPlayer() { return g_current_player; }
 
 Core::Player* Core::getOpponentPlayer()
 {
-    Core::Player* cp = GetCurrentPlayer();
+    Core::Player* cp = getCurrentPlayer();
     if (!cp) return nullptr;
     auto &gs = Core::GameState::getInstance();
     Player* p1 = gs.GetPlayer1();
@@ -37,14 +37,14 @@ Core::Player* Core::getOpponentPlayer()
 
 void Core::playTurnForCurrentPlayer()
 {
-    Core::Player* cp = GetCurrentPlayer();
+    Core::Player* cp = getCurrentPlayer();
     if (!cp) return;
     std::cout << "Playing an extra turn for player\n";
 }
 
 void Core::drawTokenForCurrentPlayer()
 {
-    Core::Player* cp = GetCurrentPlayer();
+    Core::Player* cp = getCurrentPlayer();
     if (!cp) return;
     std::vector<std::unique_ptr<Models::Token>> combined;
     auto progressTokens = Board::getInstance().getProgressTokens();
@@ -79,7 +79,7 @@ void Core::drawTokenForCurrentPlayer()
 
 void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
-    Core::Player* cp = GetCurrentPlayer();
+    Core::Player* cp = getCurrentPlayer();
     if (!cp) return;
     Core::Player* opponent = getOpponentPlayer();
     if (!opponent) return;
@@ -645,7 +645,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
     for (const auto& act : oldActions) {
         // wrap original action so it always runs with this player as current context
         builder.addOnPlayAction([act]() {
-            Core::Player* cp = GetCurrentPlayer();
+            Core::Player* cp = getCurrentPlayer();
             if (act) act();
         });
     }
@@ -655,7 +655,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
     std::cout << "Player takes card: " << newCard->getName() << "\n";
     // play the card immediately in the context of this player
     {
-        Core::Player* cp = GetCurrentPlayer();
+        Core::Player* cp = getCurrentPlayer();
         newCard->onPlay();
     }
     m_player->addCard(std::move(newCard));
@@ -689,7 +689,7 @@ namespace Core
 {
     void chooseToken(std::vector<std::unique_ptr<Models::Token>>& tokens)
     {
-        Core::Player* cp = GetCurrentPlayer();
+        Core::Player* cp = getCurrentPlayer();
         if (!cp) return;
 
         if (tokens.empty()) return;
