@@ -17,7 +17,7 @@ export namespace Core
 		Player* GetPlayer1() { return &m_player1; }
 		Player* GetPlayer2() { return &m_player2; }
 	private:
-		Core::Board m_board;
+		Core::Board& m_board;
 		Core::Player m_player1, m_player2;
 	};
 }

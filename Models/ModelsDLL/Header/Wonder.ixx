@@ -21,6 +21,10 @@ namespace Models
 
 	public:
 		static uint8_t wondersBuilt;
+		static constexpr uint8_t MaxWonders = 7;
+		static uint8_t getWondersBuilt();
+		static uint8_t incrementWondersBuilt();
+		static void resetWondersBuilt();
 
 	public:
 

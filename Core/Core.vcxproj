@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source/GameState.cpp" />
     <ClCompile Include="GameState.ixx" />
     <ClCompile Include="Source/AgeTree.cpp" />
     <ClCompile Include="Header/AgeTree.ixx" />

@@ -63,8 +63,11 @@
     <ClCompile Include="Header/Player.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameState.ixx">
+    <ClCompile Include="Header/GameState.ixx">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/GameState.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

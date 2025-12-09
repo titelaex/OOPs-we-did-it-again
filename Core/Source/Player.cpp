@@ -1,4 +1,8 @@
-﻿module Core.Player;
+﻿module;
+
+#include <compare>
+
+module Core.Player;
 
 import <iostream>;
 import <vector>;
@@ -17,11 +21,21 @@ import GameState;
 import Core.Board;
 import Models.AgeCard;
 
+namespace Core {
+namespace {
+thread_local Player* g_current_player = nullptr;
+}
 
+<<<<<<< HEAD
 static thread_local Core::Player* g_current_player = nullptr;
 
 void Core::setCurrentPlayer(Core::Player* p) { g_current_player = p; }
 Core::Player* Core::getCurrentPlayer() { return g_current_player; }
+=======
+void setCurrentPlayer(Player* p) { g_current_player = p; }
+Player* getCurrentPlayer() { return g_current_player; }
+}
+>>>>>>> GameLogic
 
 Core::Player* Core::getOpponentPlayer()
 {
@@ -47,10 +61,11 @@ void Core::drawTokenForCurrentPlayer()
     Core::Player* cp = getCurrentPlayer();
     if (!cp) return;
     std::vector<std::unique_ptr<Models::Token>> combined;
-    auto progressTokens = Board::getInstance().getProgressTokens();
-    auto militaryTokens = Board::getInstance().getMilitaryTokens();
-    for (const auto& t : progressTokens) combined.push_back(t);
-    for (const auto& t : militaryTokens) combined.push_back(t);
+    auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
+    auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
+    // move tokens into combined temporarily
+    for (auto& t : progressTokens) combined.push_back(std::move(t));
+    for (auto& t : militaryTokens) combined.push_back(std::move(t));
     if (combined.empty()) return;
     std::random_device rd; std::mt19937 gen(rd());
     std::shuffle(combined.begin(), combined.end(), gen);
@@ -60,20 +75,18 @@ void Core::drawTokenForCurrentPlayer()
     for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
     size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
     // give token to player and remove it from board pool where found
-    const auto &chosen = combined[choice];
-    cp->m_player->addToken(chosen);
-    // remove first occurrence from progress or military
-    for (auto it = progressTokens.begin(); it != progressTokens.end(); ++it) {
-        if ((*it)->getName() == chosen->getName()) { progressTokens.erase(it); return; }
+    auto chosen = std::move(combined[choice]);
+    if (chosen) cp->m_player->addToken(std::move(chosen));
+    // rebuild board pools from remaining combined entries
+    std::vector<std::unique_ptr<Models::Token>> newProgress;
+    std::vector<std::unique_ptr<Models::Token>> newMilitary;
+    for (auto& tptr : combined) {
+        if (!tptr) continue;
+        if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
+        else newMilitary.push_back(std::move(tptr));
     }
-    for (auto it = militaryTokens.begin(); it != militaryTokens.end(); ++it) {
-        if ((*it) && (*it)->getName() == chosen->getName()) {
-            militaryTokens.erase(it);
-            return;
-        }
-    }
-	Board::getInstance().setProgressTokens(progressTokens);
-	Board::getInstance().setMilitaryTokens(militaryTokens);
+    Board::getInstance().setProgressTokens(std::move(newProgress));
+    Board::getInstance().setMilitaryTokens(std::move(newMilitary));
 }
 
 
@@ -101,9 +114,8 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
     auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
     if (moved)
     {
-        auto discarded = Core::Board::getInstance().getDiscardedCards();
+        auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Core::Board::getInstance().getDiscardedCards());
         discarded.push_back(std::move(moved));
-        Core::Board::getInstance().setDiscardedCards(std::move(discarded));
     }
 }
 
@@ -171,46 +183,41 @@ uint8_t Core::Player::countYellowCards()
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
     std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
-    // check if WondersBuilt < 7
-    if (Models::Wonder::wondersBuilt < 7)
-    {
-        if (!wonder->IsConstructed())
-        {
-            if(canAffordWonder(wonder, opponent))
-            {
-                payForWonder(wonder, opponent);
-
-                Models::Wonder* rawWonderPtr = wonder.release();
-                std::unique_ptr<Models::Card> tempCard(rawWonderPtr);
-                applyCardEffects(tempCard);
-                rawWonderPtr = static_cast<Models::Wonder*>(tempCard.release());
-                wonder.reset(rawWonderPtr);
-
-                wonder->setConstructed(true);
-                Models::Wonder::wondersBuilt++;
-                if(Models::Wonder::wondersBuilt == 7)
-                {
-                    std::cout << "All wonders have been built in the game->\n";
-                    discardRemainingWonder(opponent);
-                }
-
-				ageCard.reset();
-            }
-            else
-            {
-                std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\"->\n";
-                return;
-		    }
-        }
-        else 
-            std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
-            return;
-    }
-    else
+    if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders)
     {
         std::cout << "All wonders have been built in the game->\n";
         return;
-	}
+    }
+
+    if (wonder->IsConstructed())
+    {
+        std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
+        return;
+    }
+
+    if (!canAffordWonder(wonder, opponent))
+    {
+        std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\"->\n";
+        return;
+    }
+
+    payForWonder(wonder, opponent);
+
+    Models::Wonder* rawWonderPtr = wonder.release();
+    std::unique_ptr<Models::Card> tempCard(rawWonderPtr);
+    applyCardEffects(tempCard);
+    rawWonderPtr = static_cast<Models::Wonder*>(tempCard.release());
+    wonder.reset(rawWonderPtr);
+
+    wonder->setConstructed(true);
+    const auto builtCount = Models::Wonder::incrementWondersBuilt();
+    if (builtCount == Models::Wonder::MaxWonders)
+    {
+        std::cout << "All wonders have been built in the game->\n";
+        discardRemainingWonder(opponent);
+    }
+
+    ageCard.reset();
     std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
 }
 
