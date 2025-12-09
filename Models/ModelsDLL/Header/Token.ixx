@@ -50,4 +50,5 @@ export namespace Models
     }
     export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);
     export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const Token& t);
+;
 }
