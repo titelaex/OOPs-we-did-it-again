@@ -11,6 +11,7 @@ import <unordered_map>;
 import <memory>;
 import <random>;
 import <algorithm>;
+import <string>;
 
 import Models.Wonder;
 import Models.Card;
@@ -29,6 +30,7 @@ thread_local Player* g_current_player = nullptr;
 void setCurrentPlayer(Player* p) { g_current_player = p; }
 Player* getCurrentPlayer() { return g_current_player; }
 }
+
 
 Core::Player* Core::getOpponentPlayer()
 {
@@ -653,15 +655,15 @@ void Core::Player::subtractCoins(uint8_t amt)
 }
 
 namespace Core
-{
-    void chooseToken(std::vector<std::unique_ptr<Models::Token>>& tokens)
+{/*
+    void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens)
     {
         Core::Player* cp = getCurrentPlayer();
         if (!cp) return;
 
         if (tokens.empty()) return;
 
-        std::cout << "Choose a progress token (0 based):\n";
+        std::cout << "Choose a progress token by index:\n";
         for (size_t i = 0; i < tokens.size(); ++i) {
             if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
         }
@@ -675,7 +677,49 @@ namespace Core
         std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
         tokens.erase(tokens.begin() + idx);
         if (taken) cp->m_player->addToken(std::move(taken));
-    }
+    }*/
+    /*
+    void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens)
+    {
+        Core::Player* cp = getCurrentPlayer();
+        if (!cp) return;
+
+        if (tokens.empty()) return;
+
+        std::cout << "Choose a progress token by name:\n";
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
+        }
+
+        std::string name;
+        if (!std::getline(std::cin >> std::ws, name)) return;
+
+        if (name.empty()) {
+      
+            if (!tokens.empty() && tokens[0]) {
+                cp->m_player->addToken(std::move(tokens[0]));
+                tokens.erase(tokens.begin());
+            }
+            return;
+        }
+
+        // Try to remove token from the board via Board::removeProgressTokenByName
+        {
+            auto taken = Core::Board::getInstance().removeProgressTokenByName(name);
+            if (taken) { cp->m_player->addToken(std::move(taken)); return; }
+        }
+
+        for (auto it = tokens.begin(); it != tokens.end(); ++it) {
+            if (*it && (*it)->getName() == name) {
+                std::unique_ptr<Models::Token> taken = std::move(*it);
+                tokens.erase(it);
+                if (taken) cp->m_player->addToken(std::move(taken));
+                return;
+            }
+        }
+
+        std::cout << "No progress token named '" << name << "' found.\n";
+    }*/
 }
 
 namespace Core {

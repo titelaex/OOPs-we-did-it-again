@@ -78,12 +78,13 @@ std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_p
 
 	return { std::move(selectedProgress), std::move(military) };
 }
-
-std::vector<std::unique_ptr<Models::Token>>& UnusedTokens()
+/*
+std::vector<std::unique_ptr<Models::Token>>& unusedTokens()
 {
     if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
     return *setupDiscardedProgressTokens;
 }
+*/
 
 void m_drawProgressTokenAction(std::vector<Models::Token>& discardedTokens)
 {
@@ -112,6 +113,7 @@ namespace Core {
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
 			Core::Board::getInstance().setMilitaryTokens(std::move(military));
+			Core::Board::getInstance().setUnusedProgressTokens(std::move(*setupDiscardedProgressTokens));
 		}
 		catch (const std::exception& ex) {
 			std::cerr << "Preparation exception: " << ex.what() << std::endl;
@@ -123,11 +125,10 @@ namespace Core {
 
     ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
     /*
-    std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove)
+    std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove, std::unique_ptr<Models::Token> tokens)
     {
-        auto tokens = Core::Board::getInstance().getProgressTokens();
         std::vector<std::unique_ptr<Models::Token>> remaining;
-        remaining.reserve(tokens.size());
+        remaining.reserve(tokens.));
 
         std::unique_ptr<Models::Token> found;
         for (auto& tptr : tokens) {
@@ -141,8 +142,8 @@ namespace Core {
 
         Core::Board::getInstance().setProgressTokens(std::move(remaining));
         return found;
-    }
-    */
+    }*/
+    
     ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
     /*void greatLibraryDrawFromSetup()
     {

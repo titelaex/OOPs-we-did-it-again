@@ -6,6 +6,7 @@ import Models.Wonder;
 import Models.Token;
 import Models.Card;
 import Models.Bank;
+import Core.Game;
 
 import <vector>;
 import <algorithm>;
@@ -39,6 +40,11 @@ void Board::setPawnPos(uint8_t pos) { pawnPos = pos; }
 
 const std::vector<std::unique_ptr<Models::Token>>& Board::getProgressTokens() const { return progressTokens; }
 void Board::setProgressTokens(std::vector<std::unique_ptr<Models::Token>> v) { progressTokens = std::move(v); }
+const std::vector<std::unique_ptr<Models::Token>>& Core::Board::getUnusedProgressTokens() const{ return unusedProgressTokens; }
+void Core::Board::setUnusedProgressTokens(std::vector<std::unique_ptr<Models::Token>> v)
+{
+	unusedProgressTokens = std::move(v);
+}
 const std::vector<std::unique_ptr<Models::Token>>& Board::getMilitaryTokens() const { return militaryTokens; }
 void Board::setMilitaryTokens(std::vector<std::unique_ptr<Models::Token>> v) { militaryTokens = std::move(v); }
 
