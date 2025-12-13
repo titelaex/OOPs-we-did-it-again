@@ -27,7 +27,7 @@ import Models.Card;
 import Core.CardCsvParser;
 import Core.Player;
 
-std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupDiscardedProgressTokens;
+std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
 
 void m_receiveMoneyAction(class Player& player) {}
 void m_opponentLosesMoneyAction(class Player& opponent) {}
@@ -47,8 +47,8 @@ std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& disca
 std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_ptr<Models::Token>>> startGameTokens(std::vector<std::unique_ptr<Models::Token>> allTokens)
 {
   
-    if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
-    setupDiscardedProgressTokens->clear();
+    if (!setupUnusedProgressTokens) setupUnusedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
+    setupUnusedProgressTokens->clear();
 
     std::vector<std::unique_ptr<Models::Token>> progress;
     std::vector<std::unique_ptr<Models::Token>> military;
@@ -72,19 +72,12 @@ std::pair<std::vector<std::unique_ptr<Models::Token>>, std::vector<std::unique_p
         std::shuffle(idx.begin(), idx.end(), gen);
         for (size_t i = 0; i < idx.size(); ++i) {
             if (i < kSelectCount) selectedProgress.push_back(std::move(progress[idx[i]]));
-            else setupDiscardedProgressTokens->push_back(std::move(progress[idx[i]]));
+            else setupUnusedProgressTokens->push_back(std::move(progress[idx[i]]));
         }
     }
 
 	return { std::move(selectedProgress), std::move(military) };
 }
-/*
-std::vector<std::unique_ptr<Models::Token>>& unusedTokens()
-{
-    if (!setupDiscardedProgressTokens) setupDiscardedProgressTokens = std::make_unique<std::vector<std::unique_ptr<Models::Token>>>();
-    return *setupDiscardedProgressTokens;
-}
-*/
 
 void m_drawProgressTokenAction(std::vector<Models::Token>& discardedTokens)
 {
@@ -113,7 +106,7 @@ namespace Core {
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
 			Core::Board::getInstance().setMilitaryTokens(std::move(military));
-			Core::Board::getInstance().setUnusedProgressTokens(std::move(*setupDiscardedProgressTokens));
+			Core::Board::getInstance().setUnusedProgressTokens(std::move(*setupUnusedProgressTokens));
 		}
 		catch (const std::exception& ex) {
 			std::cerr << "Preparation exception: " << ex.what() << std::endl;
@@ -123,28 +116,7 @@ namespace Core {
 		}
 	}
 
-    ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
-    /*
-    std::unique_ptr<Models::Token> removeProgressTokenByName(const std::string& nameToRemove, std::unique_ptr<Models::Token> tokens)
-    {
-        std::vector<std::unique_ptr<Models::Token>> remaining;
-        remaining.reserve(tokens.));
-
-        std::unique_ptr<Models::Token> found;
-        for (auto& tptr : tokens) {
-            if (!tptr) continue;
-            if (!found && tptr->getName() == nameToRemove) {
-                found = std::move(tptr);
-                continue;
-            }
-            remaining.push_back(std::move(tptr));
-        }
-
-        Core::Board::getInstance().setProgressTokens(std::move(remaining));
-        return found;
-    }*/
-    
-    ///MUTATA ALTUNDEVA TOATA FUNCTIA!!!
+    ///O stergem?
     /*void greatLibraryDrawFromSetup()
     {
         Core::Player* cp = Core::getCurrentPlayer();
@@ -190,56 +162,5 @@ namespace Core {
     }
     */
 
-    /*
-    void chooseToken()
-    {
-        Core::Player* cp = Core::getCurrentPlayer();
-        if (!cp) return;
-
-        bool eligible = false;
-        const auto& ssOwened = cp->m_player->getOwnedScientificSymbols();
-        for (const auto& ss : ssOwened)
-        {
-            if (ss.second >= 2) { eligible = true; break; }
-        }
-
-        {
-            const auto& wonders = cp->m_player->getOwnedWonders();
-            for (const auto& wptr : wonders) {
-                if (!wptr) continue;
-                if (!wptr->IsConstructed()) continue;
-                if (wptr->getName() == "The Great Library") { greatLibraryDrawFromSetup(); return; }
-            }
-        }
-
-        if (!eligible) return;
-
-        const auto& tokens = Core::Board::getInstance().getProgressTokens();
-        if (tokens.empty()) return;
-
-        std::cout << "Alege un progress token (index):\n";
-        std::vector<size_t> validIdx;
-        for (size_t i = 0; i < tokens.size(); ++i) {
-            if (tokens[i]) {
-                validIdx.push_back(i);
-                std::cout << "[" << validIdx.size()-1 << "] " << tokens[i]->getName() << "\n";
-            }
-        }
-        if (validIdx.empty()) return;
-
-        size_t sel = 0;
-        if (!(std::cin >> sel) || sel >= validIdx.size()) {
-            sel = 0;
-            if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-        }
-
-        size_t chosenBoardIndex = validIdx[sel];
-        const auto& chosenPtr = tokens[chosenBoardIndex];
-        if (chosenPtr) {
-            auto moved = removeProgressTokenByName(chosenPtr->getName());
-            if (moved) cp->m_player->addToken(moved);
-        }
-
-    }*/
-
 }
+

@@ -27,6 +27,7 @@ namespace {
 thread_local Player* g_current_player = nullptr;
 }
 
+
 void setCurrentPlayer(Player* p) { g_current_player = p; }
 Player* getCurrentPlayer() { return g_current_player; }
 }
@@ -655,7 +656,7 @@ void Core::Player::subtractCoins(uint8_t amt)
 }
 
 namespace Core
-{/*
+{
     void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens)
     {
         Core::Player* cp = getCurrentPlayer();
@@ -677,8 +678,8 @@ namespace Core
         std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
         tokens.erase(tokens.begin() + idx);
         if (taken) cp->m_player->addToken(std::move(taken));
-    }*/
-    /*
+    }
+    
     void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens)
     {
         Core::Player* cp = getCurrentPlayer();
@@ -695,18 +696,12 @@ namespace Core
         if (!std::getline(std::cin >> std::ws, name)) return;
 
         if (name.empty()) {
-      
             if (!tokens.empty() && tokens[0]) {
                 cp->m_player->addToken(std::move(tokens[0]));
                 tokens.erase(tokens.begin());
             }
             return;
-        }
-
-        // Try to remove token from the board via Board::removeProgressTokenByName
-        {
-            auto taken = Core::Board::getInstance().removeProgressTokenByName(name);
-            if (taken) { cp->m_player->addToken(std::move(taken)); return; }
+              
         }
 
         for (auto it = tokens.begin(); it != tokens.end(); ++it) {
@@ -718,8 +713,8 @@ namespace Core
             }
         }
 
-        std::cout << "No progress token named '" << name << "' found.\n";
-    }*/
+        std::cout << "No progress token named '" << name << "' found." << std::endl;
+    }
 }
 
 namespace Core {
