@@ -134,6 +134,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Header\GameState.ixx" />
+    <ClCompile Include="Preparation.cpp" />
+    <ClCompile Include="Preparation.ixx" />
     <ClCompile Include="Source/GameState.cpp" />
     <ClCompile Include="Source/AgeTree.cpp" />
     <ClCompile Include="Header/AgeTree.ixx" />
