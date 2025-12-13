@@ -33,9 +33,6 @@
     <ClCompile Include="Source/Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\GamePhases.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source/Board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,9 +43,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header/CardCsvParser.ixx">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\GamePhases.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Header/Game.ixx">
@@ -68,12 +62,6 @@
     </ClCompile>
     <ClCompile Include="Header\GameState.ixx">
       <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Preparation.ixx">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Preparation.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

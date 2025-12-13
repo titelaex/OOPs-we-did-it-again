@@ -39,5 +39,8 @@ export namespace Core {
 		void setCard(std::unique_ptr<Models::Card> card) { m_card = std::move(card); }
 
 		virtual void display() const { }
+
+		std::unique_ptr<Models::Card> releaseCard();
+		bool isAvailable() const;
 	};
 } 

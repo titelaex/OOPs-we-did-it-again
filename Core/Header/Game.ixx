@@ -6,4 +6,5 @@ import Core.Node;
 
 export namespace Core {
     void preparation();
+    export void PrepareBoardCardPools();
 }
