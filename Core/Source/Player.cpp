@@ -11,7 +11,6 @@ import <unordered_map>;
 import <memory>;
 import <random>;
 import <algorithm>;
-import <string>;
 
 import Models.Wonder;
 import Models.Card;
@@ -20,8 +19,12 @@ import Models.Token;
 import Models.LinkingSymbolType;
 import GameState;
 import Core.Board;
+
 import Models.AgeCard;
 
+
+namespace Core { void awardMilitaryTokenIfPresent(class Player& receiver); }
+extern void movePawn(int steps);
 namespace Core {
 namespace {
 thread_local Player* g_current_player = nullptr;
@@ -212,8 +215,16 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
         std::cout << "All wonders have been built in the game->\n";
         discardRemainingWonder(opponent);
     }
+    //ageCard.reset()
+    wonder->attachUnderCard(std::move(ageCard));
 
-    ageCard.reset();
+    if (wonder->getShieldPoints() > 0)
+    {
+        movePawn(static_cast<int>(wonder->getShieldPoints()));
+
+            Core::awardMilitaryTokenIfPresent(*this);
+    }
+
     std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
 }
 

@@ -19,6 +19,7 @@ namespace Models
 		uint8_t m_shieldPoints{ 0 };
 		ResourceType m_resourceProduction{};
 		bool isConstructed{ false };
+		std::unique_ptr<Models::Card> m_underCard;
 
 	public:
 		static uint8_t wondersBuilt;
@@ -53,6 +54,9 @@ namespace Models
 
 		void displayCardInfo() override;
 		void onDiscard() override;
+
+		void attachUnderCard(std::unique_ptr<Models::Card> c);
+		const Models::Card* getAttachedCard() const;
 
 	};
 	export inline std::ostream& operator<<(std::ostream& os, const Wonder& card)

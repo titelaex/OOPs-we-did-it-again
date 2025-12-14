@@ -6,7 +6,7 @@ import Models.Wonder;
 import Models.Token;
 import Models.Card;
 import Models.Bank;
-import Core.Game;
+
 
 import <vector>;
 import <algorithm>;

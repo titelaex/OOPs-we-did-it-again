@@ -32,6 +32,7 @@ import Core.AgeTree;
 
 std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
 const int kNrOfRounds = 20;
+static const std::vector<int> kMilitaryTokenPositions = {2,5,8,11,14,17};
 
 void m_receiveMoneyAction(class Player& player) {}
 void m_opponentLosesMoneyAction(class Player& opponent) {}
@@ -611,6 +612,29 @@ namespace Core {
 
 
 namespace Core {
+    void awardMilitaryTokenIfPresent(Player& receiver)
+    {
+        auto& board = Board::getInstance();
+        int pos = board.getPawnPos();
+        for (int p : kMilitaryTokenPositions) 
+        {
+            if (p == pos)
+            {
+                auto& military = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getMilitaryTokens());
+                if (!military.empty()) 
+                {
+                    std::unique_ptr<Models::Token> t = std::move(military.back());
+                    military.pop_back();
+                    if (t) 
+                    {
+                        if (receiver.m_player) receiver.m_player->addToken(std::move(t));
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     static void performCardAction(int action, Player& cur, Player& opp, std::unique_ptr<Models::Card>& cardPtr, Board& board)
     {
         if (!cardPtr) return;
@@ -763,6 +787,7 @@ namespace Core {
             if (shields > 0)
             {
                 movePawn(static_cast<int>(shields));
+                awardMilitaryTokenIfPresent(*cur);
             }
 
             ++nrOfRounds;
@@ -776,7 +801,8 @@ namespace Core {
 
     }
 
-    void phaseIII(Player& p1, Player& p2)
+    void 
+        phaseIII(Player& p1, Player& p2)
     {
 
     }

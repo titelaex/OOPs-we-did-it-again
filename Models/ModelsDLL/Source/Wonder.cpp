@@ -75,3 +75,13 @@ void Wonder::onDiscard()
 {
 	Card::onDiscard();
 }
+
+void Models::Wonder::attachUnderCard(std::unique_ptr<Models::Card> c)
+{
+	m_underCard = std::move(c);
+}
+
+const Models::Card* Models::Wonder::getAttachedCard() const
+{
+	return m_underCard.get();
+}
