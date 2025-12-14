@@ -102,6 +102,37 @@ void movePawn(int steps) {
 }
 
 namespace Core {
+    
+    static int g_next_age_starter = -1;
+
+    static bool g_last_active_was_player_one = true;
+
+    static bool determineChooserFromBoardAndLastActive(bool lastActiveWasPlayerOne)
+    {
+        auto& board = Board::getInstance();
+        int pos = board.getPawnPos();
+        if (pos < 9) 
+        {
+            return true;
+        }
+        else if (pos > 9)
+        {
+            return false;
+        }
+        else 
+        {
+            return lastActiveWasPlayerOne;
+        }
+    }
+
+    static int checkImmediateMilitaryVictory()
+    {
+        auto& board = Board::getInstance();
+        int pos = board.getPawnPos();
+        if (pos <= 0) return 0;
+        if (pos >= 18) return 1;
+        return -1;
+    }
 	void preparation()
 	{
 		try {
@@ -788,17 +819,115 @@ namespace Core {
             {
                 movePawn(static_cast<int>(shields));
                 awardMilitaryTokenIfPresent(*cur);
+                int win = checkImmediateMilitaryVictory();
+                if (win != -1) 
+                {
+                    std::cout << "Immediate military victory for Player " << (win == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
             }
 
             ++nrOfRounds;
             playerOneTurn = !playerOneTurn;
         }
+        g_last_active_was_player_one = !playerOneTurn;
         std::cout << "Phase I completed.\n";
     }
 
     void phaseII(Player& p1, Player& p2)
     {
+        int nrOfRounds = 1;
+        auto& board = Board::getInstance();
+        auto& nodes = const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge2Nodes());
+        bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
+        std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age II." << "\n";
+        std::cout << "Chooser: pick who starts Age II ([0]=Player1, [1]=Player2): ";
+        int starterChoice = 0;
+        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1)) {
+            if (!std::cin) { std::cin.clear(); std::string g; std::getline(std::cin, g); }
+            starterChoice = chooserIsPlayer1 ? 0 : 1;
+        }
+        bool playerOneTurn = (starterChoice == 0);
 
+        while (nrOfRounds <= kNrOfRounds)
+        {
+            std::vector<size_t> availableIndex;
+            availableIndex.reserve(nodes.size());
+            for (size_t i = 0; i < nodes.size(); ++i)
+                if (nodes[i] && nodes[i]->isAvailable()) availableIndex.push_back(i);
+            if (availableIndex.empty()) break;
+
+            std::cout << "PhaseII: " << availableIndex.size() << " cards available" << "\n";
+            for (int k = 0; k < availableIndex.size(); k++)
+            {
+                size_t index = availableIndex[k];
+                auto* card = nodes[index]->getCard();
+                std::cout << "[" << k << "] Node index=" << index << " : " << (card ? card->getName() : std::string("<none>")) << "\n";
+            }
+
+            Player* cur = playerOneTurn ? &p1 : &p2;
+            Player* opp = playerOneTurn ? &p2 : &p1;
+
+            std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
+            int choice = 0;
+            if (!(std::cin >> choice) || choice < 0 || static_cast<size_t>(choice) >= availableIndex.size())
+            {
+                if (!std::cin)
+                {
+                    std::cin.clear();
+                    std::string garbage;
+                    std::getline(std::cin, garbage);
+                }
+                choice = 0;
+            }
+
+            size_t chosenNodeIndex = availableIndex[static_cast<size_t>(choice)];
+            std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
+            if (!cardPtr)
+            {
+                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work.\n";
+                playerOneTurn = !playerOneTurn;
+                ++nrOfRounds;
+                continue;
+            }
+
+            uint8_t shields = getShieldPointsFromCard(cardPtr.get());
+
+            std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+            int action = 0;
+            if (!(std::cin >> action) || action < 0 || action>2)
+            {
+                ++nrOfRounds;
+                if (!std::cin)
+                {
+                    std::cin.clear();
+                    std::string g;
+                    std::getline(std::cin,g);
+                }
+                action = 0;
+            }
+
+            performCardAction(action, *cur, *opp, cardPtr, board);
+            if (shields > 0)
+            {
+                movePawn(static_cast<int>(shields));
+                awardMilitaryTokenIfPresent(*cur);
+                int win = checkImmediateMilitaryVictory();
+                if (win != -1) 
+                {
+                    std::cout << "Immediate military victory for Player " << (win == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
+            }
+
+            ++nrOfRounds;
+            playerOneTurn = !playerOneTurn;
+        }
+        
+        g_last_active_was_player_one = !playerOneTurn;
+        std::cout << "Phase II completed.\n";
     }
 
     void 
