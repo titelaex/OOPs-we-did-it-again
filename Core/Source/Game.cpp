@@ -24,6 +24,7 @@ import Models.CoinWorthType;
 import Models.ColorType;
 import Models.Age;
 import Models.TradeRuleType;
+import Models.Player;
 import Models.Token; 
 import Models.Card;
 import Core.CardCsvParser;
@@ -103,36 +104,7 @@ void movePawn(int steps) {
 
 namespace Core {
     
-    static int g_next_age_starter = -1;
-
-    static bool g_last_active_was_player_one = true;
-
-    static bool determineChooserFromBoardAndLastActive(bool lastActiveWasPlayerOne)
-    {
-        auto& board = Board::getInstance();
-        int pos = board.getPawnPos();
-        if (pos < 9) 
-        {
-            return true;
-        }
-        else if (pos > 9)
-        {
-            return false;
-        }
-        else 
-        {
-            return lastActiveWasPlayerOne;
-        }
-    }
-
-    static int checkImmediateMilitaryVictory()
-    {
-        auto& board = Board::getInstance();
-        int pos = board.getPawnPos();
-        if (pos <= 0) return 0;
-        if (pos >= 18) return 1;
-        return -1;
-    }
+   
 	void preparation()
 	{
 		try {
@@ -643,6 +615,98 @@ namespace Core {
 
 
 namespace Core {
+    static int g_next_age_starter = -1;
+
+    static bool g_last_active_was_player_one = true;
+
+    static bool determineChooserFromBoardAndLastActive(bool lastActiveWasPlayerOne)
+    {
+        auto& board = Board::getInstance();
+        int pos = board.getPawnPos();
+        if (pos < 9)
+        {
+            return true;
+        }
+        else if (pos > 9)
+        {
+            return false;
+        }
+        else
+        {
+            return lastActiveWasPlayerOne;
+        }
+    }
+
+    static int checkImmediateMilitaryVictory()
+    {
+        auto& board = Board::getInstance();
+        int pos = board.getPawnPos();
+        if (pos <= 0) return 0;
+        if (pos >= 18) return 1;
+        return -1;
+    }
+
+
+    static int checkImmediateScientificVictory(Player& p1, Player& p2)
+    {
+        auto countDistinct = [](const std::unique_ptr<Models::Player>& mp)->size_t {
+            if (!mp) return 0;
+            const auto& syms = mp->getOwnedScientificSymbols();
+            size_t cnt = 0;
+            for (const auto& kv : syms) if (kv.second > 0) ++cnt;
+            return cnt;
+            };
+
+        size_t s1 = countDistinct(p1.m_player);
+        size_t s2 = countDistinct(p2.m_player);
+        if (s1 >= 6 && s2 >= 6) return -1;
+        if (s1 >= 6) return 0;
+        if (s2 >= 6) return 1;
+        return -1;
+    }
+
+
+    static int determineCivilianWinner(Player& p1, Player& p2)
+    {
+        auto safePointsRaw = [](Models::Player* mp)->uint32_t {
+            if (!mp) 
+                0;
+            const auto& ptsRef = mp->getPoints();
+            uint32_t pts = static_cast<uint32_t>(ptsRef.m_militaryVictoryPoints)
+                + static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
+                + static_cast<uint32_t>(ptsRef.m_wonderVictoryPoints)
+                + static_cast<uint32_t>(ptsRef.m_progressVictoryPoints);
+            uint8_t totalCoins = mp->totalCoins(mp->getRemainingCoins());
+            pts += static_cast<uint32_t>(totalCoins / 3);
+            return pts;
+        };
+
+        Models::Player* m1 = p1.m_player.get();
+        Models::Player* m2 = p2.m_player.get();
+        uint32_t total1 = safePointsRaw(m1);
+        uint32_t total2 = safePointsRaw(m2);
+
+        if (total1 > total2) return 0;
+        if (total2 > total1) return 1;
+
+        auto bluePointsRaw = [](Models::Player* mp)->uint32_t {
+            if (!mp) 
+                return 0;
+            uint32_t sum = 0;
+            for (const auto& cptr : mp->getOwnedCards()) {
+                if (!cptr) continue;
+                if (cptr->getColor() == Models::ColorType::BLUE) sum += cptr->getVictoryPoints();
+            }
+            return sum;
+        };
+
+        uint32_t b1 = bluePointsRaw(m1);
+        uint32_t b2 = bluePointsRaw(m2);
+        if (b1 > b2) return 0;
+        if (b2 > b1) return 1;
+        return -1;
+    }
+
     void awardMilitaryTokenIfPresent(Player& receiver)
     {
         auto& board = Board::getInstance();
@@ -828,6 +892,16 @@ namespace Core {
                 }
             }
 
+            {
+                int sv = checkImmediateScientificVictory(p1, p2);
+                if (sv != -1) 
+                {
+                    std::cout << "Immediate scientific victory for Player " << (sv == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
+            }
+
             ++nrOfRounds;
             playerOneTurn = !playerOneTurn;
         }
@@ -844,8 +918,14 @@ namespace Core {
         std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age II." << "\n";
         std::cout << "Chooser: pick who starts Age II ([0]=Player1, [1]=Player2): ";
         int starterChoice = 0;
-        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1)) {
-            if (!std::cin) { std::cin.clear(); std::string g; std::getline(std::cin, g); }
+        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1))
+        {
+            if (!std::cin) 
+            {
+                std::cin.clear(); 
+                std::string g; 
+                std::getline(std::cin, g);
+            }
             starterChoice = chooserIsPlayer1 ? 0 : 1;
         }
         bool playerOneTurn = (starterChoice == 0);
@@ -922,6 +1002,16 @@ namespace Core {
                 }
             }
 
+            {
+                int sv = checkImmediateScientificVictory(p1, p2);
+                if (sv != -1) 
+                {
+                    std::cout << "Immediate scientific victory for Player " << (sv == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
+            }
+
             ++nrOfRounds;
             playerOneTurn = !playerOneTurn;
         }
@@ -930,9 +1020,148 @@ namespace Core {
         std::cout << "Phase II completed.\n";
     }
 
-    void 
+    void
         phaseIII(Player& p1, Player& p2)
     {
+        int nrOfRounds = 1;
+        auto& board = Board::getInstance();
+        auto& nodes = const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge3Nodes());
+        bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
+        std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age III." << "\n";
+        std::cout << "Chooser: pick who starts Age III ([0]=Player1, [1]=Player2): ";
+        int starterChoice = 0;
+        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1)) {
+            if (!std::cin) 
+            { 
+                std::cin.clear(); 
+                std::string g;
+                std::getline(std::cin, g);
+            }
+            starterChoice = chooserIsPlayer1 ? 0 : 1;
+        }
+        bool playerOneTurn = (starterChoice == 0);
 
+        while (nrOfRounds <= kNrOfRounds)
+        {
+            std::vector<size_t> availableIndex;
+            availableIndex.reserve(nodes.size());
+            for (size_t i = 0; i < nodes.size(); ++i)
+                if (nodes[i] && nodes[i]->isAvailable()) 
+                    availableIndex.push_back(i);
+            if (availableIndex.empty()) 
+                break;
+
+            std::cout << "PhaseIII: " << availableIndex.size() << " cards available" << "\n";
+            for (int k = 0; k < availableIndex.size(); k++)
+            {
+                size_t index = availableIndex[k];
+                auto* card = nodes[index]->getCard();
+                std::cout << "[" << k << "] Node index=" << index << " : " << (card ? card->getName() : std::string("<none>")) << "\n";
+            }
+
+            Player* cur = playerOneTurn ? &p1 : &p2;
+            Player* opp = playerOneTurn ? &p2 : &p1;
+
+            std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
+            int choice = 0;
+            if (!(std::cin >> choice) || choice < 0 || static_cast<size_t>(choice) >= availableIndex.size())
+            {
+                if (!std::cin)
+                {
+                    std::cin.clear();
+                    std::string garbage;
+                    std::getline(std::cin, garbage);
+                }
+                choice = 0;
+            }
+
+            size_t chosenNodeIndex = availableIndex[static_cast<size_t>(choice)];
+            std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
+            if (!cardPtr)
+            {
+                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work." << "\n";
+                playerOneTurn = !playerOneTurn;
+                ++nrOfRounds;
+                continue;
+            }
+
+            uint8_t shields = getShieldPointsFromCard(cardPtr.get());
+
+            std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+            int action = 0;
+            if (!(std::cin >> action) || action < 0 || action>2)
+            {
+                ++nrOfRounds;
+                if (!std::cin)
+                {
+                    std::cin.clear();
+                    std::string g;
+                    std::getline(std::cin,g);
+                }
+                action = 0;
+            }
+
+            performCardAction(action, *cur, *opp, cardPtr, board);
+            if (shields > 0)
+            {
+                movePawn(static_cast<int>(shields));
+                awardMilitaryTokenIfPresent(*cur);
+                int win = checkImmediateMilitaryVictory();
+                if (win != -1)
+                {
+                    std::cout << "Immediate military victory for Player " << (win == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
+            }
+
+            {
+                int sv = checkImmediateScientificVictory(p1, p2);
+                if (sv != -1)
+                {
+                    std::cout << "Immediate scientific victory for Player " << (sv == 0 ? "1" : "2") << "!\n";
+                    g_last_active_was_player_one = !playerOneTurn;
+                    return;
+                }
+            }
+
+            ++nrOfRounds;
+            playerOneTurn = !playerOneTurn;
+        }
+
+        g_last_active_was_player_one = !playerOneTurn;
+      
+        int civil = determineCivilianWinner(p1, p2);
+        if (civil == -1) 
+        {
+            Models::Player* m1 = p1.m_player.get();
+            Models::Player* m2 = p2.m_player.get();
+            uint32_t total1 = 0, total2 = 0;
+            if (m1) {
+                const auto& ptsRef = m1->getPoints();
+                total1 = static_cast<uint32_t>(ptsRef.m_militaryVictoryPoints) + static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
+                    + static_cast<uint32_t>(ptsRef.m_wonderVictoryPoints) + static_cast<uint32_t>(ptsRef.m_progressVictoryPoints)
+                    + static_cast<uint32_t>(m1->totalCoins(m1->getRemainingCoins()) / 3);
+            }
+            if (m2) {
+                const auto& ptsRef = m2->getPoints();
+                total2 = static_cast<uint32_t>(ptsRef.m_militaryVictoryPoints) + static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
+                    + static_cast<uint32_t>(ptsRef.m_wonderVictoryPoints) + static_cast<uint32_t>(ptsRef.m_progressVictoryPoints)
+                    + static_cast<uint32_t>(m2->totalCoins(m2->getRemainingCoins()) / 3);
+            }
+            if (total1 == total2) 
+            {
+                std::cout << "No supremacy occurred. Civilian victory: tie/shared. (P1=" << total1 << ", P2=" << total2 << ")\n";
+            } else
+            {
+                std::cout << "No supremacy occurred. Civilian victory for Player " << (total1 > total2 ? "1" : "2")
+                    << ". (P1=" << total1 << ", P2=" << total2 << ")\n";
+            }
+        }
+        else
+        {
+            std::cout << "Civilian victory for Player " << (civil == 0 ? "1" : "2") << "\n";
+        }
+        std::cout << "Phase III completed." << "\n";
     }
 }
