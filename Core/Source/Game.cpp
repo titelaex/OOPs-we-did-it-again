@@ -30,6 +30,7 @@ import Models.Card;
 import Core.CardCsvParser;
 import Core.Player;
 import Core.AgeTree; 
+import Core.Node;
 
 std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
 const int kNrOfRounds = 20;
@@ -108,7 +109,7 @@ namespace Core {
 	void preparation()
 	{
 		try {
-			Core::PrepareBoardCardPools();
+			PrepareBoardCardPools();
 
 			auto allTokens = parseTokensFromCSV("Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
@@ -261,6 +262,25 @@ namespace Core {
         uint32_t seed = static_cast<uint32_t>(std::random_device{}());
         std::ofstream log("Preparation.log", std::ios::app);
 
+        auto configureRowVisibility = [](std::vector<std::unique_ptr<Node>>& nodes, const std::vector<size_t>& rowPattern)
+        {
+            size_t idx = 0;
+            bool rowVisible = true;
+            for (size_t row = 0; row < rowPattern.size() && idx < nodes.size(); ++row) {
+                const bool isLastRow = (row == rowPattern.size() - 1);
+                const size_t rowCount = rowPattern[row];
+                for (size_t col = 0; col < rowCount && idx < nodes.size(); ++col, ++idx) {
+                    if (auto* node = nodes[idx].get()) {
+                        if (auto* card = node->getCard()) {
+                            card->setIsVisible(rowVisible);
+                            card->setIsAvailable(isLastRow);
+                        }
+                    }
+                }
+                rowVisible = !rowVisible;
+            }
+        };
+ 
         try {
             auto cwd = std::filesystem::current_path();
             if (log.is_open()) log << "Current working directory: " << cwd.string() << "\n";
@@ -438,7 +458,9 @@ namespace Core {
             }
             selected = ShuffleAndMove(std::move(selected), seed);
             Core::Age1Tree tree(std::move(selected));
-            board.setAge1Nodes(tree.releaseNodes());
+            auto age1Nodes = tree.releaseNodes();
+            configureRowVisibility(age1Nodes, { 2,3,4,5,6 });
+            board.setAge1Nodes(std::move(age1Nodes));
         }
 
         {
@@ -458,7 +480,9 @@ namespace Core {
             }
             selected = ShuffleAndMove(std::move(selected), seed + 1);
             Core::Age2Tree tree(std::move(selected));
-            board.setAge2Nodes(tree.releaseNodes());
+            auto age2Nodes = tree.releaseNodes();
+            configureRowVisibility(age2Nodes, { 6,5,4,3,2 });
+            board.setAge2Nodes(std::move(age2Nodes));
         }
 
         {
@@ -493,7 +517,9 @@ namespace Core {
             }
             selected = ShuffleAndMove(std::move(selected), seed + 2);
             Core::Age3Tree tree(std::move(selected));
-            board.setAge3Nodes(tree.releaseNodes());
+            auto age3Nodes = tree.releaseNodes();
+            configureRowVisibility(age3Nodes, { 2,3,4,2,4,3,2 });
+            board.setAge3Nodes(std::move(age3Nodes));
         }
     }
 
