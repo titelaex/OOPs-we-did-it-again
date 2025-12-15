@@ -3,6 +3,7 @@ export module Core.Board;
 import <bitset>;
 import <vector>;
 import <memory>;
+import <deque>;
 import Core.Node;
 import Models.Card;
 import Models.AgeCard;
@@ -67,7 +68,7 @@ export namespace Core {
 		void setAge2Nodes(std::vector<std::unique_ptr<Node>> v);
 		const std::vector<std::unique_ptr<Node>>& getAge3Nodes() const;
 		void setAge3Nodes(std::vector<std::unique_ptr<Node>> v);
-
+		std::deque<Models::Card*> getAvailableCardsByAge(int age) const;
 
 
     private:

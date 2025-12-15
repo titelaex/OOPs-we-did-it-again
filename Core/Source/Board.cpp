@@ -12,6 +12,7 @@ import <vector>;
 import <algorithm>;
 import <bitset>;
 import <iostream>;
+import <deque>;
 
 using namespace Core;
 
@@ -54,6 +55,30 @@ const std::vector<std::unique_ptr<Node>>& Board::getAge2Nodes() const { return a
 void Board::setAge2Nodes(std::vector<std::unique_ptr<Node>> v) { age2Nodes = std::move(v); }
 const std::vector<std::unique_ptr<Node>>& Board::getAge3Nodes() const { return age3Nodes; }
 void Board::setAge3Nodes(std::vector<std::unique_ptr<Node>> v) { age3Nodes = std::move(v); }
+
+std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
+{
+    const std::vector<std::unique_ptr<Node>>* source = nullptr;
+    switch (age)
+    {
+    case 1: source = &age1Nodes; break;
+    case 2: source = &age2Nodes; break;
+    case 3: source = &age3Nodes; break;
+    default: return {};
+    }
+
+    std::deque<Models::Card*> available;
+    if (!source) return available;
+
+    for (const auto& node : *source)
+    {
+        if (!node) continue;
+        Models::Card* card = node->getCard();
+        if (!card) continue;
+        if (card->isAvailable()) available.push_back(card);
+    }
+    return available;
+}
 
 void Board::setupCardPools()
 {

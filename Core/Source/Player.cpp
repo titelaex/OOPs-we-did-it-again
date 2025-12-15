@@ -613,6 +613,7 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
     std::cout << "Applying effects of card \"" << card->getName() << "\"->\n";
+	card->onPlay();
 }
 
 void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
