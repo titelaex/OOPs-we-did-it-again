@@ -73,20 +73,20 @@ const ResourceType& Card::getResourceProduction() const {
 bool Card::IsConstructed() const { return false; }
 
 
-	void Card::displayCardInfo() {
-		std::cout << "Card Name: " << m_name << '\n';
-		std::cout << "Caption: " << m_caption << '\n';
-		std::cout << "Color: " << static_cast<int>(m_color) << '\n';
-		std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
-		std::cout << "Resource Cost:" << '\n';
-		for (const auto& kv : m_resourceCost) {
-			std::cout << " - " << static_cast<int>(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
-		}
-		std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
-		std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
-		std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
-		std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
+void Card::displayCardInfo() {
+	std::cout << "Card Name: " << m_name << '\n';
+	std::cout << "Caption: " << m_caption << '\n';
+	std::cout << "Color: " << static_cast<int>(m_color) << '\n';
+	std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
+	std::cout << "Resource Cost:" << '\n';
+	for (const auto& kv : m_resourceCost) {
+		std::cout << " - " << Models::ResourceTypeToString(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
 	}
+	std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
+	std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
+	std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
+	std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
+}
 
 void Card::setName(const std::string& name) { m_name = name; }
 void Card::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
