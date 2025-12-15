@@ -736,37 +736,55 @@ namespace Core {
 		}
 
 		const auto& p = player.m_player;
-		out << "Player,Username," << p->getPlayerUsername() << "\n";
+		auto csvEscape = [](const std::string& s) -> std::string {
+			if (s.find_first_of(",\"\n\r") != std::string::npos) {
+				std::string out; out.reserve(s.size() +2);
+				out.push_back('"');
+				for (char ch : s) {
+					if (ch == '"') out += "\"\""; else out.push_back(ch);
+				}
+				out.push_back('"');
+				return out;
+			}
+			return s;
+		};
+
+		out << "Player,Username," << csvEscape(p->getPlayerUsername()) << "\n";
 		out << "Player,Coins," << static_cast<int>(p->totalCoins(p->getRemainingCoins())) << "\n";
 
 		for (const auto& card : p->getOwnedCards()) {
 			if (card) {
-				out << "Player,Constructed," << *card << "\n";
+				out << "Player,Card," << *card << "\n";
 			}
 		}
 
 		for (const auto& wonder : p->getOwnedWonders()) {
 			if (wonder) {
-				out << "Player,Wonder," << *wonder << "\n";
+				out << "Player,Wonder,"
+					<< csvEscape(wonder->getName()) << ','
+					<< (wonder->IsConstructed() ?1 :0) << ','
+					<< static_cast<int>(wonder->getShieldPoints()) << ','
+					<< static_cast<int>(wonder->getResourceProduction())
+					<< "\n";
 			}
 		}
 
 		for (const auto& token : p->getOwnedTokens()) {
 			if (token) {
-				out << "Player,Token," << *token << "\n";
+				out << "Player,Token," << csvEscape(token->getName()) << "\n";
 			}
 		}
 
 		for (const auto& resource : p->getOwnedPermanentResources()) {
-			out << "Player,PermanentResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
+			out << "Player,PermanentResource," << static_cast<int>(resource.first) << ':' << static_cast<int>(resource.second) << "\n";
 		}
 
 		for (const auto& resource : p->getOwnedTradingResources()) {
-			out << "Player,TradingResource," << static_cast<int>(resource.first) << ":" << static_cast<int>(resource.second) << "\n";
+			out << "Player,TradingResource," << static_cast<int>(resource.first) << ':' << static_cast<int>(resource.second) << "\n";
 		}
 
 		for (const auto& symbol : p->getOwnedScientificSymbols()) {
-			out << "Player,ScientificSymbol," << static_cast<int>(symbol.first) << ":" << static_cast<int>(symbol.second) << "\n";
+			out << "Player,ScientificSymbol," << static_cast<int>(symbol.first) << ':' << static_cast<int>(symbol.second) << "\n";
 		}
 
 		return out;

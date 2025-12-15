@@ -1,5 +1,4 @@
 module Models.Card;
-import Models.Card;
 import Models.ResourceType;
 import Models.ScientificSymbolType;
 import Models.LinkingSymbolType;
@@ -37,66 +36,100 @@ namespace Models {
 		}
 	}
 
-// Default neutral implementations for virtual getters
-const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
-    static const std::unordered_map<ResourceType, uint8_t> empty{};
-    return empty;
-}
-const uint8_t& Card::getShieldPoints() const {
-    static const uint8_t zero = 0;
-    return zero;
-}
-const std::optional<ScientificSymbolType>& Card::getScientificSymbols() const {
-    static const std::optional<ScientificSymbolType> none{};
-    return none;
-}
-const std::optional<LinkingSymbolType>& Card::getHasLinkingSymbol() const {
-    static const std::optional<LinkingSymbolType> none{};
-    return none;
-}
-const std::optional<LinkingSymbolType>& Card::getRequiresLinkingSymbol() const {
-    static const std::optional<LinkingSymbolType> none{};
-    return none;
-}
-const std::unordered_map<TradeRuleType, bool>& Card::getTradeRules() const {
-    static const std::unordered_map<TradeRuleType, bool> empty{};
-    return empty;
-}
-const Age& Card::getAge() const {
-    static const Age kNeutral = Age::AGE_I;
-    return kNeutral;
-}
-const ResourceType& Card::getResourceProduction() const {
-    static const ResourceType kNone = ResourceType::NO_RESOURCE;
-    return kNone;
-}
-bool Card::IsConstructed() const { return false; }
-
-
-void Card::displayCardInfo() {
-	std::cout << "Card Name: " << m_name << '\n';
-	std::cout << "Caption: " << m_caption << '\n';
-	std::cout << "Color: " << static_cast<int>(m_color) << '\n';
-	std::cout << "Victory Points: " << static_cast<int>(m_victoryPoints) << '\n';
-	std::cout << "Resource Cost:" << '\n';
-	for (const auto& kv : m_resourceCost) {
-		std::cout << " - " << Models::ResourceTypeToString(kv.first) << ": " << static_cast<int>(kv.second) << '\n';
+	// Default neutral implementations for virtual getters
+	const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
+		static const std::unordered_map<ResourceType, uint8_t> empty{};
+		return empty;
 	}
-	std::cout << "OnPlay actions: " << m_onPlayActions.size() << "\n";
-	std::cout << "OnDiscard actions: " << m_onDiscardActions.size() << "\n";
-	std::cout << "Visible: " << (m_isVisible ? "Yes" : "No") << "\n";
-	std::cout << "Available: " << (m_isAvailable ? "Yes" : "No") << "\n";
-}
+	const uint8_t& Card::getShieldPoints() const {
+		static const uint8_t zero = 0;
+		return zero;
+	}
+	const std::optional<ScientificSymbolType>& Card::getScientificSymbols() const {
+		static const std::optional<ScientificSymbolType> none{};
+		return none;
+	}
+	const std::optional<LinkingSymbolType>& Card::getHasLinkingSymbol() const {
+		static const std::optional<LinkingSymbolType> none{};
+		return none;
+	}
+	const std::optional<LinkingSymbolType>& Card::getRequiresLinkingSymbol() const {
+		static const std::optional<LinkingSymbolType> none{};
+		return none;
+	}
+	const std::unordered_map<TradeRuleType, bool>& Card::getTradeRules() const {
+		static const std::unordered_map<TradeRuleType, bool> empty{};
+		return empty;
+	}
+	const Age& Card::getAge() const {
+		static const Age kNeutral = Age::AGE_I;
+		return kNeutral;
+	}
+	const ResourceType& Card::getResourceProduction() const {
+		static const ResourceType kNone = ResourceType::NO_RESOURCE;
+		return kNone;
+	}
+	bool Card::IsConstructed() const { return false; }
 
-void Card::setName(const std::string& name) { m_name = name; }
-void Card::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
-void Card::setVictoryPoints(const uint8_t& victoryPoints) { m_victoryPoints = victoryPoints; }
-void Card::setCaption(const std::string& caption) { m_caption = caption; }
-void Card::setColor(const ColorType& color) { m_color = color; }
-void Card::addOnPlayAction(const std::function<void()>& action) { m_onPlayActions.push_back(action); }
-void Card::addOnDiscardAction(const std::function<void()>& action) { m_onDiscardActions.push_back(action); }
-void Card::setIsVisible(const bool& isVisible) { m_isVisible = isVisible; }
-void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable; }
+	// Helpers for compact display
+	static const char* colorAnsi(ColorType c) {
+		switch (c) {
+		case ColorType::BROWN: return "\x1b[38;5;94m"; // brown-ish
+		case ColorType::GREY: return "\x1b[90m";
+		case ColorType::RED: return "\x1b[31m";
+		case ColorType::GREEN: return "\x1b[32m";
+		case ColorType::YELLOW: return "\x1b[33m";
+		case ColorType::BLUE: return "\x1b[34m";
+		case ColorType::PURPLE: return "\x1b[35m";
+		default: return "\x1b[0m";
+		}
+	}
+	static const char* resetAnsi() { return "\x1b[0m"; }
+
+	static std::string costAbbrev(const std::unordered_map<ResourceType, uint8_t>& rc) {
+		// Legend: W=Wood, S=Stone, C=Clay, P=Papyrus, G=Glass
+		auto abbrev = [&](ResourceType r) {
+			switch (r) {
+			case ResourceType::WOOD: return 'W';
+			case ResourceType::STONE: return 'S';
+			case ResourceType::CLAY: return 'C';
+			case ResourceType::PAPYRUS: return 'P';
+			case ResourceType::GLASS: return 'G';
+			default: return '?';
+			}
+			};
+		std::string s;
+		bool first = true;
+		for (auto& kv : rc) {
+			if (!first) s += ','; first = false;
+			s += abbrev(kv.first);
+			s += ':';
+			s += std::to_string(kv.second);
+		}
+		return s;
+	}
+
+	void Card::displayCardInfo() {
+		// [Name colored] | VP=n | Cost=W:1,S:2 | Vis=Y/N | Avl=Y/N
+		const char* cAnsi = colorAnsi(m_color);
+		const char* rAnsi = resetAnsi();
+		std::cout << cAnsi << m_name << rAnsi
+			<< " | VP=" << static_cast<int>(m_victoryPoints)
+			<< " | Cost=" << costAbbrev(m_resourceCost)
+			<< " | Vis=" << (m_isVisible ? 'Y' : 'N')
+			<< " | Avl=" << (m_isAvailable ? 'Y' : 'N')
+			<< "\n";
+	}
+
+	void Card::setName(const std::string& name) { m_name = name; }
+	void Card::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }
+	void Card::setVictoryPoints(const uint8_t& victoryPoints) { m_victoryPoints = victoryPoints; }
+	void Card::setCaption(const std::string& caption) { m_caption = caption; }
+	void Card::setColor(const ColorType& color) { m_color = color; }
+	void Card::addOnPlayAction(const std::function<void()>& action) { m_onPlayActions.push_back(action); }
+	void Card::addOnDiscardAction(const std::function<void()>& action) { m_onDiscardActions.push_back(action); }
+	void Card::setIsVisible(const bool& isVisible) { m_isVisible = isVisible; }
+	void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable; }
 
 	CardBuilder& CardBuilder::setVictoryPoints(const uint8_t& victoryPoints) {
 		m_card.setVictoryPoints(victoryPoints);
@@ -104,30 +137,30 @@ void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable
 	}
 
 
-CardBuilder& CardBuilder::setCaption(const std::string& caption) {
-    m_card.setCaption(caption);
-    return *this;
-}
+	CardBuilder& CardBuilder::setCaption(const std::string& caption) {
+		m_card.setCaption(caption);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::setName(const std::string& name) {
-    m_card.setName(name);
-    return *this;
-}
+	CardBuilder& CardBuilder::setName(const std::string& name) {
+		m_card.setName(name);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) {
-    m_card.setResourceCost(resourceCost);
-    return *this;
-}
+	CardBuilder& CardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) {
+		m_card.setResourceCost(resourceCost);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::setColor(const ColorType& color) {
-    m_card.setColor(color);
-    return *this;
-}
+	CardBuilder& CardBuilder::setColor(const ColorType& color) {
+		m_card.setColor(color);
+		return *this;
+	}
 
-CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
-    m_card.addOnPlayAction(action);
-    return *this;
-}
+	CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
+		m_card.addOnPlayAction(action);
+		return *this;
+	}
 
 	CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
 		m_card.addOnDiscardAction(action);
@@ -140,19 +173,34 @@ CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
 
 	std::ostream& operator<<(std::ostream& out, const Card& card)
 	{
-		out << "Card(Name: " << card.getName()
-			<< ", Color: " << static_cast<int>(card.getColor())
-			<< ", Victory Points: " << static_cast<int>(card.getVictoryPoints())
-			<< ", Caption: " << card.getCaption()
-			<< ", Resource Cost: {";
-		const auto& cost = card.getResourceCost();
-		for (auto it = cost.begin(); it != cost.end(); ++it) {
-			out << static_cast<int>(it->first) << ": " << static_cast<int>(it->second);
-			if (std::next(it) != cost.end()) {
-				out << ", ";
+		auto csvEscape = [](const std::string& s) -> std::string {
+			if (s.find_first_of(",\"\n\r") != std::string::npos) {
+				std::string out; out.reserve(s.size() +2);
+				out.push_back('"');
+				for (char ch : s) {
+					if (ch == '"') out += "\"\""; else out.push_back(ch);
+				}
+				out.push_back('"');
+				return out;
 			}
+			return s;
+		};
+
+		std::string costStr;
+		const auto& cost = card.getResourceCost();
+		bool first = true;
+		for (const auto& kv : cost) {
+			if (!first) costStr.push_back(';'); first = false;
+			costStr += Models::ResourceTypeToString(kv.first);
+			costStr.push_back(':');
+			costStr += std::to_string(static_cast<int>(kv.second));
 		}
-		out << "})";
+
+		out << csvEscape(card.getName()) << ','
+			<< static_cast<int>(card.getColor()) << ','
+			<< static_cast<int>(card.getVictoryPoints()) << ','
+			<< csvEscape(card.getCaption()) << ','
+			<< csvEscape(costStr);
 		return out;
 	}
 }
