@@ -1,5 +1,5 @@
-import <cstdint>;
 module Models.Wonder;
+import <cstdint>;
 import Models.Card;
 import Models.ResourceType;
 import Models.Token;

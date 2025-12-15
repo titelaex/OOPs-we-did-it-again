@@ -25,6 +25,14 @@ import Core.Player;
 
 using namespace Models;
 
+static std::string trimCopy(const std::string& input)
+{
+    const auto first = input.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos) return {};
+    const auto last = input.find_last_not_of(" \t\r\n");
+    return input.substr(first, last - first + 1);
+}
+
 auto payCoins = [](uint8_t amt) {
     return [amt]() {
         Core::Player* cp = Core::getCurrentPlayer();
@@ -230,10 +238,13 @@ std::unordered_map<ResourceType, uint8_t> parseResourceMap(const std::string& st
     std::istringstream ss(str);
     std::string token;
     while (std::getline(ss, token, ',')) {
+        token = trimCopy(token);
+        if (token.empty()) continue;
         auto pos = token.find(':');
         if (pos != std::string::npos) {
-            std::string resStr = token.substr(0, pos);
-            std::string valStr = token.substr(pos + 1);
+            std::string resStr = trimCopy(token.substr(0, pos));
+            std::string valStr = trimCopy(token.substr(pos + 1));
+            if (resStr.empty() || valStr.empty()) continue;
             auto resOpt = StringToResourceType(resStr);
             if (resOpt.has_value()) {
                 map[resOpt.value()] = static_cast<uint8_t>(std::stoi(valStr));
@@ -287,8 +298,14 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
     auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? parseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
-    std::unordered_map<ResourceType, uint8_t> resourceProduction = columns.size() > 2 ? parseResourceMap(get(2)) : std::unordered_map<ResourceType, uint8_t>{};
+    auto parseResourceField = [&](size_t idx) {
+        if (idx >= columns.size()) return std::unordered_map<ResourceType, uint8_t>{};
+        const std::string field = trimCopy(get(idx));
+        return field.empty() ? std::unordered_map<ResourceType, uint8_t>{} : parseResourceMap(field);
+    };
+
+    std::unordered_map<ResourceType, uint8_t> resourceCost = parseResourceField(1);
+    std::unordered_map<ResourceType, uint8_t> resourceProduction = parseResourceField(2);
     uint8_t victoryPoints = parse_u8(3);
     uint8_t shieldPoints = parse_u8(4);
     uint8_t coinCost = parse_u8(5);
@@ -387,7 +404,7 @@ GuildCard guildCardFactory(const std::vector<std::string>&columns) {
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
 
     std::string name = get(0);
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? parseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = parseResourceMap(trimCopy(get(1)));
     uint8_t victoryPoints = parse_u8(2);
     std::string caption = get(3);
     ColorType color = ColorType::NO_COLOR;
@@ -420,7 +437,7 @@ Wonder wonderFactory(const std::vector<std::string>& columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
     auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
 
-    std::unordered_map<ResourceType, uint8_t> resourceCost = columns.size() > 1 ? parseResourceMap(get(1)) : std::unordered_map<ResourceType, uint8_t>{};
+    std::unordered_map<ResourceType, uint8_t> resourceCost = parseResourceMap(trimCopy(get(1)));
     uint8_t victoryPoints = parse_u8(2);
     std::string caption = get(3);
     ColorType color = ColorType::NO_COLOR;
