@@ -88,14 +88,14 @@ namespace Models {
 
 	static std::string costAbbrev(const std::unordered_map<ResourceType, uint8_t>& rc) {
 		// Legend: W=Wood, S=Stone, C=Clay, P=Papyrus, G=Glass
-		auto abbrev = [&](ResourceType r) {
+		auto abbrev = [](ResourceType r) -> std::string {
 			switch (r) {
-			case ResourceType::WOOD: return 'W';
-			case ResourceType::STONE: return 'S';
-			case ResourceType::CLAY: return 'C';
-			case ResourceType::PAPYRUS: return 'P';
-			case ResourceType::GLASS: return 'G';
-			default: return '?';
+			case ResourceType::WOOD: return "W";
+			case ResourceType::STONE: return "S";
+			case ResourceType::CLAY: return "C";
+			case ResourceType::PAPYRUS: return "P";
+			case ResourceType::GLASS: return "G";
+			default: return "?";
 			}
 			};
 		std::string s;
@@ -115,7 +115,7 @@ namespace Models {
 		const char* rAnsi = resetAnsi();
 		std::cout << cAnsi << m_name << rAnsi
 			<< " | VP=" << static_cast<int>(m_victoryPoints)
-			<< " | Cost=" << costAbbrev(m_resourceCost)
+			<< " | Cost=" << (!m_resourceCost.empty() ? costAbbrev(m_resourceCost) : "FREE")
 			<< " | Vis=" << (m_isVisible ? 'Y' : 'N')
 			<< " | Avl=" << (m_isAvailable ? 'Y' : 'N')
 			<< "\n";

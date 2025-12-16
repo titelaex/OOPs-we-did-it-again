@@ -16,8 +16,8 @@ GuildCard::GuildCard(GuildCard&& other) noexcept
 GuildCard& GuildCard::operator=(GuildCard&& other) noexcept { if (this != &other) { Card::operator=(std::move(other));  } return *this; }
 
 void GuildCard::displayCardInfo() {
+	std::cout << "\n";
 	Card::displayCardInfo();
-	std::cout << "Guild Name: " << getName() << "\n";
 }
 
 void GuildCard::onDiscard()

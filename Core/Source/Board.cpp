@@ -132,43 +132,39 @@ static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>&
 	for (size_t i = 0; i < age1.size(); ++i) {
 		auto& p = age1[i];
 		if (p) {
-			std::cout << "[AgeI] card " << i << ":\n";
 			p->displayCardInfo();
 		}
 	}
-
+	std::cout << "\n";
 	std::cout << "Age II unused: " << age2.size() << " cards\n";
 	for (size_t i = 0; i < age2.size(); ++i) {
 		auto& p = age2[i];
 		if (p) {
-			std::cout << "[AgeII] card " << i << ":\n";
 			p->displayCardInfo();
 		}
 	}
-
+	std::cout << "\n";
 	std::cout << "Age III unused: " << age3.size() << " cards\n";
 	for (size_t i = 0; i < age3.size(); ++i) {
 		auto& p = age3[i];
 		if (p) {
-			std::cout << "[AgeIII] card " << i << ":\n";
 			p->displayCardInfo();
 		}
 	}
-
+	std::cout << "\n";
 	std::cout << "Guild unused: " << guilds.size() << " cards\n";
 	for (size_t i = 0; i < guilds.size(); ++i) {
 		auto& p = guilds[i];
 		if (p) {
-			std::cout << "[Guild] card " << i << ":\n";
 			p->displayCardInfo();
 		}
 	}
-
+	std::cout << "\n";
 	std::cout << "Wonders unused: " << wonders.size() << " cards\n";
 	for (size_t i = 0; i < wonders.size(); ++i) {
 		auto& p = wonders[i];
 		if (p) {
-			std::cout << "[Wonder] card " << i << ":\n";
+			std::cout << "\n";
 			p->displayCardInfo();
 		}
 	}
@@ -182,12 +178,7 @@ static void displayAgeCards(const char* title, const std::vector<std::unique_ptr
 		if (!n) continue;
 		Models::Card* c = n->getCard();
 		if (!c) continue;
-		std::cout << "Node[" << i << "]:\n";
 		c->displayCardInfo();
-		auto p1 = n->getParent1();
-		auto p2 = n->getParent2();
-		std::cout << " Parents=(" << (p1 ? p1->getCard()->getName() : " ")
-			<< "," << (p2 ? p2->getCard()->getName() : " ") << ")\n";
 	}
 }
 

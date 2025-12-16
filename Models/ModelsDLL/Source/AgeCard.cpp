@@ -15,7 +15,7 @@ import <unordered_map>;
 
 using namespace Models;
 
-// Virtual overrides
+
 const std::unordered_map<ResourceType, uint8_t>& AgeCard::getResourcesProduction() const { return m_resourceProduction; }
 const uint8_t& AgeCard::getShieldPoints() const { return m_shieldPoints; }
 const std::optional<ScientificSymbolType>& AgeCard::getScientificSymbols() const { return m_scientificSymbols; }
@@ -23,7 +23,7 @@ const std::optional<LinkingSymbolType>& AgeCard::getHasLinkingSymbol() const { r
 const std::optional<LinkingSymbolType>& AgeCard::getRequiresLinkingSymbol() const { return m_requiresLinkingSymbol; }
 const std::unordered_map<TradeRuleType, bool>& AgeCard::getTradeRules() const { return m_tradeRules; }
 const Age& AgeCard::getAge() const { return m_age; }
-// Not applicable for AgeCard
+
 const ResourceType& AgeCard::getResourceProduction() const {
 	static const ResourceType kNone = ResourceType::NO_RESOURCE;
 	return kNone;
@@ -40,22 +40,53 @@ void AgeCard::setTradeRules(const std::unordered_map<TradeRuleType, bool>& trade
 void AgeCard::setAge(const Age& age) { m_age = age; }
 
 void AgeCard::displayCardInfo() {
+	std::cout << "\n";
 	Card::displayCardInfo();
-	std::cout << " Resource Production: ";
-	for (const auto& kv : m_resourceProduction) {
-		std::cout << ResourceTypeToString(kv.first) << ":" << static_cast<int>(kv.second) << " ";
+
+	bool firstField = true;
+	auto sep = [&]() { if (!firstField) std::cout << " | "; firstField = false; };
+
+	if (!m_resourceProduction.empty()) {
+		sep();
+		std::cout << "Prod=";
+		bool first = true;
+		auto abbrev = [&](ResourceType r) {
+			switch (r) {
+			case ResourceType::WOOD: return 'W';
+			case ResourceType::STONE: return 'S';
+			case ResourceType::CLAY: return 'C';
+			case ResourceType::PAPYRUS: return 'P';
+			case ResourceType::GLASS: return 'G';
+			default: return '?';
+			}
+		};
+		for (const auto& kv : m_resourceProduction) {
+			if (!first) std::cout << ','; first = false;
+			std::cout << abbrev(kv.first) << ':' << static_cast<int>(kv.second);
+		}
 	}
-	std::cout << "\n";
-	std::cout << " Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
-	if (m_scientificSymbols.has_value()) std::cout << " Scientific Symbol: " << ScientificSymbolTypeToString(m_scientificSymbols.value()) << "\n";
-	if (m_hasLinkingSymbol.has_value()) std::cout << " Has Linking Symbol: " << LinkingSymbolTypeToString(m_hasLinkingSymbol.value()) << "\n";
-	if (m_requiresLinkingSymbol.has_value()) std::cout << " Requires Linking Symbol: " << LinkingSymbolTypeToString(m_requiresLinkingSymbol.value()) << "\n";
-	std::cout << " Trade Rules: ";
-	for (const auto& kv : m_tradeRules) {
-		std::cout << ResourceTypeToString(static_cast<ResourceType>(kv.first)) << ":" << (kv.second ? "true" : "false") << " ";
+
+	if (m_shieldPoints > 0) { sep(); std::cout << "SP=" << static_cast<int>(m_shieldPoints); }
+
+	if (m_scientificSymbols.has_value()) { sep(); std::cout << "Sci=" << ScientificSymbolTypeToString(m_scientificSymbols.value()); }
+
+	if (m_hasLinkingSymbol.has_value()) { sep(); std::cout << "HasLS=" << LinkingSymbolTypeToString(m_hasLinkingSymbol.value()); }
+	if (m_requiresLinkingSymbol.has_value()) { sep(); std::cout << "ReqLS=" << LinkingSymbolTypeToString(m_requiresLinkingSymbol.value()); }
+
+	if (!m_tradeRules.empty()) {
+		bool any = false;
+		std::string tr;
+		for (const auto& kv : m_tradeRules) {
+			if (kv.second) {
+				if (any) tr.push_back(',');
+				tr += ResourceTypeToString(static_cast<ResourceType>(kv.first));
+				any = true;
+			}
+		}
+		if (any) { sep(); std::cout << "TR=" << tr; }
 	}
+
 	std::cout << "\n";
-	std::cout << " Age: " << static_cast<int>(m_age) << "\n";
 }
 
 std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
