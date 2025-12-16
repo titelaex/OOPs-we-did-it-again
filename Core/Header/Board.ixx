@@ -81,4 +81,5 @@ export namespace Core {
             return instance;
         }
     };
+	export __declspec(dllexport) std::ostream& operator<<(std::ostream& out, const Board& board);
 }
