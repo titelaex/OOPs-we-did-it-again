@@ -4,6 +4,7 @@ import <bitset>;
 import <vector>;
 import <memory>;
 import <deque>;
+import <iostream>;
 import Core.Node;
 import Models.Card;
 import Models.AgeCard;
@@ -82,4 +83,5 @@ export namespace Core {
         }
     };
 	export __declspec(dllexport) std::ostream& operator<<(std::ostream& out, const Board& board);
+	export __declspec(dllexport) std::istream& operator>>(std::istream& in, Board& board);
 }

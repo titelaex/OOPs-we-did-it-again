@@ -13,6 +13,9 @@ import <algorithm>;
 import <bitset>;
 import <iostream>;
 import <deque>;
+import <string>;
+import <sstream>;
+import Core.CardCsvParser;
 
 using namespace Core;
 
@@ -261,5 +264,117 @@ namespace Core {
 		}
 
 		return out;
+	}
+	namespace {
+		std::vector<std::string> splitCsvLine(const std::string& line) {
+			std::vector<std::string> columns;
+			std::stringstream ss(line);
+			std::string cell;
+			bool in_quotes = false;
+			char c;
+
+			while (ss.get(c)) {
+				if (c == '"') {
+					in_quotes = !in_quotes;
+				}
+				else if (c == ',' && !in_quotes) {
+					columns.push_back(cell);
+					cell.clear();
+				}
+				else {
+					cell += c;
+				}
+			}
+			columns.push_back(cell);
+			return columns;
+		}
+	}
+	std::istream& operator>>(std::istream& in, Board& board)
+	{
+		board.setupCardPools();
+		board.setAge1Nodes({});
+		board.setAge2Nodes({});
+		board.setAge3Nodes({});
+		board.setProgressTokens({});
+		board.setMilitaryTokens({});
+		board.setUnusedProgressTokens({});
+
+		std::string line;
+		// Skip header
+		std::getline(in, line);
+
+		while (std::getline(in, line))
+		{
+			if (line.empty()) continue;
+
+			auto columns = splitCsvLine(line);
+			if (columns.size() < 2) continue;
+
+			const std::string& section = columns[0];
+			const std::string& type = columns[1];
+
+			if (section == "Pawn") {
+				if (type == "Track" && columns.size() > 2) {
+					board.setPawnTrack(std::bitset<19>(columns[2]));
+				}
+				else if (type == "Position" && columns.size() > 2) {
+					board.setPawnPos(static_cast<uint8_t>(std::stoi(columns[2])));
+				}
+			}
+			else if (section == "Token") {
+				// Token loading from CSV is complex as it requires a master list of tokens.
+				// This part is skipped as per the previous implementation's constraints.
+			}
+			else if (section == "Node" && columns.size() > 2) {
+				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
+				if (type == "Age1") {
+					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
+					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge1Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+				}
+				else if (type == "Age2") {
+					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
+					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge2Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+				}
+				else if (type == "Age3") {
+					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
+					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge3Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+				}
+			}
+			else if (section == "Unused" && columns.size() > 2) {
+				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
+				if (type == "Age1") {
+					const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeOneCards()).push_back(
+					std::make_unique<Models::AgeCard>(ageCardFactory(card_cols))
+);
+				}
+				else if (type == "Age2") {
+					const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeTwoCards()).push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
+				}
+				else if (type == "Age3") {
+					const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeThreeCards()).push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
+				}
+				else if (type == "Guild") {
+					const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedGuildCards()).push_back(
+					std::make_unique<Models::GuildCard>(guildCardFactory(card_cols))
+);
+				}
+				else if (type == "Wonder") {
+					auto wonderPtr = std::make_unique<Models::Wonder>(wonderFactory(card_cols));
+					auto& wonders = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedWonders());
+					wonders.push_back(std::move(wonderPtr));
+				}
+			}
+			else if (section == "Discarded" && columns.size() > 2) {
+				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
+				auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+				discarded.push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
+			}
+			else {
+				// If the line doesn't belong to the board, put it back for the next >> operation
+				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
+				break;
+			}
+		}
+		return in;
 	}
 }

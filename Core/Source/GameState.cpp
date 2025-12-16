@@ -7,11 +7,19 @@ import <string>;
 import <fstream>;
 import <iostream>;
 
-export namespace Core
+namespace Core
 {
 	void GameState::loadGameState(const std::string& filename)
 	{
+		std::ifstream inFile(filename);
+		if (!inFile.is_open()) {
+			std::cerr << "Error: Could not open file " << filename << " for reading.\n";
+			return;
+		}
 
+		inFile >> m_board;
+		inFile >> m_player1;
+		inFile >> m_player2;
 	}
 
 	void GameState::saveGameState(const std::string& filename)

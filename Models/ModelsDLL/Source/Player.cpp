@@ -21,6 +21,7 @@ void Player::addWonder(const std::unique_ptr<Wonder>& wonder) { m_ownedWonders.p
 void Player::addToken(const std::unique_ptr<Token>& token) { m_ownedTokens.push_back(std::move(const_cast<std::unique_ptr<Token>&>(token))); }
 void Player::addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedPermanentResources[resourceType] += quantity; }
 void Player::addTradingResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedTradingResources[resourceType] += quantity; }
+void Models::Player::setPlayerUsername(const std::string& username) { m_playerUsername = username; }
 void Player::setRemainingCoins(const std::tuple<uint8_t,uint8_t,uint8_t>& remainingCoins) { m_remainingCoins = remainingCoins; }
 void Player::setPoints(const Points& playerPoints) { m_playerPoints = playerPoints; }
 void Player::addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity) { m_ownedScientificSymbols[symbol] += quantity; }

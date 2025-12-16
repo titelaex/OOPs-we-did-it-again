@@ -11,6 +11,7 @@ import <unordered_map>;
 import <memory>;
 import <random>;
 import <algorithm>;
+import <sstream>;
 
 import Models.Wonder;
 import Models.Card;
@@ -21,6 +22,7 @@ import GameState;
 import Core.Board;
 
 import Models.AgeCard;
+import Core.CardCsvParser;
 
 
 namespace Core { void awardMilitaryTokenIfPresent(class Player& receiver); }
@@ -789,6 +791,104 @@ namespace Core {
 		}
 
 		return out;
+	}
+
+	namespace {
+		std::vector<std::string> splitCsvLine(const std::string& line) {
+			std::vector<std::string> columns;
+			std::stringstream ss(line);
+			std::string cell;
+			bool in_quotes = false;
+			char c;
+
+			while (ss.get(c)) {
+				if (c == '"') {
+					in_quotes = !in_quotes;
+				}
+				else if (c == ',' && !in_quotes) {
+					columns.push_back(cell);
+					cell.clear();
+				}
+				else {
+					cell += c;
+				}
+			}
+			columns.push_back(cell);
+			return columns;
+		}
+	}
+
+	std::istream& operator>>(std::istream& in, Player& player)
+	{
+		if (!player.m_player) {
+			player.m_player = std::make_unique<Models::Player>();
+		}
+		else {
+			// Clear existing player data
+			player.m_player = std::make_unique<Models::Player>();
+		}
+
+		std::string line;
+		while (std::getline(in, line)) {
+			if (line.empty()) continue;
+
+			auto columns = splitCsvLine(line);
+			if (columns.size() < 2 || columns[0] != "Player") {
+				// Not a player line, so put it back and stop reading for this player
+				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
+				break;
+			}
+
+			const std::string& type = columns[1];
+			if (type == "Username" && columns.size() > 2) {
+				player.m_player->setPlayerUsername(columns[2]);
+			}
+			else if (type == "Coins" && columns.size() > 2) {
+				player.addCoins(static_cast<uint8_t>(std::stoi(columns[2])));
+			}
+			else if (type == "Card" && columns.size() > 3) {
+				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
+				auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
+				player.m_player->addCard(std::move(card));
+			}
+			else if (type == "Wonder" && columns.size() > 3) {
+				std::vector<std::string> wonder_cols(columns.begin() + 2, columns.end());
+				auto wonder = std::make_unique<Models::Wonder>(wonderFactory(wonder_cols));
+				player.m_player->addWonder(wonder);
+			}
+			else if (type == "Token" && columns.size() > 2) {
+				// This requires finding the token from a global list, which is not available here.
+				// For now, we will skip loading tokens.
+			}
+			else if (type == "PermanentResource" && columns.size() > 2) {
+				std::string res_str = columns[2];
+				auto pos = res_str.find(':');
+				if (pos != std::string::npos) {
+					auto res_type = static_cast<Models::ResourceType>(std::stoi(res_str.substr(0, pos)));
+					auto amount = static_cast<uint8_t>(std::stoi(res_str.substr(pos + 1)));
+					player.m_player->addPermanentResource(res_type, amount);
+				}
+			}
+			else if (type == "TradingResource" && columns.size() > 2) {
+				std::string res_str = columns[2];
+				auto pos = res_str.find(':');
+				if (pos != std::string::npos) {
+					auto res_type = static_cast<Models::ResourceType>(std::stoi(res_str.substr(0, pos)));
+					auto amount = static_cast<uint8_t>(std::stoi(res_str.substr(pos + 1)));
+					player.m_player->addTradingResource(res_type, amount);
+				}
+			}
+			else if (type == "ScientificSymbol" && columns.size() > 2) {
+				std::string sym_str = columns[2];
+				auto pos = sym_str.find(':');
+				if (pos != std::string::npos) {
+					auto sym_type = static_cast<Models::ScientificSymbolType>(std::stoi(sym_str.substr(0, pos)));
+					auto amount = static_cast<uint8_t>(std::stoi(sym_str.substr(pos + 1)));
+					player.m_player->addScientificSymbol(sym_type, amount);
+				}
+			}
+		}
+		return in;
 	}
 }
 

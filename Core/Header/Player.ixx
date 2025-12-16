@@ -41,6 +41,7 @@ export namespace Core
 	};
 
 	export __declspec(dllexport) std::ostream& operator<<(std::ostream& out, const Player& player);
+	export __declspec(dllexport) std::istream& operator>>(std::istream& in, Player& player);
 
 	export void setCurrentPlayer(Player* p);
 	export Player* getCurrentPlayer();

@@ -48,6 +48,7 @@ namespace Models
 		void addToken(const std::unique_ptr<Token>& token);
 		void addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity);
 		void addTradingResource(const ResourceType& resourceType, const uint8_t& quantity);
+		void setPlayerUsername(const std::string& username);
 		void setRemainingCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& remainingCoins);
 		void setPoints(const Points& playerPoints);
 		void addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity);
