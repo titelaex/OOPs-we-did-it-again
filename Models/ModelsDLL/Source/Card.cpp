@@ -171,36 +171,112 @@ namespace Models {
 		return std::move(m_card);
 	}
 
-	std::ostream& operator<<(std::ostream& out, const Card& card)
-	{
-		auto csvEscape = [](const std::string& s) -> std::string {
+	namespace {
+		std::string csvEscape(const std::string& s) {
+			if (s.empty()) return "";
 			if (s.find_first_of(",\"\n\r") != std::string::npos) {
-				std::string out; out.reserve(s.size() +2);
+				std::string out;
+				out.reserve(s.size() + 2);
 				out.push_back('"');
 				for (char ch : s) {
-					if (ch == '"') out += "\"\""; else out.push_back(ch);
+					if (ch == '"') out += "\"\"";
+					else out.push_back(ch);
 				}
 				out.push_back('"');
 				return out;
 			}
 			return s;
-		};
-
-		std::string costStr;
-		const auto& cost = card.getResourceCost();
-		bool first = true;
-		for (const auto& kv : cost) {
-			if (!first) costStr.push_back(';'); first = false;
-			costStr += Models::ResourceTypeToString(kv.first);
-			costStr.push_back(':');
-			costStr += std::to_string(static_cast<int>(kv.second));
 		}
 
-		out << csvEscape(card.getName()) << ','
-			<< static_cast<int>(card.getColor()) << ','
-			<< static_cast<int>(card.getVictoryPoints()) << ','
-			<< csvEscape(card.getCaption()) << ','
-			<< csvEscape(costStr);
+		std::string resourceMapToString(const std::unordered_map<ResourceType, uint8_t>& map) {
+			std::string s;
+			bool first = true;
+			for (const auto& kv : map) {
+				if (!first) s += ",";
+				first = false;
+				s += ResourceTypeToString(kv.first);
+				s.push_back(':');
+				s += std::to_string(static_cast<int>(kv.second));
+			}
+			return s;
+		}
+
+		std::string tradeRuleMapToString(const std::unordered_map<TradeRuleType, bool>& map) {
+			std::string s;
+			bool first = true;
+			for (const auto& kv : map) {
+				if (!kv.second) continue;
+				if (!first) s += ";";
+				first = false;
+				s += tradeRuleTypeToString(kv.first);
+				s += ":true";
+			}
+			return s;
+		}
+	}
+
+	std::ostream& operator<<(std::ostream& out, const Card& card)
+	{
+		// name
+		out << csvEscape(card.getName()) << ',';
+
+		// resourceCost
+		out << csvEscape(resourceMapToString(card.getResourceCost())) << ',';
+
+		// resourceProduction
+		out << csvEscape(resourceMapToString(card.getResourcesProduction())) << ',';
+
+		// victoryPoints
+		if (card.getVictoryPoints() > 0) {
+			out << static_cast<int>(card.getVictoryPoints());
+		}
+		out << ',';
+
+		// shieldPoints
+		if (card.getShieldPoints() > 0) {
+			out << static_cast<int>(card.getShieldPoints());
+		}
+		out << ',';
+
+		// coinCost (placeholder - not stored in base Card)
+		out << ',';
+
+		// scientificSymbols
+		if (card.getScientificSymbols().has_value()) {
+			out << ScientificSymbolTypeToString(card.getScientificSymbols().value());
+		}
+		out << ',';
+
+		// hasLinkingSymbol
+		if (card.getHasLinkingSymbol().has_value()) {
+			out << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value());
+		}
+		out << ',';
+
+		// requiresLinkingSymbol
+		if (card.getRequiresLinkingSymbol().has_value()) {
+			out << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value());
+		}
+		out << ',';
+
+		// tradeRules
+		out << csvEscape(tradeRuleMapToString(card.getTradeRules())) << ',';
+
+		// caption
+		out << csvEscape(card.getCaption()) << ',';
+
+		// color
+		out << csvEscape(ColorTypeToString(card.getColor())) << ',';
+
+		// age
+		out << csvEscape(ageToString(card.getAge())) << ',';
+
+		// onPlayActions (placeholder - cannot serialize lambdas)
+		out << "" << ',';
+
+		// onDiscardActions (placeholder - cannot serialize lambdas)
+		out << "";
+
 		return out;
 	}
 }

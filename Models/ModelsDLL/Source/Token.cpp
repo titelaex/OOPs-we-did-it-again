@@ -69,14 +69,13 @@ std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 		case TokenType::MILITARY: typeStr = "MILITARY"; break;
 	}
 	auto [ones, threes, sixes] = t.getCoins();
-	os << t.getName();
-	os << " - " << t.getDescription();
-	if (ones) {
-		os << "{ coins=" << static_cast<int>(ones);
-		os << " }";
-	}
-	if (t.getVictoryPoints()) os << ",{ victory=" << static_cast<int>(t.getVictoryPoints())<<" }";
-	if (t.getShieldPoints()) os << ",{ shields=" << static_cast<int>(t.getShieldPoints())<<" }";
-	os << std::endl;
+	uint32_t totalCoins = ones + threes * 3 + sixes * 6;
+
+	os << "Name=" << t.getName()
+		<< ";Type=" << typeStr	
+		<< ";Description=" << t.getDescription()
+		<< ";Coins=" << totalCoins
+		<< ";VictoryPoints=" << static_cast<int>(t.getVictoryPoints())
+		<< ";ShieldPoints=" << static_cast<int>(t.getShieldPoints());
 	return os;
 }

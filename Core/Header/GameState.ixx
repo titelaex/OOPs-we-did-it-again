@@ -1,6 +1,9 @@
 export module GameState;
 import Core.Board;
 import Core.Player;
+
+import <string>;
+
 export namespace Core
 {
 	export class GameState {
@@ -16,6 +19,10 @@ export namespace Core
 		// access to players for global helpers
 		Player* GetPlayer1() { return &m_player1; }
 		Player* GetPlayer2() { return &m_player2; }
+
+		void saveGameState(const std::string& filename);
+		void loadGameState(const std::string& filename);
+
 	private:
 		Core::Board& m_board;
 		Core::Player m_player1, m_player2;
