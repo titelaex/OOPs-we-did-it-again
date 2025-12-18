@@ -7,6 +7,8 @@ import <cstdint>;
 import <unordered_map>;
 import <string>;
 import <optional>;
+import <vector>;
+import <utility>;
 import Models.ResourceType;
 import Models.CoinWorthType;
 import Models.ColorType;
@@ -27,8 +29,8 @@ export namespace Models
 		uint8_t m_victoryPoints{};
 		std::string m_caption{};
 		ColorType m_color{};
-		std::vector<std::function<void()>> m_onPlayActions{};
-		std::vector<std::function<void()>> m_onDiscardActions{};
+		std::vector<std::pair<std::function<void()>, std::string>> m_onPlayActions{};
+		std::vector<std::pair<std::function<void()>, std::string>> m_onDiscardActions{};
 		bool m_isVisible{ false };
 		bool m_isAvailable{ false };
 		//std::string m_modelPath = "UI path placeholder";
@@ -49,8 +51,8 @@ export namespace Models
 		const uint8_t& getVictoryPoints() const;
 		const std::string& getCaption() const;
 		const ColorType& getColor() const;
-		const std::vector<std::function<void()>>& getOnPlayActions() const;
-		const std::vector<std::function<void()>>& getOnDiscardActions() const;
+		const std::vector<std::pair<std::function<void()>, std::string>>& getOnPlayActions() const;
+		const std::vector<std::pair<std::function<void()>, std::string>>& getOnDiscardActions() const;
 		const bool& isVisible() const;
 		const bool& isAvailable() const;
 
@@ -70,8 +72,8 @@ export namespace Models
 		void setVictoryPoints(const uint8_t& victoryPoints);
 		void setCaption(const std::string& caption);
 		void setColor(const ColorType& color);
-		void addOnPlayAction(const std::function<void()>& action);
-		void addOnDiscardAction(const std::function<void()>& action);
+		void addOnPlayAction(const std::function<void()>& action, std::string actionString);
+		void addOnDiscardAction(const std::function<void()>& action, std::string actionString);
 		void setIsVisible(const bool& isVisible);
 		void setIsAvailable(const bool& isAvailable);
 
@@ -87,8 +89,8 @@ export namespace Models
 		CardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
 		CardBuilder& setCaption(const std::string& caption);
 		CardBuilder& setColor(const ColorType& color);
-		CardBuilder& addOnPlayAction(const std::function<void()>& action);
-		CardBuilder& addOnDiscardAction(const std::function<void()>& action);
+		CardBuilder& addOnPlayAction(const std::function<void()>& action, std::string actionString);
+		CardBuilder& addOnDiscardAction(const std::function<void()>& action, std::string actionString);
 		Card build();
 
 	};

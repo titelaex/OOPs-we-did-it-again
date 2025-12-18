@@ -6,6 +6,10 @@ import Models.TradeRuleType;
 import Models.Age;
 import <optional>;
 import <unordered_map>;
+import <vector>;
+import <utility>;
+#include <string>
+#include <iostream>
 
 namespace Models {
 	Card::Card(Card&& other) = default;
@@ -16,23 +20,23 @@ namespace Models {
 	const std::string& Card::getCaption() const { return m_caption; }
 	const ColorType& Card::getColor() const { return m_color; }
 	const uint8_t& Card::getVictoryPoints() const { return m_victoryPoints; }
-	const std::vector<std::function<void()>>& Card::getOnPlayActions() const { return m_onPlayActions; }
-	const std::vector<std::function<void()>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
+	const std::vector<std::pair<std::function<void()>, std::string>>& Card::getOnPlayActions() const { return m_onPlayActions; }
+	const std::vector<std::pair<std::function<void()>, std::string>>& Card::getOnDiscardActions() const { return m_onDiscardActions; }
 	const bool& Card::isVisible() const { return m_isVisible; }
 	const bool& Card::isAvailable() const { return m_isAvailable; }
 
 	void Card::onPlay()
 	{
-		for (const auto& action : m_onPlayActions) {
-			if (action) action();
+		for (const auto& actionPair : m_onPlayActions) {
+			if (actionPair.first) actionPair.first();
 		}
 	}
 
 
 	void Card::onDiscard()
 	{
-		for (const auto& action : m_onDiscardActions) {
-			if (action) action();
+		for (const auto& actionPair : m_onDiscardActions) {
+			if (actionPair.first) actionPair.first();
 		}
 	}
 
@@ -126,8 +130,8 @@ namespace Models {
 	void Card::setVictoryPoints(const uint8_t& victoryPoints) { m_victoryPoints = victoryPoints; }
 	void Card::setCaption(const std::string& caption) { m_caption = caption; }
 	void Card::setColor(const ColorType& color) { m_color = color; }
-	void Card::addOnPlayAction(const std::function<void()>& action) { m_onPlayActions.push_back(action); }
-	void Card::addOnDiscardAction(const std::function<void()>& action) { m_onDiscardActions.push_back(action); }
+	void Card::addOnPlayAction(const std::function<void()>& action, std::string actionString) { m_onPlayActions.emplace_back(action, std::move(actionString)); }
+	void Card::addOnDiscardAction(const std::function<void()>& action, std::string actionString) { m_onDiscardActions.emplace_back(action, std::move(actionString)); }
 	void Card::setIsVisible(const bool& isVisible) { m_isVisible = isVisible; }
 	void Card::setIsAvailable(const bool& isAvailable) { m_isAvailable = isAvailable; }
 
@@ -157,13 +161,13 @@ namespace Models {
 		return *this;
 	}
 
-	CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action) {
-		m_card.addOnPlayAction(action);
+	CardBuilder& CardBuilder::addOnPlayAction(const std::function<void()>& action, std::string actionString) {
+		m_card.addOnPlayAction(action, std::move(actionString));
 		return *this;
 	}
 
-	CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action) {
-		m_card.addOnDiscardAction(action);
+	CardBuilder& CardBuilder::addOnDiscardAction(const std::function<void()>& action, std::string actionString) {
+		m_card.addOnDiscardAction(action, std::move(actionString));
 		return *this;
 	}
 
@@ -173,19 +177,14 @@ namespace Models {
 
 	namespace {
 		std::string csvEscape(const std::string& s) {
-			if (s.empty()) return "";
-			if (s.find_first_of(",\"\n\r") != std::string::npos) {
-				std::string out;
-				out.reserve(s.size() + 2);
-				out.push_back('"');
-				for (char ch : s) {
-					if (ch == '"') out += "\"\"";
-					else out.push_back(ch);
-				}
-				out.push_back('"');
-				return out;
+			std::string out;
+			out.push_back('"');
+			for (char ch : s) {
+				if (ch == '"') out += "\"\"";
+				else out.push_back(ch);
 			}
-			return s;
+			out.push_back('"');
+			return out;
 		}
 
 		std::string resourceMapToString(const std::unordered_map<ResourceType, uint8_t>& map) {
@@ -213,51 +212,67 @@ namespace Models {
 			}
 			return s;
 		}
+
+		std::string actionPairVectorToString(const std::vector<std::pair<std::function<void()>, std::string>>& actions) {
+			std::string s;
+			bool first = true;
+			for (const auto& actionPair : actions) {
+				if (!first) s += ",";
+				first = false;
+				s += actionPair.second;
+			}
+			return s;
+		}
 	}
 
 	std::ostream& operator<<(std::ostream& out, const Card& card)
 	{
 		// name
-		out << csvEscape(card.getName()) << ',';
+		out << '"' << csvEscape(card.getName()) << '"' << ',';
 
 		// resourceCost
-		out << csvEscape(resourceMapToString(card.getResourceCost())) << ',';
+		out << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
 
 		// resourceProduction
-		out << csvEscape(resourceMapToString(card.getResourcesProduction())) << ',';
+		out << '"' << csvEscape(resourceMapToString(card.getResourcesProduction())) << '"' << ',';
 
 		// victoryPoints
+		out << '"';
 		if (card.getVictoryPoints() > 0) {
 			out << static_cast<int>(card.getVictoryPoints());
 		}
-		out << ',';
+		out << '"' << ',';
 
 		// shieldPoints
+		out << '"';
 		if (card.getShieldPoints() > 0) {
 			out << static_cast<int>(card.getShieldPoints());
 		}
-		out << ',';
+		out << '"' << ',';
 
 		// coinCost (placeholder - not stored in base Card)
-		out << ',';
+		out << "\"\",";
 
 		// scientificSymbols
+		out << '"';
 		if (card.getScientificSymbols().has_value()) {
 			out << ScientificSymbolTypeToString(card.getScientificSymbols().value());
 		}
-		out << ',';
+		out << '"' << ',';
 
 		// hasLinkingSymbol
+		out << '"';
 		if (card.getHasLinkingSymbol().has_value()) {
 			out << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value());
 		}
-		out << ',';
+		out << '"' << ',';
 
 		// requiresLinkingSymbol
+		out << '"';
 		if (card.getRequiresLinkingSymbol().has_value()) {
 			out << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value());
 		}
-		out << ',';
+		out << '"' << ',';
 
 		// tradeRules
 		out << csvEscape(tradeRuleMapToString(card.getTradeRules())) << ',';
@@ -271,11 +286,11 @@ namespace Models {
 		// age
 		out << csvEscape(ageToString(card.getAge())) << ',';
 
-		// onPlayActions (placeholder - cannot serialize lambdas)
-		out << "" << ',';
+		// onPlayActions
+		out << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
 
-		// onDiscardActions (placeholder - cannot serialize lambdas)
-		out << "";
+		// onDiscardActions
+		out << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
 
 		return out;
 	}

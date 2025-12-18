@@ -10,6 +10,8 @@ import <algorithm>;
 import <iterator>;
 import <bitset>;
 import <ostream>;
+import <utility>;
+import <functional>;
 
 namespace Models
 {
@@ -59,20 +61,7 @@ namespace Models
 		const Models::Card* getAttachedCard() const;
 
 	};
-	export inline std::ostream& operator<<(std::ostream& os, const Wonder& card)
-	{
-		os << "Card Name: " << card.getName() << '\n';
-		os << "Color: " << static_cast<int>(card.getColor()) << '\n';
-		os << "Caption: " << card.getCaption() << '\n';
-		os << "Resource Cost:" << '\n';
-		for (const auto& [res, amt] : card.getResourceCost())
-			os << " - " << static_cast<int>(res) << ": " << static_cast<int>(amt) << '\n';
-		os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
-		os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
-		os << "Resource Production: " << static_cast<int>(card.getResourceProduction()) << '\n';
-		os << "Constructed: " << (card.IsConstructed() ? "Yes" : "No") << '\n';
-		return os;
-	}
+	export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const Wonder& card);
 
 	export class __declspec(dllexport) WonderBuilder : public CardBuilder
 	{
@@ -86,8 +75,8 @@ namespace Models
 		WonderBuilder& setShieldPoints(const uint8_t& pts);
 		WonderBuilder& setResourceProduction(const ResourceType& r);
 		WonderBuilder& setConstructed(bool constructed);
-		WonderBuilder& addOnPlayAction(const std::function<void()>& action);
-		WonderBuilder& addOnDiscardAction(const std::function<void()>& action);
+		WonderBuilder& addOnPlayAction(const std::function<void()>& action, std::string actionString);
+		WonderBuilder& addOnDiscardAction(const std::function<void()>& action, std::string actionString);
 		Wonder build();
 	};
 }

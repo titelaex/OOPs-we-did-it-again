@@ -10,8 +10,51 @@ import <ostream>;
 import <iostream>;
 import <unordered_map>;
 import <bitset>;
+#include <string>
+#include <vector>
+#include <functional>
+#include <utility>
+
 
 using namespace Models;
+
+namespace
+{
+	std::string csvEscape(const std::string& s) {
+		std::string out;
+		out.push_back('"');
+		for (char ch : s) {
+			if (ch == '"') out += "\"\"";
+			else out.push_back(ch);
+		}
+		out.push_back('"');
+		return out;
+	}
+
+	std::string resourceMapToString(const std::unordered_map<Models::ResourceType, uint8_t>& map) {
+		std::string s;
+		bool first = true;
+		for (const auto& kv : map) {
+			if (!first) s += ",";
+			first = false;
+			s += ResourceTypeToString(kv.first);
+			s.push_back(':');
+			s += std::to_string(static_cast<int>(kv.second));
+		}
+		return s;
+	}
+
+	std::string actionPairVectorToString(const std::vector<std::pair<std::function<void()>, std::string>>& actions) {
+		std::string s;
+		bool first = true;
+		for (const auto& actionPair : actions) {
+			if (!first) s += ",";
+			first = false;
+			s += actionPair.second;
+		}
+		return s;
+	}
+}
 
 uint8_t Wonder::wondersBuilt = 0;
 
@@ -43,7 +86,7 @@ const std::unordered_map<TradeRuleType,bool>& Wonder::getTradeRules() const {
 }
 const Age& Wonder::getAge() const {
 	// Wonders do not have an Age in this model; return a neutral default
-	static const Age kNeutral = Age::AGE_III; // or Age::AGE_I if you prefer
+	static const Age kNeutral = Age::NO_AGE;
 	return kNeutral;
 }
 
@@ -67,8 +110,8 @@ WonderBuilder& WonderBuilder::setColor(const ColorType& color) { m_card.setColor
 WonderBuilder& WonderBuilder::setShieldPoints(const uint8_t& pts) { m_card.setShieldPoints(pts); return *this; }
 WonderBuilder& WonderBuilder::setResourceProduction(const ResourceType& r) { m_card.setResourceProduction(r); return *this; }
 WonderBuilder& WonderBuilder::setConstructed(bool constructed) { m_card.setConstructed(constructed); return *this; }
-WonderBuilder& WonderBuilder::addOnPlayAction(const std::function<void()>& action) { m_card.addOnPlayAction(action); return *this; }
-WonderBuilder& WonderBuilder::addOnDiscardAction(const std::function<void()>& action) { m_card.addOnDiscardAction(action); return *this; }
+WonderBuilder& WonderBuilder::addOnPlayAction(const std::function<void()>& action, std::string actionString) { m_card.addOnPlayAction(action, std::move(actionString)); return *this; }
+WonderBuilder& WonderBuilder::addOnDiscardAction(const std::function<void()>& action, std::string actionString) { m_card.addOnDiscardAction(action, std::move(actionString)); return *this; }
 Wonder WonderBuilder::build() { return std::move(m_card); }
 
 void Wonder::onDiscard()
@@ -84,4 +127,66 @@ void Models::Wonder::attachUnderCard(std::unique_ptr<Models::Card> c)
 const Models::Card* Models::Wonder::getAttachedCard() const
 {
 	return m_underCard.get();
+}
+
+__declspec(dllexport) std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
+{
+	// name
+	os << '"' << csvEscape(card.getName()) << '"' << ',';
+
+	// resourceCost
+	os << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
+
+	// resourceProduction
+	std::unordered_map<ResourceType, uint8_t> production;
+	if (card.getResourceProduction() != ResourceType::NO_RESOURCE) {
+		production[card.getResourceProduction()] = 1;
+	}
+	os << '"' << csvEscape(resourceMapToString(production)) << '"' << ',';
+
+	// victoryPoints
+	os << '"';
+	if (card.getVictoryPoints() > 0) {
+		os << static_cast<int>(card.getVictoryPoints());
+	}
+	os << '"' << ',';
+
+	// shieldPoints
+	os << '"';
+	if (card.getShieldPoints() > 0) {
+		os << static_cast<int>(card.getShieldPoints());
+	}
+	os << '"' << ',';
+
+	// coinCost (placeholder)
+	os << "\"\",";
+
+	// scientificSymbols (empty for Wonder)
+	os << "\"\",";
+
+	// hasLinkingSymbol (empty for Wonder)
+	os << "\"\",";
+
+	// requiresLinkingSymbol (empty for Wonder)
+	os << "\"\",";
+
+	// tradeRules (empty for Wonder)
+	os << "\"\",";
+
+	// caption
+	os << csvEscape(card.getCaption()) << ',';
+
+	// color
+	os << csvEscape(ColorTypeToString(card.getColor())) << ',';
+
+	// age (empty for Wonder)
+	os << "\"\",";
+
+	// onPlayActions
+	os << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
+
+	// onDiscardActions
+	os << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
+
+	return os;
 }

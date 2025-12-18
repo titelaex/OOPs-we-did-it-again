@@ -9,6 +9,7 @@ import <algorithm>;
 import <unordered_map>;
 import <optional>;
 import <tuple>;
+import <utility>;
 
 import Models.AgeCard;
 import Models.GuildCard;
@@ -363,7 +364,7 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
             if (act == "getResource") {
                 if (!resourceProduction.empty()) {
                     auto kv = *resourceProduction.begin();
-                    b.addOnPlayAction(getResource(kv.second, kv.first));
+                    b.addOnPlayAction(getResource(kv.second, kv.first), act);
                 }
             }
             else if (act == "payCoins") {
@@ -373,45 +374,44 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
                     for (char c : caption) if (isdigit((unsigned char)c)) num.push_back(c);
                     if (!num.empty()) amt = static_cast<uint8_t>(std::stoi(num));
                 }
-                if (amt > 0) b.addOnPlayAction(payCoins(amt));
+                if (amt > 0) b.addOnPlayAction(payCoins(amt), act);
             }
             else if (act == "getCoins") {
                 uint8_t amt = 0; std::string num; for (char c : caption) if (isdigit((unsigned char)c)) num.push_back(c); if (!num.empty()) amt = static_cast<uint8_t>(std::stoi(num));
-                if (amt > 0) b.addOnPlayAction(getCoins(amt));
+                if (amt > 0) b.addOnPlayAction(getCoins(amt), act);
             }
             else if (act == "getShieldPoints") {
-                if (shieldPoints > 0) b.addOnPlayAction(getShieldPoints(shieldPoints));
+                if (shieldPoints > 0) b.addOnPlayAction(getShieldPoints(shieldPoints), act);
             }
             else if (act == "getVictoryPoints") {
-                if (victoryPoints > 0) b.addOnPlayAction(getVictoryPoints(victoryPoints));
+                if (victoryPoints > 0) b.addOnPlayAction(getVictoryPoints(victoryPoints), act);
             }
             else if (act == "getScientificSymbol") {
-                if (scientificSymbols.has_value()) b.addOnPlayAction(getScientificSymbol(scientificSymbols.value()));
+                if (scientificSymbols.has_value()) b.addOnPlayAction(getScientificSymbol(scientificSymbols.value()), act);
             }
             else if (act == "getTradeRule") {
-                for (const auto& kv : tradeRules) if (kv.second) b.addOnPlayAction(getTradeRule(kv.first));
+                for (const auto& kv : tradeRules) if (kv.second) b.addOnPlayAction(getTradeRule(kv.first), act);
             }
             else if (act.rfind("applyAgeCoinWorth", 0) == 0) {
                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1 != std::string::npos && p2 != std::string::npos && p2 > p1) {
                     std::string arg = act.substr(p1 + 1, p2 - p1 - 1);
                     if (auto ct = StringToCoinWorthType(arg); ct.has_value()) {
-                        b.addOnPlayAction(applyAgeCoinWorth(ct.value()));
+                        b.addOnPlayAction(applyAgeCoinWorth(ct.value()), act);
                     }
                 }
             }
         }
-
-        std::string discField = get(14);
-        if (!discField.empty()) {
-            for (auto& act : split_actions(discField)) {
-                if (act == "takeResource") {
-                    if (!resourceProduction.empty()) { auto kv = *resourceProduction.begin(); b.addOnDiscardAction(takeResource(kv.second, kv.first)); }
-                }
+    }
+    std::string discField = get(14);
+    if (!discField.empty()) {
+        for (auto& act : split_actions(discField)) {
+            if (act == "takeResource") {
+                if (!resourceProduction.empty()) { auto kv = *resourceProduction.begin(); b.addOnDiscardAction(takeResource(kv.second, kv.first), act); }
             }
         }
-
-        return b.build();
     }
+
+    return b.build();
 }
 
 GuildCard guildCardFactory(const std::vector<std::string>&columns) {
@@ -439,7 +439,7 @@ GuildCard guildCardFactory(const std::vector<std::string>&columns) {
             if (act.rfind("applyGuildCoinWorth", 0) == 0) {
                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1 != std::string::npos && p2 != std::string::npos && p2 > p1) {
                     std::string arg = act.substr(p1 + 1, p2 - p1 - 1);
-                    if (auto ct = StringToCoinWorthType(arg); ct.has_value()) b.addOnPlayAction(applyGuildCoinWorth(ct.value()));
+                    if (auto ct = StringToCoinWorthType(arg); ct.has_value()) b.addOnPlayAction(applyGuildCoinWorth(ct.value()), act);
                 }
             }
         }
@@ -475,35 +475,35 @@ Wonder wonderFactory(const std::vector<std::string>& columns) {
     if (!actionsField.empty()) {
         for (auto &act : split_actions(actionsField)) {
             if (act == "getShieldPoints") {
-                if (shieldPoints>0) b.addOnPlayAction(getShieldPoints(shieldPoints));
+                if (shieldPoints>0) b.addOnPlayAction(getShieldPoints(shieldPoints), act);
             } else if (act == "getVictoryPoints") {
-                if (victoryPoints>0) b.addOnPlayAction(getVictoryPoints(victoryPoints));
+                if (victoryPoints>0) b.addOnPlayAction(getVictoryPoints(victoryPoints), act);
             } else if (act == "drawToken") {
-                b.addOnPlayAction(drawToken);
+                b.addOnPlayAction(drawToken, act);
             } else if (act == "takeNewCard") {
-                b.addOnPlayAction(takeNewCard);
+                b.addOnPlayAction(takeNewCard, act);
             } else if (act.rfind("getCoins(",0) == 0) {
                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1!=std::string::npos && p2!=std::string::npos && p2>p1) {
                     std::string arg = act.substr(p1+1,p2-p1-1);
-                    try { uint8_t v = static_cast<uint8_t>(std::stoi(arg)); b.addOnPlayAction(getCoins(v)); } catch(...){}
+                    try { uint8_t v = static_cast<uint8_t>(std::stoi(arg)); b.addOnPlayAction(getCoins(v), act); } catch(...){}
                 }
             } else if (act.rfind("discardOpponentCard",0) == 0) {
                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1!=std::string::npos && p2!=std::string::npos && p2>p1) {
                     std::string arg = act.substr(p1+1,p2-p1-1);
                     if (auto copt = StringToColorType(arg); copt.has_value()) {
                         ColorType col = copt.value();
-                        b.addOnPlayAction([col]() { discardOpponentCard(col); });
+                        b.addOnPlayAction([col]() { discardOpponentCard(col); }, act);
                     }
                 }
             } else if (act == "getResource") {
-                if (resourceProduction != ResourceType::NO_RESOURCE) b.addOnPlayAction(getResource(1, resourceProduction));
+                if (resourceProduction != ResourceType::NO_RESOURCE) b.addOnPlayAction(getResource(1, resourceProduction), act);
             } else if (act.rfind("returnCoinsFromOpponent",0) == 0) {
                 auto p1 = act.find('('); auto p2 = act.find(')'); if (p1!=std::string::npos && p2!=std::string::npos && p2>p1) {
                     std::string arg = act.substr(p1+1,p2-p1-1);
-                    try { uint8_t v = static_cast<uint8_t>(std::stoi(arg)); b.addOnPlayAction(returnCoinsFromOpponent(v)); } catch(...){}
+                    try { uint8_t v = static_cast<uint8_t>(std::stoi(arg)); b.addOnPlayAction(returnCoinsFromOpponent(v), act); } catch(...){}
                 }
             } else if (act == "playAnotherTurn") {
-                b.addOnPlayAction(playAnotherTurn);
+                b.addOnPlayAction(playAnotherTurn, act);
             }
         }
     }

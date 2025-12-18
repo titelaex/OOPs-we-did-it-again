@@ -7,6 +7,7 @@ export namespace  Models
 {
 	export enum class __declspec(dllexport) Age : uint8_t
 	{
+		NO_AGE,
 		AGE_I = 1,
 		AGE_II = 2,
 		AGE_III = 3

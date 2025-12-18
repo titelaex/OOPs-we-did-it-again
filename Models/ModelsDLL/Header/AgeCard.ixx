@@ -4,6 +4,9 @@ import <unordered_map>;
 import <ostream>;
 import <optional>;
 import <functional>;
+import <string>;
+import <vector>;
+import <utility>;
 import Models.Card;
 import Models.ScientificSymbolType;
 import Models.ResourceType;
@@ -73,8 +76,8 @@ namespace Models
 		AgeCardBuilder& setCaption(const std::string& caption);
 		AgeCardBuilder& setColor(const ColorType& color);
 		AgeCardBuilder& setAge(const Age& age);
-		AgeCardBuilder& addOnPlayAction(const std::function<void()>& action);
-		AgeCardBuilder& addOnDiscardAction(const std::function<void()>& action);
+		AgeCardBuilder& addOnPlayAction(const std::function<void()>& action, std::string actionString);
+		AgeCardBuilder& addOnDiscardAction(const std::function<void()>& action, std::string actionString);
 		AgeCard build();
 	};
 }

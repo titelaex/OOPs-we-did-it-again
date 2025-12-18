@@ -12,6 +12,8 @@ import <ostream>;
 import <iostream>;
 import <optional>;
 import <unordered_map>;
+import <string>;
+import <utility>;
 
 using namespace Models;
 
@@ -89,27 +91,128 @@ void AgeCard::displayCardInfo() {
 	std::cout << "\n";
 }
 
-__declspec(dllexport) std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
+namespace
 {
-	os << "Card Name: " << card.getName() << '\n';
-	os << "Color: " << ColorTypeToString(card.getColor()) << '\n';
-	os << "Caption: " << card.getCaption() << '\n';
-	os << "Resource Cost:" << '\n';
-	for (const auto& [res, amt] : card.getResourceCost())
-		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
-	os << "Resource Production:" << '\n';
-	for (const auto& [res, amt] : card.getResourcesProduction())
-		os << " - " << ResourceTypeToString(res) << ": " << static_cast<int>(amt) << '\n';
-	os << "Victory Points: " << static_cast<int>(card.getVictoryPoints()) << '\n';
-	os << "Shield Points: " << static_cast<int>(card.getShieldPoints()) << '\n';
-	if (card.getScientificSymbols().has_value()) os << "Scientific Symbol: " << ScientificSymbolTypeToString(card.getScientificSymbols().value()) << '\n';
-	if (card.getHasLinkingSymbol().has_value()) os << "Linking Symbol Provided: " << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value()) << '\n';
-	if (card.getRequiresLinkingSymbol().has_value()) os << "Linking Symbol Required: " << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value()) << '\n';
-	os << "Trade Rules:" << '\n';
-	for (const auto& [rule, enabled] : card.getTradeRules())
-		os << " - " << ResourceTypeToString(static_cast<ResourceType>(rule)) << ": " << (enabled ? "Enabled" : "Disabled") << '\n';
-	os << "Age: " << static_cast<int>(card.getAge()) << '\n';
-	return os;
+	std::string csvEscape(const std::string& s) {
+		if (s.empty()) return "";
+		std::string out;
+		// No need to check for find_first_of, always quote for consistency as requested
+		out.reserve(s.size() + 2);
+		out.push_back('"');
+		for (char ch : s) {
+			if (ch == '"') out += "\"\"";
+			else out.push_back(ch);
+		}
+		out.push_back('"');
+		return out;
+	}
+
+	std::string resourceMapToString(const std::unordered_map<ResourceType, uint8_t>& map) {
+		std::string s;
+		bool first = true;
+		for (const auto& kv : map) {
+			if (!first) s += ",";
+			first = false;
+			s += ResourceTypeToString(kv.first);
+			s.push_back(':');
+			s += std::to_string(static_cast<int>(kv.second));
+		}
+		return s;
+	}
+
+	std::string tradeRuleMapToString(const std::unordered_map<TradeRuleType, bool>& map) {
+		std::string s;
+		bool first = true;
+		for (const auto& kv : map) {
+			if (!kv.second) continue;
+			if (!first) s += ";";
+			first = false;
+			s += tradeRuleTypeToString(kv.first);
+			s += ":true";
+		}
+		return s;
+	}
+
+	std::string actionPairVectorToString(const std::vector<std::pair<std::function<void()>, std::string>>& actions) {
+		std::string s;
+		bool first = true;
+		for (const auto& actionPair : actions) {
+			if (!first) s += ",";
+			first = false;
+			s += actionPair.second;
+		}
+		return s;
+	}
+}
+
+__declspec(dllexport) std::ostream& Models::operator<<(std::ostream& out, const AgeCard& card)
+{
+	// name
+	out << '"' << csvEscape(card.getName()) << '"' << ',';
+
+	// resourceCost
+	out << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
+
+	// resourceProduction
+	out << '"' << csvEscape(resourceMapToString(card.getResourcesProduction())) << '"' << ',';
+
+	// victoryPoints
+	out << '"';
+	if (card.getVictoryPoints() > 0) {
+		out << static_cast<int>(card.getVictoryPoints());
+	}
+	out << '"' << ',';
+
+	// shieldPoints
+	out << '"';
+	if (card.getShieldPoints() > 0) {
+		out << static_cast<int>(card.getShieldPoints());
+	}
+	out << '"' << ',';
+
+	// coinCost (placeholder)
+	out << "\"\",";
+
+	// scientificSymbols
+	out << '"';
+	if (card.getScientificSymbols().has_value()) {
+		out << ScientificSymbolTypeToString(card.getScientificSymbols().value());
+	}
+	out << '"' << ',';
+
+	// hasLinkingSymbol
+	out << '"';
+	if (card.getHasLinkingSymbol().has_value()) {
+		out << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value());
+	}
+	out << '"' << ',';
+
+	// requiresLinkingSymbol
+	out << '"';
+	if (card.getRequiresLinkingSymbol().has_value()) {
+		out << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value());
+	}
+	out << '"' << ',';
+
+	// tradeRules
+	out << csvEscape(tradeRuleMapToString(card.getTradeRules())) << ',';
+
+	// caption
+	out << csvEscape(card.getCaption()) << ',';
+
+	// color
+	out << csvEscape(ColorTypeToString(card.getColor())) << ',';
+
+	// age
+	out << csvEscape(ageToString(card.getAge())) << ',';
+
+	// onPlayActions
+	out << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
+
+	// onDiscardActions
+	out << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
+
+	return out;
 }
 
 AgeCardBuilder& AgeCardBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
@@ -124,8 +227,8 @@ AgeCardBuilder& AgeCardBuilder::setTradeRules(const std::unordered_map<TradeRule
 AgeCardBuilder& AgeCardBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
 AgeCardBuilder& AgeCardBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
 AgeCardBuilder& AgeCardBuilder::setAge(const Age& age) { m_card.setAge(age); return *this; }
-AgeCardBuilder& AgeCardBuilder::addOnPlayAction(const std::function<void()>& action) { m_card.addOnPlayAction(action); return *this; }
-AgeCardBuilder& AgeCardBuilder::addOnDiscardAction(const std::function<void()>& action) { m_card.addOnDiscardAction(action); return *this; }
+AgeCardBuilder& AgeCardBuilder::addOnPlayAction(const std::function<void()>& action, std::string actionString) { m_card.addOnPlayAction(action, std::move(actionString)); return *this; }
+AgeCardBuilder& AgeCardBuilder::addOnDiscardAction(const std::function<void()>& action, std::string actionString) { m_card.addOnDiscardAction(action, std::move(actionString)); return *this; }
 AgeCard AgeCardBuilder::build() { return std::move(m_card); }
 
 void AgeCard::onDiscard() { Card::onDiscard(); }
