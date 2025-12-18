@@ -11,7 +11,7 @@ uint8_t Player::totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins) {
 
 uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
 
-Player::Player(const uint8_t& id, const std::string& username) : kplayerId(id), m_playerUsername(username)
+Player::Player(const uint8_t& id, const std::string& username) : playerId(id), m_playerUsername(username)
 {
 	m_playerPoints = { 0,0,0,0 };
 }
@@ -25,7 +25,7 @@ void Models::Player::setPlayerUsername(const std::string& username) { m_playerUs
 void Player::setRemainingCoins(const std::tuple<uint8_t,uint8_t,uint8_t>& remainingCoins) { m_remainingCoins = remainingCoins; }
 void Player::setPoints(const Points& playerPoints) { m_playerPoints = playerPoints; }
 void Player::addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity) { m_ownedScientificSymbols[symbol] += quantity; }
-const uint8_t Player::getkPlayerId() const { return kplayerId; }
+const uint8_t Player::getkPlayerId() const { return playerId; }
 const std::string& Player::getPlayerUsername() const { return m_playerUsername; }
 std::vector<std::unique_ptr<Models::Wonder>>& Models::Player::getOwnedWonders() {return m_ownedWonders;}
 const std::vector<std::unique_ptr<Card>>& Player::getOwnedCards() const { return m_ownedCards; }

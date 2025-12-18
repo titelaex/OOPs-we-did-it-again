@@ -1,0 +1,925 @@
+Section,Type,Data
+Pawn,Track,0000000000000000000
+Pawn,Position,0
+Node,Age1,Card Name: Lumber Yard
+Color: BROWN
+Caption: Produces 1 wood
+Resource Cost:
+Resource Production:
+ - WOOD: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Palisade
+Color: RED
+Caption: Provides 1 shield and wall symbol
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Linking Symbol Provided: TOWER
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Clay Pit
+Color: BROWN
+Caption: Produces 1 clay
+Resource Cost:
+Resource Production:
+ - CLAY: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Apothecary
+Color: GREEN
+Caption: Provides compass symbol
+Resource Cost:
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Scientific Symbol: WHEEL
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Stone Reserve
+Color: YELLOW
+Caption: Buy 1 stone for 1 coin
+Resource Cost:
+Resource Production:
+ - STONE: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+ - WOOD: Enabled
+Age: 1
+
+Node,Age1,Card Name: Workshop
+Color: GREEN
+Caption: Provides gear symbol
+Resource Cost:
+ - GLASS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Scientific Symbol: PENDULUM
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Wood Reserve
+Color: YELLOW
+Caption: Buy 1 wood for 1 coin
+Resource Cost:
+Resource Production:
+ - WOOD: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+ - CLAY: Enabled
+Age: 1
+
+Node,Age1,Card Name: Clay Reserve
+Color: YELLOW
+Caption: Buy 1 clay for 1 coins
+Resource Cost:
+Resource Production:
+ - CLAY: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+ - Unknown: Enabled
+Age: 1
+
+Node,Age1,Card Name: Guard Tower
+Color: RED
+Caption: Provides 1 shield
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Baths
+Color: BLUE
+Caption: Gives 3 victory points and drop symbol
+Resource Cost:
+ - STONE: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Linking Symbol Provided: WATER
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Theater
+Color: BLUE
+Caption: Gives 3 victory points and mask symbol
+Resource Cost:
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Linking Symbol Provided: DRAMA
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Glassworks
+Color: GREY
+Caption: Produces 1 glass
+Resource Cost:
+Resource Production:
+ - GLASS: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Stone Pit
+Color: BROWN
+Caption: Produces 1 stone
+Resource Cost:
+Resource Production:
+ - STONE: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Scriptorium
+Color: GREEN
+Caption: Provides tablet symbol
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Scientific Symbol: FEATHER
+Linking Symbol Provided: BOOK
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Tavern
+Color: YELLOW
+Caption: Gain 4 coins
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Linking Symbol Provided: VESSEL
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Logging Camp
+Color: BROWN
+Caption: Produces 1 wood
+Resource Cost:
+Resource Production:
+ - WOOD: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Altar
+Color: BLUE
+Caption: Gives 3 victory points and moon symbol
+Resource Cost:
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Linking Symbol Provided: MOON
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Press
+Color: GREY
+Caption: Produces 1 papyrus
+Resource Cost:
+Resource Production:
+ - PAPYRUS: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Quarry
+Color: BROWN
+Caption: Produces 1 stone
+Resource Cost:
+Resource Production:
+ - STONE: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Node,Age1,Card Name: Garrison
+Color: RED
+Caption: Provides 1 shield and target symbol
+Resource Cost:
+ - CLAY: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Linking Symbol Provided: DAGGER
+Trade Rules:
+Age: 1
+
+Node,Age2,Card Name: Aqueduct
+Color: BLUE
+Caption: Gives 5 Victory Points
+Resource Cost:
+ - STONE: 3
+Resource Production:
+Victory Points: 5
+Shield Points: 0
+Linking Symbol Required: WATER
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Barracks
+Color: RED
+Caption: Gives 1 War Point
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Linking Symbol Required: DAGGER
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Rostrum
+Color: BLUE
+Caption: Gives 4 Victory Points
+Resource Cost:
+ - WOOD: 1
+ - STONE: 1
+Resource Production:
+Victory Points: 4
+Shield Points: 0
+Linking Symbol Provided: TEMPLE
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Forum
+Color: YELLOW
+Caption: Gives either glass or papyrus
+Resource Cost:
+ - CLAY: 3
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Glass-Blower
+Color: GREY
+Caption: Produces 1 glass
+Resource Cost:
+Resource Production:
+ - GLASS: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: School
+Color: GREEN
+Caption: Gives scientific symbol
+Resource Cost:
+ - WOOD: 1
+ - PAPYRUS: 2
+Resource Production:
+Victory Points: 1
+Shield Points: 0
+Scientific Symbol: WHEEL
+Linking Symbol Provided: HARP
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Brickyard
+Color: BROWN
+Caption: Produces 2 clay
+Resource Cost:
+Resource Production:
+ - CLAY: 2
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Horse Breeders
+Color: RED
+Caption: Gives 1 War Point
+Resource Cost:
+ - WOOD: 1
+ - CLAY: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Linking Symbol Required: HORSESHOE
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Walls
+Color: RED
+Caption: Provides 2 shields and fort symbol
+Resource Cost:
+ - STONE: 2
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Shelf Quarry
+Color: BROWN
+Caption: Produces 2 stone
+Resource Cost:
+Resource Production:
+ - STONE: 2
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Statue
+Color: BLUE
+Caption: Gives 4 Victory Points
+Resource Cost:
+ - CLAY: 2
+Resource Production:
+Victory Points: 4
+Shield Points: 0
+Linking Symbol Provided: PILLAR
+Linking Symbol Required: DRAMA
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Drying Room
+Color: GREY
+Caption: Produces 1 papyrus
+Resource Cost:
+Resource Production:
+ - PAPYRUS: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Archery Range
+Color: RED
+Caption: Gives 2 War Points
+Resource Cost:
+ - WOOD: 1
+ - PAPYRUS: 1
+ - STONE: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Linking Symbol Provided: TARGET
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Laboratory
+Color: GREEN
+Caption: Gives scientific symbol
+Resource Cost:
+ - WOOD: 1
+ - GLASS: 2
+Resource Production:
+Victory Points: 1
+Shield Points: 0
+Scientific Symbol: PENDULUM
+Linking Symbol Provided: LAMP
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Library
+Color: GREEN
+Caption: Gives scientific symbol
+Resource Cost:
+ - WOOD: 1
+ - GLASS: 1
+ - STONE: 1
+Resource Production:
+Victory Points: 2
+Shield Points: 0
+Scientific Symbol: FEATHER
+Linking Symbol Required: BOOK
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Caravansery
+Color: YELLOW
+Caption: Gives either wood, clay or stone
+Resource Cost:
+ - GLASS: 1
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Sawmill
+Color: BROWN
+Caption: Produces 2 wood
+Resource Cost:
+Resource Production:
+ - WOOD: 2
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Parade Ground
+Color: RED
+Caption: Gives 2 War Points
+Resource Cost:
+ - CLAY: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Linking Symbol Provided: SPARTAN
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Brewery
+Color: YELLOW
+Caption: Gives 6 Coins
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Linking Symbol Provided: BARREL
+Trade Rules:
+Age: 2
+
+Node,Age2,Card Name: Customs House
+Color: YELLOW
+Caption: Produces 1 wood, stone, clay
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+ - STONE: Disabled
+Age: 2
+
+Node,Age3,Card Name: Gardens
+Color: BLUE
+Caption: Gives 6 Victory Points
+Resource Cost:
+ - CLAY: 2
+ - WOOD: 2
+Resource Production:
+Victory Points: 6
+Shield Points: 0
+Linking Symbol Required: PILLAR
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Obelisk
+Color: BLUE
+Caption: Gives 5 Victory Points
+Resource Cost:
+ - STONE: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 5
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Lighthouse
+Color: YELLOW
+Caption: Gives 3 Victory Points and 1 coint per yellow card
+Resource Cost:
+ - CLAY: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Linking Symbol Required: VESSEL
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: University
+Color: GREEN
+Caption: Gives 2 Victory Points and Scientific Symbol
+Resource Cost:
+ - CLAY: 1
+ - GLASS: 1
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 2
+Shield Points: 0
+Scientific Symbol: GLOBE
+Linking Symbol Required: HARP
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Pretorium
+Color: RED
+Caption: Gives 3 War Points
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 3
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Armory
+Color: YELLOW
+Caption: Gives 3 victory point and 1 coin per red card
+Resource Cost:
+ - STONE: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Circus
+Color: RED
+Caption: Gives 2 War Points
+Resource Cost:
+ - STONE: 2
+ - CLAY: 2
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Linking Symbol Required: SPARTAN
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Observatory
+Color: GREEN
+Caption: Gives 2 Victory Points and Scientific Symbol
+Resource Cost:
+ - STONE: 1
+ - PAPYRUS: 2
+Resource Production:
+Victory Points: 2
+Shield Points: 0
+Scientific Symbol: GLOBE
+Linking Symbol Required: LAMP
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Academy
+Color: GREEN
+Caption: Gives Scientific Symbol
+Resource Cost:
+ - STONE: 1
+ - WOOD: 1
+ - GLASS: 2
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Scientific Symbol: CLOCK
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Town Hall
+Color: BLUE
+Caption: Gives 7 Victory Points
+Resource Cost:
+ - STONE: 3
+ - WOOD: 2
+Resource Production:
+Victory Points: 7
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Arsenal
+Color: RED
+Caption: Gives 3 War Points
+Resource Cost:
+ - CLAY: 3
+ - WOOD: 2
+Resource Production:
+Victory Points: 0
+Shield Points: 3
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Pantheon
+Color: BLUE
+Caption: Gives 6 Victory Points
+Resource Cost:
+ - CLAY: 1
+ - WOOD: 1
+ - PAPYRUS: 2
+Resource Production:
+Victory Points: 6
+Shield Points: 0
+Linking Symbol Required: SUN
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Port
+Color: YELLOW
+Caption: Gives 3 victory point and 2 coins per brown card
+Resource Cost:
+ - WOOD: 1
+ - GLASS: 1
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Fortifications
+Color: RED
+Caption: Gives 2 War Points
+Resource Cost:
+ - STONE: 2
+ - CLAY: 1
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Linking Symbol Required: TOWER
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Arena
+Color: YELLOW
+Caption: Gives 3 Victory Points and 2 coins per wonder
+Resource Cost:
+ - STONE: 1
+ - WOOD: 1
+ - CLAY: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Linking Symbol Required: BARREL
+Trade Rules:
+Age: 3
+
+Node,Age3,Traders Guild,,,,,,,,,,1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end),PURPLE,III,,
+Node,Age3,Magistrates Guild,,,,,,,,,,1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end),PURPLE,III,,
+Node,Age3,Builders Guild,,,,,,,,,,2 victory points for each Wonder constructed in the city which has the most wonders.,PURPLE,III,,
+Node,Age3,Card Name: Siege Workshop
+Color: RED
+Caption: Gives 2 War Points
+Resource Cost:
+ - WOOD: 3
+ - GLASS: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 2
+Linking Symbol Required: TARGET
+Trade Rules:
+Age: 3
+
+Node,Age3,Card Name: Study
+Color: GREEN
+Caption: Gives Scientific Symbol
+Resource Cost:
+ - WOOD: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Scientific Symbol: CLOCK
+Trade Rules:
+Age: 3
+
+Unused,Age1,Card Name: Stable
+Color: RED
+Caption: Provides 1 shield and horse symbol
+Resource Cost:
+ - WOOD: 1
+Resource Production:
+Victory Points: 0
+Shield Points: 1
+Linking Symbol Provided: HORSESHOE
+Trade Rules:
+Age: 1
+
+Unused,Age1,Card Name: Clay Pool
+Color: BROWN
+Caption: Produces 1 clay
+Resource Cost:
+Resource Production:
+ - CLAY: 1
+Victory Points: 0
+Shield Points: 0
+Trade Rules:
+Age: 1
+
+Unused,Age1,Card Name: Pharmacist
+Color: GREEN
+Caption: Provides compass symbol
+Resource Cost:
+Resource Production:
+Victory Points: 0
+Shield Points: 0
+Scientific Symbol: MOJAR
+Linking Symbol Provided: COG
+Trade Rules:
+Age: 1
+
+Unused,Age2,Card Name: Dispensary
+Color: GREEN
+Caption: Gives scientific symbol
+Resource Cost:
+ - CLAY: 2
+ - STONE: 1
+Resource Production:
+Victory Points: 2
+Shield Points: 0
+Scientific Symbol: MOJAR
+Trade Rules:
+Age: 2
+
+Unused,Age2,Card Name: Courthouse
+Color: BLUE
+Caption: Gives 5 Victory Points
+Resource Cost:
+ - WOOD: 2
+ - GLASS: 1
+Resource Production:
+Victory Points: 5
+Shield Points: 0
+Trade Rules:
+Age: 2
+
+Unused,Age2,Card Name: Temple
+Color: BLUE
+Caption: Gives 4 Victory Points
+Resource Cost:
+ - WOOD: 1
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 4
+Shield Points: 0
+Linking Symbol Provided: SUN
+Linking Symbol Required: MOON
+Trade Rules:
+Age: 2
+
+Unused,Age3,Card Name: Senate
+Color: BLUE
+Caption: Gives 5 Victory Points
+Resource Cost:
+ - STONE: 1
+ - CLAY: 2
+ - PAPYRUS: 1
+Resource Production:
+Victory Points: 5
+Shield Points: 0
+Linking Symbol Required: TEMPLE
+Trade Rules:
+Age: 3
+
+Unused,Age3,Card Name: Palace
+Color: BLUE
+Caption: Gives 7 Victory Points
+Resource Cost:
+ - CLAY: 1
+ - STONE: 1
+ - WOOD: 1
+Resource Production:
+Victory Points: 7
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Unused,Age3,Card Name: Chamber Of Commerce
+Color: YELLOW
+Caption: Gives 3 victory point and 3 coins per grey card
+Resource Cost:
+ - PAPYRUS: 2
+Resource Production:
+Victory Points: 3
+Shield Points: 0
+Trade Rules:
+Age: 3
+
+Unused,Guild,Moneylenders Guild,,,,,,,,,, at the end h 1 victory point for each set of 3 coins in the richest city.,PURPLE,III,,
+Unused,Guild,Tacticians Guild,,,,,,,,,,1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end),PURPLE,III,,
+Unused,Guild,Scientists Guild,,,,,,,,,,1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end),PURPLE,III,,
+Unused,Guild,Shipowners Guild,,,,,,,,,,1 coin/(gray+brown in the city which has the most at that time)+ 1v_point/(same thing at the end),PURPLE,III,,
+Unused,Wonder,Card Name: The Statue of Zeus
+Color: 0
+Caption: A tribute to the king of gods. Put in the discard pile one brown card (Raw goods) of your choice constructed by their opponent. This Wonder is worth 1 Shield and is worth 3 victory points.
+Resource Cost:
+Victory Points: 3
+Shield Points: 1
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Appian Way
+Color: 0
+Caption: VALUE
+Resource Cost:
+Victory Points: 3
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: Circus Maximus
+Color: 0
+Caption: A grand arena. Gain 3 victory points, 1 shield and put in the discard pile one grey card of your choice constructed by your opponent.
+Resource Cost:
+Victory Points: 3
+Shield Points: 1
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Temple of Artemis
+Color: 0
+Caption: VALUE
+Resource Cost:
+Victory Points: 0
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Pyramids
+Color: 0
+Caption: Eternal monuments. Gain 9 victory points.
+Resource Cost:
+Victory Points: 9
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Great Library
+Color: 0
+Caption: A center of knowledge. Randomly draw 3 progress tokens from the discard pile, choose one, play it and place the others back. This wonder is worth 4 victory points.
+Resource Cost:
+Victory Points: 4
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Mausoleum
+Color: 0
+Caption: A grand tomb. Construct a building of your choice from the discard pile for free. This wonder is worth 2 victory points.
+Resource Cost:
+Victory Points: 2
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: Piraeus
+Color: 0
+Caption: A bustling port. Gain 2 victory points, play a second turn and produce one unit of the resources shown (Papyrus, Glass) each turn
+Resource Cost:
+Victory Points: 2
+Shield Points: 0
+Resource Production: 7
+Constructed: No
+
+Unused,Wonder,Card Name: The Great Lighthouse
+Color: 0
+Caption: A beacon for ships.This Wonder produces one unit of the resources shown (Stone, Clay, or Wood) for you each turn. This wonder is worth 4 victory points
+Resource Cost:
+Victory Points: 4
+Shield Points: 0
+Resource Production: 6
+Constructed: No
+
+Unused,Wonder,Card Name: The Hanging Gardens
+Color: 0
+Caption: Lush gardens in Babylon. Gain 6 coins, 3 victory points, and play a second turn.
+Resource Cost:
+Victory Points: 3
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Colossus
+Color: 0
+Caption: A bronze giant at the harbor. Gain 2 shields and 3 victory points.
+Resource Cost:
+Victory Points: 3
+Shield Points: 2
+Resource Production: 0
+Constructed: No
+
+Unused,Wonder,Card Name: The Sphinx
+Color: 0
+Caption: A mythical guardian. Gain 6 victory points and play a second turn.
+Resource Cost:
+Victory Points: 6
+Shield Points: 0
+Resource Production: 0
+Constructed: No
+
+Player,Username,asdas
+Player,Coins,7
+Player,Username,da
+Player,Coins,7

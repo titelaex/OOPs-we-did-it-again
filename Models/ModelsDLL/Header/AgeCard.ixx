@@ -54,7 +54,8 @@ namespace Models
 		void onDiscard();
 		void displayCardInfo();
 	};
-	export std::ostream& operator<<(std::ostream& os, const AgeCard& card);
+
+	export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const AgeCard& card);
 
 	export class __declspec(dllexport) AgeCardBuilder : public CardBuilder
 	{

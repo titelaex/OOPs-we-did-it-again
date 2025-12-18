@@ -154,6 +154,7 @@
     <None Include="Config/Guilds.csv" />
     <None Include="Config/Tokens.csv" />
     <None Include="Config/Wonders.csv" />
+    <None Include="gamestate.csv" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log" />

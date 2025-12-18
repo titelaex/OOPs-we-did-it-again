@@ -77,6 +77,9 @@
     <None Include="Config/AgeCards.csv">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="gamestate.csv">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log">

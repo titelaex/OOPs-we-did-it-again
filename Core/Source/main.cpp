@@ -30,5 +30,10 @@ int main()
 	gameState.saveGameState("gamestate.csv");
 	std::cout << "Game state saved.\n";
 
+	/*std::cout << "loading game state from gamestate.csv...\n";
+	gameState.loadGameState("gamestate.csv");
+	std::cout << "Game state loaded.\n";
+	Core::Board::getInstance().displayEntireBoard();*/
+
     return 0;
 }

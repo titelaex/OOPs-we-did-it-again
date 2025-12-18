@@ -33,6 +33,21 @@ static std::string trimCopy(const std::string& input)
     return input.substr(first, last - first + 1);
 }
 
+static uint8_t parseUint8Value(const std::string& text)
+{
+    const std::string trimmed = trimCopy(text);
+    if (trimmed.empty()) return 0;
+    try {
+        int value = std::stoi(trimmed);
+        if (value < 0) return 0;
+        if (value > 255) value = 255;
+        return static_cast<uint8_t>(value);
+    }
+    catch (...) {
+        return 0;
+    }
+}
+
 auto payCoins = [](uint8_t amt) {
     return [amt]() {
         Core::Player* cp = Core::getCurrentPlayer();
@@ -295,8 +310,8 @@ std::vector<T> parseCardsFromCSV(const std::string& path, Factory factory) {
 
 AgeCard ageCardFactory(const std::vector<std::string>& columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
-    auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
-    auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (columns[i] == "true" || columns[i] == "1"); };
+    auto parse_u8 = [&](size_t i) -> uint8_t { return i < columns.size() ? parseUint8Value(columns[i]) : 0; };
+    auto parse_bool = [&](size_t i) -> bool { return (i < columns.size()) && (trimCopy(columns[i]) == "true" || trimCopy(columns[i]) == "1"); };
 
     auto parseResourceField = [&](size_t idx) {
         if (idx >= columns.size()) return std::unordered_map<ResourceType, uint8_t>{};
@@ -310,18 +325,18 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
     uint8_t shieldPoints = parse_u8(4);
     uint8_t coinCost = parse_u8(5);
     std::optional<ScientificSymbolType> scientificSymbols;
-    if (auto opt = StringToScientificSymbolType(get(6)); opt.has_value()) scientificSymbols = opt;
+    if (auto opt = StringToScientificSymbolType(trimCopy(get(6))); opt.has_value()) scientificSymbols = opt;
     std::optional<LinkingSymbolType> hasLinkingSymbol;
-    if (auto opt = StringToLinkingSymbolType(get(7)); opt.has_value()) hasLinkingSymbol = opt;
+    if (auto opt = StringToLinkingSymbolType(trimCopy(get(7))); opt.has_value()) hasLinkingSymbol = opt;
     std::optional<LinkingSymbolType> requiresLinkingSymbol;
-    if (auto opt = StringToLinkingSymbolType(get(8)); opt.has_value()) requiresLinkingSymbol = opt;
+    if (auto opt = StringToLinkingSymbolType(trimCopy(get(8))); opt.has_value()) requiresLinkingSymbol = opt;
     std::unordered_map<TradeRuleType, bool> tradeRules = columns.size() > 9 ? parseTradeRuleMap(get(9)) : std::unordered_map<TradeRuleType, bool>{};
-    std::string caption = get(10);
+    std::string caption = trimCopy(get(10));
     std::optional<ColorType> color;
-    if (auto opt = StringToColorType(get(11)); opt.has_value()) color = opt;
+    if (auto opt = StringToColorType(trimCopy(get(11))); opt.has_value()) color = opt;
     bool isVisible = parse_bool(12);
     Age age = Age::AGE_I;
-    if (auto opt = stringToAge(get(12)); opt.has_value()) age = opt.value();
+    if (auto opt = stringToAge(trimCopy(get(12))); opt.has_value()) age = opt.value();
 
     auto split_actions = [&](const std::string& s) {
         std::vector<std::string> out;
@@ -401,7 +416,7 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
 
 GuildCard guildCardFactory(const std::vector<std::string>&columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
-    auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
+    auto parse_u8 = [&](size_t i) -> uint8_t { return i < columns.size() ? parseUint8Value(columns[i]) : 0; };
 
     std::string name = get(0);
     std::unordered_map<ResourceType, uint8_t> resourceCost = parseResourceMap(trimCopy(get(1)));
@@ -435,7 +450,7 @@ GuildCard guildCardFactory(const std::vector<std::string>&columns) {
 
 Wonder wonderFactory(const std::vector<std::string>& columns) {
     auto get = [&](size_t i) -> const std::string& { static const std::string empty{}; return i < columns.size() ? columns[i] : empty; };
-    auto parse_u8 = [&](size_t i) -> uint8_t { return (i < columns.size() && !columns[i].empty()) ? static_cast<uint8_t>(std::stoi(columns[i])) : 0; };
+    auto parse_u8 = [&](size_t i) -> uint8_t { return i < columns.size() ? parseUint8Value(columns[i]) : 0; };
 
     std::unordered_map<ResourceType, uint8_t> resourceCost = parseResourceMap(trimCopy(get(1)));
     uint8_t victoryPoints = parse_u8(2);
@@ -448,7 +463,7 @@ Wonder wonderFactory(const std::vector<std::string>& columns) {
 
     auto split_actions = [&](const std::string &s){
         std::vector<std::string> out;
-        std::string cur; for (char c : s) { if (c==',') { auto a = cur; size_t a1 = a.find_first_not_of(" \t\r\n"); size_t a2 = a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a = a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a); cur.clear(); } else cur.push_back(c);} if (!cur.empty()) { auto a=cur; size_t a1=a.find_first_not_of(" \t\r\n"); size_t a2=a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a=a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a);} return out; };
+        std::string cur; for (char c : s) { if (c==',') { auto a = cur; size_t a1 = a.find_first_not_of(" \t\r\n"); size_t a2 = a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a = a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a); cur.clear(); } else cur.push_back(c);} if (!cur.empty()) { auto a=cur; size_t a1=a.find_first_not_of(" \t\r\n"); size_t a2=a.find_last_not_of(" \t\r\n"); if (a1!=std::string::npos) a=a.substr(a1,a2-a1+1); else a.clear(); if (!a.empty()) out.push_back(a); } return out; };
 
     WonderBuilder b;
     b.setName(get(0)).setResourceCost(resourceCost).setVictoryPoints(victoryPoints)
@@ -506,7 +521,7 @@ std::vector<std::unique_ptr<Token>> parseTokensFromCSV(const std::string& path) 
         size_t a = s.find_first_not_of(" \t\r\n");
         size_t b = s.find_last_not_of(" \t\r\n");
         if (a == std::string::npos) { s.clear(); return; }
-        s = s.substr(a, b - a +1);
+        s = s.substr(a, b - a + 1);
     };
 
     auto parseCoinsTuple = [](const std::string &field) -> std::tuple<uint8_t,uint8_t,uint8_t> {

@@ -5,17 +5,17 @@ import <memory>;
 import <utility>;
 
 export namespace Core {
-	class Node {
+	class Node : public std::enable_shared_from_this<Node> {
 	private:
 		std::unique_ptr<Models::Card> m_card;
-		Node* m_child1 = nullptr;
-		Node* m_child2 = nullptr;
-		Node* m_parent1 = nullptr;
-		Node* m_parent2 = nullptr;
+		std::weak_ptr<Node> m_child1;
+		std::weak_ptr<Node> m_child2;
+		std::weak_ptr<Node> m_parent1;
+		std::weak_ptr<Node> m_parent2;
+
+		void attachParent(const std::shared_ptr<Node>& parent);
 	public:
-		Node(std::unique_ptr<Models::Card> card,
-			 Node* child1 = nullptr,
-			 Node* child2 = nullptr);
+		Node(std::unique_ptr<Models::Card> card);
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
@@ -24,16 +24,16 @@ export namespace Core {
 
 		virtual ~Node() = default;
 
-		Node* getParent1() const { return m_parent1; }
-		Node* getParent2() const { return m_parent2; }
-		void setParent1(Node* p) { m_parent1 = p; }
-		void setParent2(Node* p) { m_parent2 = p; }
+		std::shared_ptr<Node> getParent1() const { return m_parent1.lock(); }
+		std::shared_ptr<Node> getParent2() const { return m_parent2.lock(); }
+		void setParent1(const std::shared_ptr<Node>& p) { m_parent1 = p; }
+		void setParent2(const std::shared_ptr<Node>& p) { m_parent2 = p; }
 
-		Node* getChild1() const { return m_child1; }
-		Node* getChild2() const { return m_child2; }
+		std::shared_ptr<Node> getChild1() const { return m_child1.lock(); }
+		std::shared_ptr<Node> getChild2() const { return m_child2.lock(); }
 
-		void setChild1(Node* child) { m_child1 = child; if (child) { if (child->getParent1() == nullptr) child->setParent1(this); else child->setParent2(this); } }
-		void setChild2(Node* child) { m_child2 = child; if (child) { if (child->getParent1() == nullptr) child->setParent1(this); else child->setParent2(this); } }
+		void setChild1(const std::shared_ptr<Node>& child);
+		void setChild2(const std::shared_ptr<Node>& child);
 
 		Models::Card* getCard() const { return m_card.get(); }
 		void setCard(std::unique_ptr<Models::Card> card) { m_card = std::move(card); }

@@ -18,7 +18,7 @@ namespace Models
 	export class __declspec(dllexport) Player
 	{
 	private:
-		const uint8_t kplayerId;
+		uint8_t playerId;
 		std::string m_playerUsername;
 		std::vector<std::unique_ptr<Wonder>> m_ownedWonders;
 		std::vector<std::unique_ptr<Card>> m_ownedCards;
@@ -41,6 +41,7 @@ namespace Models
 		Player(Player&&) noexcept = default;
 		Player& operator=(Player&&) noexcept = default;
 		Player(const uint8_t& id, const std::string& username);
+		Player() = default;
 		~Player() = default;
 		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
 		void addCard(const std::unique_ptr<Card>& card);

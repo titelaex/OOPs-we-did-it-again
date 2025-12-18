@@ -1,8 +1,8 @@
-﻿module;
-
+﻿
 
 module Core.Player;
 
+#include <compare>
 import <iostream>;
 import <vector>;
 import <tuple>;
@@ -11,7 +11,6 @@ import <memory>;
 import <random>;
 import <algorithm>;
 import <sstream>;
-import <compare>;
 
 import Models.Wonder;
 import Models.Card;
@@ -22,6 +21,7 @@ import GameState;
 import Core.Board;
 
 import Models.AgeCard;
+import Models.GuildCard;
 import Core.CardCsvParser;
 
 
@@ -35,6 +35,25 @@ namespace Core {
 
 	void setCurrentPlayer(Player* p) { g_current_player = p; }
 	Player* getCurrentPlayer() { return g_current_player; }
+}
+
+namespace {
+    void streamCardByType(std::ostream& out, const Models::Card* card)
+    {
+        if (!card) return;
+        if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+            out << *ageCard;
+        }
+        else if (const auto* wonder = dynamic_cast<const Models::Wonder*>(card)) {
+            out << *wonder;
+        }
+        else if (const auto* guild = dynamic_cast<const Models::GuildCard*>(card)) {
+            out << *guild;
+        }
+        else {
+            out << *card;
+        }
+    }
 }
 
 
@@ -757,18 +776,17 @@ namespace Core {
 
 		for (const auto& card : p->getOwnedCards()) {
 			if (card) {
-				out << "Player,Card," << *card << "\n";
+				out << "Player,Card,";
+                streamCardByType(out, card.get());
+                out << "\n";
 			}
 		}
 
 		for (const auto& wonder : p->getOwnedWonders()) {
 			if (wonder) {
-				out << "Player,Wonder,"
-					<< csvEscape(wonder->getName()) << ','
-					<< (wonder->IsConstructed() ? 1 : 0) << ','
-					<< static_cast<int>(wonder->getShieldPoints()) << ','
-					<< static_cast<int>(wonder->getResourceProduction())
-					<< "\n";
+				out << "Player,Wonder,";
+                streamCardByType(out, wonder.get());
+                out << "\n";
 			}
 		}
 

@@ -89,7 +89,7 @@ void AgeCard::displayCardInfo() {
 	std::cout << "\n";
 }
 
-std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
+__declspec(dllexport) std::ostream& Models::operator<<(std::ostream& os, const AgeCard& card)
 {
 	os << "Card Name: " << card.getName() << '\n';
 	os << "Color: " << ColorTypeToString(card.getColor()) << '\n';

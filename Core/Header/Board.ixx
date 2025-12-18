@@ -4,7 +4,6 @@ import <bitset>;
 import <vector>;
 import <memory>;
 import <deque>;
-import <iostream>;
 import Core.Node;
 import Models.Card;
 import Models.AgeCard;
@@ -33,9 +32,9 @@ export namespace Core {
         std::vector<std::unique_ptr<Models::Token>> militaryTokens;
         std::vector<std::unique_ptr<Models::Token>> unusedProgressTokens;
 
-        std::vector<std::unique_ptr<Node>> age1Nodes;
-        std::vector<std::unique_ptr<Node>> age2Nodes;
-        std::vector<std::unique_ptr<Node>> age3Nodes;
+        std::vector<std::shared_ptr<Node>> age1Nodes;
+        std::vector<std::shared_ptr<Node>> age2Nodes;
+        std::vector<std::shared_ptr<Node>> age3Nodes;
     public:
         Models::Bank& getBank();
         void setupCardPools();
@@ -63,12 +62,12 @@ export namespace Core {
 		void setUnusedProgressTokens(std::vector<std::unique_ptr<Models::Token>> v);
 		const std::vector<std::unique_ptr<Models::Token>>& getMilitaryTokens() const;
 		void setMilitaryTokens(std::vector<std::unique_ptr<Models::Token>> v);
-		const std::vector<std::unique_ptr<Node>>& getAge1Nodes() const;
-		void setAge1Nodes(std::vector<std::unique_ptr<Node>> v);
-		const std::vector<std::unique_ptr<Node>>& getAge2Nodes() const;
-		void setAge2Nodes(std::vector<std::unique_ptr<Node>> v);
-		const std::vector<std::unique_ptr<Node>>& getAge3Nodes() const;
-		void setAge3Nodes(std::vector<std::unique_ptr<Node>> v);
+		const std::vector<std::shared_ptr<Node>>& getAge1Nodes() const;
+		void setAge1Nodes(std::vector<std::shared_ptr<Node>> v);
+		const std::vector<std::shared_ptr<Node>>& getAge2Nodes() const;
+		void setAge2Nodes(std::vector<std::shared_ptr<Node>> v);
+		const std::vector<std::shared_ptr<Node>>& getAge3Nodes() const;
+		void setAge3Nodes(std::vector<std::shared_ptr<Node>> v);
 		std::deque<Models::Card*> getAvailableCardsByAge(int age) const;
 
 

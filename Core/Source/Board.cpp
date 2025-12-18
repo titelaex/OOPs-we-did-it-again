@@ -52,16 +52,16 @@ void Core::Board::setUnusedProgressTokens(std::vector<std::unique_ptr<Models::To
 const std::vector<std::unique_ptr<Models::Token>>& Board::getMilitaryTokens() const { return militaryTokens; }
 void Board::setMilitaryTokens(std::vector<std::unique_ptr<Models::Token>> v) { militaryTokens = std::move(v); }
 
-const std::vector<std::unique_ptr<Node>>& Board::getAge1Nodes() const { return age1Nodes; }
-void Board::setAge1Nodes(std::vector<std::unique_ptr<Node>> v) { age1Nodes = std::move(v); }
-const std::vector<std::unique_ptr<Node>>& Board::getAge2Nodes() const { return age2Nodes; }
-void Board::setAge2Nodes(std::vector<std::unique_ptr<Node>> v) { age2Nodes = std::move(v); }
-const std::vector<std::unique_ptr<Node>>& Board::getAge3Nodes() const { return age3Nodes; }
-void Board::setAge3Nodes(std::vector<std::unique_ptr<Node>> v) { age3Nodes = std::move(v); }
+const std::vector<std::shared_ptr<Node>>& Board::getAge1Nodes() const { return age1Nodes; }
+void Board::setAge1Nodes(std::vector<std::shared_ptr<Node>> v) { age1Nodes = std::move(v); }
+const std::vector<std::shared_ptr<Node>>& Board::getAge2Nodes() const { return age2Nodes; }
+void Board::setAge2Nodes(std::vector<std::shared_ptr<Node>> v) { age2Nodes = std::move(v); }
+const std::vector<std::shared_ptr<Node>>& Board::getAge3Nodes() const { return age3Nodes; }
+void Board::setAge3Nodes(std::vector<std::shared_ptr<Node>> v) { age3Nodes = std::move(v); }
 
 std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
 {
-    const std::vector<std::unique_ptr<Node>>* source = nullptr;
+    const std::vector<std::shared_ptr<Node>>* source = nullptr;
     switch (age)
     {
     case 1: source = &age1Nodes; break;
@@ -173,7 +173,7 @@ static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>&
 	}
 }
 
-static void displayAgeCards(const char* title, const std::vector<std::unique_ptr<Node>>& nodes)
+static void displayAgeCards(const char* title, const std::vector<std::shared_ptr<Node>>& nodes)
 {
 	std::cout << title << " (" << nodes.size() << " nodes) ---\n";
 	for (size_t i = 0; i < nodes.size(); ++i) {
@@ -187,84 +187,133 @@ static void displayAgeCards(const char* title, const std::vector<std::unique_ptr
 
 void Board::displayEntireBoard()
 {
-	std::cout << "=== Board State ===\n";
-	displayBoard();
-	std::cout << "===================\n";
-	std::cout << "--- UNUSED POOLS ---\n";
-	displayUnusedPools(unusedAgeOneCards, unusedAgeTwoCards, unusedAgeThreeCards, unusedGuildCards, unusedWonders);
-	displayAgeCards("--- Age I Cards", age1Nodes);
-	displayAgeCards("--- Age II Cards", age2Nodes);
-	displayAgeCards("--- Age III Cards", age3Nodes);
+    std::cout << "=== Board State ===\n";
+    displayBoard();
+    std::cout << "===================\n";
+    std::cout << "--- UNUSED POOLS ---\n";
+    displayUnusedPools(unusedAgeOneCards, unusedAgeTwoCards, unusedAgeThreeCards, unusedGuildCards, unusedWonders);
+    displayAgeCards("--- Age I Cards", age1Nodes);
+    displayAgeCards("--- Age II Cards", age2Nodes);
+    displayAgeCards("--- Age III Cards", age3Nodes);
+}
+
+namespace {
+    void streamCardByType(std::ostream& out, const Models::Card* card)
+    {
+        if (!card) return;
+        if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+            out << *ageCard;
+        }
+        else if (const auto* wonder = dynamic_cast<const Models::Wonder*>(card)) {
+            out << *wonder;
+        }
+        else if (const auto* guild = dynamic_cast<const Models::GuildCard*>(card)) {
+            out << *guild;
+        }
+        else {
+            out << *card;
+        }
+    }
 }
 
 namespace Core {
-	std::ostream& operator<<(std::ostream& out, const Board& board)
-	{
-		out << "Section,Type,Data\n";
+    std::ostream& operator<<(std::ostream& out, const Board& board)
+    {
+        out << "Section,Type,Data\n";
 
-		// Pawn Track and Position
-		out << "Pawn,Track," << board.getPawnTrack().to_string() << "\n";
-		out << "Pawn,Position," << static_cast<int>(board.getPawnPos()) << "\n";
+        // Pawn Track and Position
+        out << "Pawn,Track," << board.getPawnTrack().to_string() << "\n";
+        out << "Pawn,Position," << static_cast<int>(board.getPawnPos()) << "\n";
 
-		// Progress Tokens
-		for (const auto& token : board.getProgressTokens()) {
-			if (token) {
-				out << "Token,Progress," << *token << "\n";
-			}
-		}
+        // Progress Tokens
+        for (const auto& token : board.getProgressTokens()) {
+            if (token) {
+                out << "Token,Progress," << *token << "\n";
+            }
+        }
 
-		// Military Tokens
-		for (const auto& token : board.getMilitaryTokens()) {
-			if (token) {
-				out << "Token,Military," << *token << "\n";
-			}
-		}
+        // Military Tokens
+        for (const auto& token : board.getMilitaryTokens()) {
+            if (token) {
+                out << "Token,Military," << *token << "\n";
+            }
+        }
 
-		// Age 1 Nodes
-		for (const auto& node : board.getAge1Nodes()) {
-			if (node && node->getCard()) {
-				out << "Node,Age1," << *node->getCard() << "\n";
-			}
-		}
+        // Age 1 Nodes
+        for (const auto& node : board.getAge1Nodes()) {
+            if (node && node->getCard()) {
+                out << "Node,Age1,";
+                streamCardByType(out, node->getCard());
+                out << "\n";
+            }
+        }
 
-		// Age 2 Nodes
-		for (const auto& node : board.getAge2Nodes()) {
-			if (node && node->getCard()) {
-				out << "Node,Age2," << *node->getCard() << "\n";
-			}
-		}
+        // Age 2 Nodes
+        for (const auto& node : board.getAge2Nodes()) {
+            if (node && node->getCard()) {
+                out << "Node,Age2,";
+                streamCardByType(out, node->getCard());
+                out << "\n";
+            }
+        }
 
-		// Age 3 Nodes
-		for (const auto& node : board.getAge3Nodes()) {
-			if (node && node->getCard()) {
-				out << "Node,Age3," << *node->getCard() << "\n";
-			}
-		}
+        // Age 3 Nodes
+        for (const auto& node : board.getAge3Nodes()) {
+            if (node && node->getCard()) {
+                out << "Node,Age3,";
+                streamCardByType(out, node->getCard());
+                out << "\n";
+            }
+        }
 
-		// Unused Cards
-		for (const auto& card : board.getUnusedAgeOneCards()) {
-			if (card) out << "Unused,Age1," << *card << "\n";
-		}
-		for (const auto& card : board.getUnusedAgeTwoCards()) {
-			if (card) out << "Unused,Age2," << *card << "\n";
-		}
-		for (const auto& card : board.getUnusedAgeThreeCards()) {
-			if (card) out << "Unused,Age3," << *card << "\n";
-		}
-		for (const auto& card : board.getUnusedGuildCards()) {
-			if (card) out << "Unused,Guild," << *card << "\n";
-		}
-		for (const auto& card : board.getUnusedWonders()) {
-			if (card) out << "Unused,Wonder," << *card << "\n";
-		}
+        // Unused Cards
+        for (const auto& card : board.getUnusedAgeOneCards()) {
+            if (card) {
+                out << "Unused,Age1,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
+        for (const auto& card : board.getUnusedAgeTwoCards()) {
+            if (card) {
+                out << "Unused,Age2,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
+        for (const auto& card : board.getUnusedAgeThreeCards()) {
+            if (card) {
+                out << "Unused,Age3,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
+        for (const auto& card : board.getUnusedGuildCards()) {
+            if (card) {
+                out << "Unused,Guild,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
+        for (const auto& card : board.getUnusedWonders()) {
+            if (card) {
+                out << "Unused,Wonder,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
 
-		// Discarded Cards
-		for (const auto& card : board.getDiscardedCards()) {
-			if (card) out << "Discarded,Card," << *card << "\n";
-		}
+        // Discarded Cards
+        for (const auto& card : board.getDiscardedCards()) {
+            if (card) {
+                out << "Discarded,Card,";
+                streamCardByType(out, card.get());
+                out << "\n";
+            }
+        }
 
-		return out;
-	}
+        return out;
+    }
 	namespace {
 		std::vector<std::string> splitCsvLine(const std::string& line) {
 			std::vector<std::string> columns;
@@ -329,15 +378,18 @@ namespace Core {
 				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
 				if (type == "Age1") {
 					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
-					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge1Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+					auto& nodes = const_cast<std::vector<std::shared_ptr<Node>>&>(board.getAge1Nodes());
+					nodes.push_back(std::make_shared<Node>(std::move(card)));
 				}
 				else if (type == "Age2") {
 					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
-					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge2Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+					auto& nodes = const_cast<std::vector<std::shared_ptr<Node>>&>(board.getAge2Nodes());
+					nodes.push_back(std::make_shared<Node>(std::move(card)));
 				}
 				else if (type == "Age3") {
 					auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
-					const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge3Nodes()).push_back(std::make_unique<Node>(std::move(card)));
+					auto& nodes = const_cast<std::vector<std::shared_ptr<Node>>&>(board.getAge3Nodes());
+					nodes.push_back(std::make_shared<Node>(std::move(card)));
 				}
 			}
 			else if (section == "Unused" && columns.size() > 2) {

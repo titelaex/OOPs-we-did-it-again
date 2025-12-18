@@ -262,7 +262,7 @@ namespace Core {
         uint32_t seed = static_cast<uint32_t>(std::random_device{}());
         std::ofstream log("Preparation.log", std::ios::app);
 
-        auto configureRowVisibility = [](std::vector<std::unique_ptr<Node>>& nodes, const std::vector<size_t>& rowPattern)
+        auto configureRowVisibility = [](std::vector<std::shared_ptr<Node>>& nodes, const std::vector<size_t>& rowPattern)
         {
             size_t idx = 0;
             bool rowVisible = true;
@@ -270,7 +270,7 @@ namespace Core {
                 const bool isLastRow = (row == rowPattern.size() - 1);
                 const size_t rowCount = rowPattern[row];
                 for (size_t col = 0; col < rowCount && idx < nodes.size(); ++col, ++idx) {
-                    if (auto* node = nodes[idx].get()) {
+                    if (auto node = nodes[idx]) {
                         if (auto* card = node->getCard()) {
                             card->setIsVisible(rowVisible);
                             card->setIsAvailable(isLastRow);
@@ -843,7 +843,7 @@ namespace Core {
     {
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
-        auto& nodes = const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge1Nodes());
+        const auto& nodes = board.getAge1Nodes();
         std::random_device rd; std::mt19937 gen(rd());
         bool playerOneTurn = std::uniform_int_distribution<>(0, 1)(gen) == 0;
 
@@ -939,7 +939,7 @@ namespace Core {
     {
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
-        auto& nodes = const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge2Nodes());
+        const auto& nodes = board.getAge2Nodes();
         bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
         std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age II." << "\n";
         std::cout << "Chooser: pick who starts Age II ([0]=Player1, [1]=Player2): ";
@@ -1051,7 +1051,7 @@ namespace Core {
     {
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
-        auto& nodes = const_cast<std::vector<std::unique_ptr<Node>>&>(board.getAge3Nodes());
+        const auto& nodes = board.getAge3Nodes();
         bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
         std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age III." << "\n";
         std::cout << "Chooser: pick who starts Age III ([0]=Player1, [1]=Player2): ";

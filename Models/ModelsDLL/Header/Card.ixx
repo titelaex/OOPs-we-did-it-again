@@ -1,5 +1,6 @@
 ﻿export module Models.Card; 
 
+import <ostream>;
 import <functional>;
 import <array>; 
 import <cstdint>;

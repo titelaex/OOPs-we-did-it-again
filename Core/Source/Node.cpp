@@ -8,11 +8,39 @@ import Core.Node;
 
 namespace Core {
 
-Node::Node(std::unique_ptr<Models::Card> card, Node* child1, Node* child2)
-    : m_card(std::move(card)), m_child1(child1), m_child2(child2)
+Node::Node(std::unique_ptr<Models::Card> card)
+    : m_card(std::move(card))
 {
-    if (m_child1) { if (m_child1->getParent1() == nullptr) m_child1->setParent1(this); else m_child1->setParent2(this); }
-    if (m_child2) { if (m_child2->getParent1() == nullptr) m_child2->setParent1(this); else m_child2->setParent2(this); }
+}
+
+void Node::attachParent(const std::shared_ptr<Node>& parent)
+{
+    if (!parent) return;
+    if (m_parent1.expired()) {
+        m_parent1 = parent;
+    }
+    else if (m_parent2.expired()) {
+        m_parent2 = parent;
+    }
+    else {
+        m_parent2 = parent;
+    }
+}
+
+void Node::setChild1(const std::shared_ptr<Node>& child)
+{
+    m_child1 = child;
+    if (child) {
+        child->attachParent(shared_from_this());
+    }
+}
+
+void Node::setChild2(const std::shared_ptr<Node>& child)
+{
+    m_child2 = child;
+    if (child) {
+        child->attachParent(shared_from_this());
+    }
 }
 
 std::unique_ptr<Models::Card> Node::releaseCard()
@@ -23,10 +51,10 @@ std::unique_ptr<Models::Card> Node::releaseCard()
 bool Node::isAvailable() const
 {
     if (!m_card) return false;
-    auto p1 = getParent1();
-    auto p2 = getParent2();
-    bool p1Empty = (!p1) || (p1->getCard()==nullptr);
-    bool p2Empty = (!p2) || (p2->getCard()==nullptr);
+    auto p1 = m_parent1.lock();
+    auto p2 = m_parent2.lock();
+    bool p1Empty = (!p1) || (p1->getCard() == nullptr);
+    bool p2Empty = (!p2) || (p2->getCard() == nullptr);
     return p1Empty && p2Empty;
 }
 
