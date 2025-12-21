@@ -64,8 +64,8 @@ export namespace Models
 		GuildCardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
 		GuildCardBuilder& setCaption(const std::string& caption);
 		GuildCardBuilder& setColor(const ColorType& color);
-		GuildCardBuilder& addOnPlayAction(const std::function<void()>& action);
-		GuildCardBuilder& addOnDiscardAction(const std::function<void()>& action);
+		GuildCardBuilder& addOnPlayAction(const std::function<void()>& action, std::string actionString);
+		GuildCardBuilder& addOnDiscardAction(const std::function<void()>& action, std::string actionString);
 		GuildCard build();
 	};
 }

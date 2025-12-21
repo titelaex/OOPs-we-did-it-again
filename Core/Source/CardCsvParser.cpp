@@ -1,5 +1,6 @@
 module Core.CardCsvParser;
 
+import <map>;
 import <vector>;
 import <string>;
 import <fstream>;
@@ -224,6 +225,41 @@ auto takeNewCard = []() {
     Core::Player* cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->takeNewCard();
+};
+
+auto lawTokenEffect = []() {
+    Core::Player* cp = Core::getCurrentPlayer();
+    if (!cp) return;
+	cp->m_player->addScientificSymbol(ScientificSymbolType::SCALE, 1);
+};
+
+auto applyToken = [](std::string tokenName) {
+    return [tokenName]() {
+        std::map<int, std::string> tokenDisctionary{
+            {1, "Agriculture"},
+            {2, "Architecture"},
+            {3, "Economy"},
+            {4, "Law"},
+            {5, "Mansory"},
+            {6, "Mathematics"},
+            {7, "Philosophy"},
+            {8, "Strategy"},
+            {9, "Theology"},
+            {10, "Urbanism"}
+        };
+        Core::Player* cp = Core::getCurrentPlayer();
+        if (!cp) return;
+        auto player = cp->m_player.get();
+        if (!player) return;
+        for (const auto& [idx, name] : tokenDisctionary) {
+            if (name == tokenName && idx > 0 && static_cast<size_t>(idx) <= player->getTokensOwned().size()) {
+                auto tokens = player->getTokensOwned();
+                tokens.set(static_cast<size_t>(idx - 1));
+                player->setTokensOwned(tokens);
+                break;
+            }
+        }
+    };
 };
 
 std::vector<std::string> parseCsvLine(const std::string& line) {

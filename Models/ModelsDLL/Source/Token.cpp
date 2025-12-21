@@ -4,6 +4,9 @@ import <fstream>;
 import <sstream>;
 import <stdexcept>;
 import <ostream>;
+import <vector>;
+import <functional>;
+import <utility>;
 
 using namespace Models;
 
@@ -16,6 +19,8 @@ const std::string& Token::getDescription() const noexcept { return m_description
 const std::tuple<uint8_t,uint8_t,uint8_t>& Token::getCoins() const noexcept { return m_coins; }
 uint8_t Token::getVictoryPoints() const noexcept { return m_victoryPoints; }
 uint8_t Token::getShieldPoints() const noexcept { return m_shieldPoints; }
+const std::vector<std::pair<std::function<void()>, std::string>>& Token::getOnPlayActions() const noexcept { return m_onPlayActions; }
+void Token::setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions) { m_onPlayActions = std::move(actions); }
 
 static std::tuple<uint8_t,uint8_t,uint8_t> ParseCoinsField(const std::string& s) {
 	if (s.empty()) return {0,0,0};

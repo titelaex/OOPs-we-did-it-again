@@ -1,6 +1,4 @@
-﻿
-
-module Core.Player;
+﻿module Core.Player;
 
 #include <compare>
 import <iostream>;
@@ -650,8 +648,9 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 	for (const auto& act : oldActions) {
 		builder.addOnPlayAction([act]() {
 			Core::Player* cp = getCurrentPlayer();
-			if (act) act();
-			});
+			(void)cp;
+			if (act.first) act.first();
+			}, act.second);
 	}
 
 	auto newCard = std::make_unique<Models::Card>(builder.build());

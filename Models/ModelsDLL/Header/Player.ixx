@@ -1,5 +1,6 @@
 export module Models.Player;
 
+import <bitset>;
 import <string>;
 import <vector>;
 import <tuple>;
@@ -35,6 +36,9 @@ namespace Models
 			uint8_t totalVictoryPoints();
 		} m_playerPoints;
 		std::unordered_map<TradeRuleType, bool> m_tradeRules{ 0 };
+		std::bitset<10> m_tokensOwned{};
+		// Agriculture, Architecture, Economy, Law, Mansory, Mathematics, Philosophy, Strategy, Theology, Urbanism
+
 	public:
 		Player(const Player&) = delete;
 		Player& operator=(const Player&) = delete;
@@ -54,6 +58,7 @@ namespace Models
 		void setPoints(const Points& playerPoints);
 		void addScientificSymbol(const ScientificSymbolType& symbol, const uint8_t& quantity);
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
+		void setTokensOwned(const std::bitset<10>& tokensOwned);
 		const uint8_t getkPlayerId() const;
 		const std::string& getPlayerUsername() const;
 		std::vector<std::unique_ptr<Models::Wonder>>& getOwnedWonders();
@@ -65,6 +70,7 @@ namespace Models
 		const std::tuple<uint8_t, uint8_t, uint8_t> getRemainingCoins() const;
 		const std::unordered_map<ScientificSymbolType, uint8_t>& getOwnedScientificSymbols() const;
 		const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
+		const std::bitset<10>& getTokensOwned() const;
 		const Points& getPoints() const;
 	};
 }

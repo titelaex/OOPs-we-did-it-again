@@ -8,8 +8,8 @@ import <optional>;
 import <unordered_map>;
 import <vector>;
 import <utility>;
-#include <string>
-#include <iostream>
+import <string>;
+import <iostream>;
 
 namespace Models {
 	Card::Card(Card&& other) = default;
@@ -192,6 +192,9 @@ namespace Models {
 			bool first = true;
 			for (const auto& kv : map) {
 				if (!first) s += ",";
+
+				if (kv.first == ResourceType::NO_RESOURCE) continue; // skip NO_RESOURCE
+
 				first = false;
 				s += ResourceTypeToString(kv.first);
 				s.push_back(':');

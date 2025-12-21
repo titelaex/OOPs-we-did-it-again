@@ -1,5 +1,6 @@
 export module Models.Token;
 
+import <functional>;
 import <string>;
 import <vector>;
 import <cstdint>;
@@ -26,6 +27,7 @@ export namespace Models
         std::tuple<uint8_t,uint8_t,uint8_t> m_coins;
         uint8_t m_victoryPoints{};
         uint8_t m_shieldPoints{};
+        std::vector<std::pair<std::function<void()>, std::string>> m_onPlayActions{};
 
     public:
         Token() = delete;
@@ -37,6 +39,8 @@ export namespace Models
         const std::tuple<uint8_t,uint8_t,uint8_t>& getCoins() const noexcept;
         uint8_t getVictoryPoints() const noexcept;
         uint8_t getShieldPoints() const noexcept;
+        const std::vector<std::pair<std::function<void()>, std::string>>& getOnPlayActions() const noexcept;
+        void setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions);
 
     };
 

@@ -1,13 +1,13 @@
-type,name,description,coins,victory,shield
-PROGRESS,Agriculture,Take 6 coins from the bank,6,4,
-PROGRESS,Arhchitecture,Any furure Wonders built by you will cost 2 fewer resources.At each construction you are free to choose which resources this rebate affects.,,,
-PROGRESS,Economy,You get the money spent by your opponent when they trade for resources,,,
-PROGRESS,Law,Is worth a scientific symbol,,,
-PROGRESS,Masonry,Any future blue cards constructed by you will cost 2 fewer resources.,,,
-PROGRESS,Mathematics,At the end of the game score 3 victory points for each Progress token in your possession (including itself),,,
-PROGRESS,Philosophy,The token is worth 7 victory points.,,7,
-PROGRESS,Strategy,Once this token enters play your new military Buildings (red cards) will benefit from 1 extra Shield.,,,
-PROGRESS,Theology,All future Wonders constructed by you are all treated as though they have the PLAY AGAIN effect,,,
-PROGRESS,Urbanism,Immediately take 6 coins from the Bank. Each time you construct a Building for free through linking (free construction condition chain) you gain 4 coins,6,,
-MILITARY,Military Loss 2,Your opponent loses 2 coins,,,
-MILITARY,Military Loss 5,Your opponent loses 5 coins,,,
+type,name,description,coins,victory,shield,onPlayActions
+"PROGRESS","Agriculture,Take 6 coins from the bank",6,4,,"getVictoryPoints, getCoins, applyToken"
+"PROGRESS","Arhchitecture,Any furure Wonders built by you will cost 2 fewer resources.At each construction you are free to choose which resources this rebate affects.",,,,"applyToken"
+"PROGRESS","Economy,You get the money spent by your opponent when they trade for resources",,,,"applyToken"
+"PROGRESS","Law,Is worth a scientific symbol",,,,"lawTokenEffect, applyToken"
+"PROGRESS","Masonry,Any future blue cards constructed by you will cost 2 fewer resources.",,,,"applyToken"
+"PROGRESS","Mathematics,At the end of the game score 3 victory points for each Progress token in your possession (including itself)",,,,"applyToken"
+"PROGRESS","Philosophy,The token is worth 7 victory points.",,7,,"getVictoryPoints, applyToken"
+"PROGRESS","Strategy,Once this token enters play your new military Buildings (red cards) will benefit from 1 extra Shield.",,,,"applyToken"
+"PROGRESS","Theology,All future Wonders constructed by you are all treated as though they have the PLAY AGAIN effect",,,,"applyToken"
+"PROGRESS","Urbanism,Immediately take 6 coins from the Bank. Each time you construct a Building for free through linking (free construction condition chain) you gain 4 coins",6,,,"getCoins, applyToken"
+"MILITARY","Military Loss 2,Your opponent loses 2 coins",,,,
+"MILITARY","Military Loss 5,Your opponent loses 5 coins",,,,

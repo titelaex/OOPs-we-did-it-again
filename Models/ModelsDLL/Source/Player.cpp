@@ -36,6 +36,8 @@ const std::tuple<uint8_t,uint8_t,uint8_t> Player::getRemainingCoins() const { re
 const std::unordered_map<ScientificSymbolType, uint8_t>& Player::getOwnedScientificSymbols() const { return m_ownedScientificSymbols; }
 const Player::Points& Player::getPoints() const { return m_playerPoints; }
 const std::unordered_map<TradeRuleType, bool>& Player::getTradeRules() const { return m_tradeRules; }
+void Player::setTokensOwned(const std::bitset<10>& tokensOwned) { m_tokensOwned = tokensOwned; }
+const std::bitset<10>& Player::getTokensOwned() const { return m_tokensOwned; }
 
 void Player::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules) {
     for (const auto& kv : tradeRules) {

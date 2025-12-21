@@ -10,10 +10,10 @@ import <ostream>;
 import <iostream>;
 import <unordered_map>;
 import <bitset>;
-#include <string>
-#include <vector>
-#include <functional>
-#include <utility>
+import <string>;
+import <vector>;
+import <functional>;
+import <utility>;
 
 
 using namespace Models;
