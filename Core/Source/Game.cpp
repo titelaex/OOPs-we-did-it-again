@@ -111,7 +111,7 @@ namespace Core {
 		try {
 			PrepareBoardCardPools();
 
-			auto allTokens = parseTokensFromCSV("Tokens.csv");
+			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
 			Core::Board::getInstance().setMilitaryTokens(std::move(military));

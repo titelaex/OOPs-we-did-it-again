@@ -21,7 +21,7 @@ using namespace Models;
 namespace
 {
 	std::string csvEscape(const std::string& s) {
-		if (s.empty()) return "\"\"";
+		if (s.empty()) return "";
 		std::string out;
 		out.reserve(s.size() + 2);
 		out.push_back('"');
@@ -55,6 +55,20 @@ namespace
 			s += actionPair.second;
 		}
 		return s;
+	}
+
+	void writeEscapedField(std::ostream& os, const std::string& value) {
+		if (!value.empty()) os << csvEscape(value);
+		os << ',';
+	}
+
+	void writeNumericField(std::ostream& os, uint8_t value) {
+		if (value > 0) os << static_cast<int>(value);
+		os << ',';
+	}
+
+	void writeFinalEscapedField(std::ostream& os, const std::string& value) {
+		if (!value.empty()) os << csvEscape(value);
 	}
 }
 
@@ -110,54 +124,12 @@ bool GuildCard::IsConstructed() const { static const bool kFalse=false; return k
 
 __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const GuildCard& card)
 {
-	// name
-	os << csvEscape(card.getName()) << ',';
-
-	// resourceCost
-	os << csvEscape(resourceMapToString(card.getResourceCost())) << ',';
-
-	// resourceProduction (empty for GuildCard)
-	os << "\"\",";
-
-	// victoryPoints
-	os << '"';
-	if (card.getVictoryPoints() > 0) {
-		os << static_cast<int>(card.getVictoryPoints());
-	}
-	os << '"' << ',';
-
-	// shieldPoints (empty for GuildCard)
-	os << "\"\",";
-
-	// coinCost (placeholder)
-	os << "\"\",";
-
-	// scientificSymbols (empty for GuildCard)
-	os << "\"\",";
-
-	// hasLinkingSymbol (empty for GuildCard)
-	os << "\"\",";
-
-	// requiresLinkingSymbol (empty for GuildCard)
-	os << "\"\",";
-
-	// tradeRules (empty for GuildCard)
-	os << "\"\",";
-
-	// caption
-	os << csvEscape(card.getCaption()) << ',';
-
-	// color
-	os << csvEscape(ColorTypeToString(card.getColor())) << ',';
-
-	// age (empty for GuildCard)
-	os << "\"\",";
-
-	// onPlayActions
-	os << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
-
-	// onDiscardActions
-	os << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
+	writeEscapedField(os, card.getName());
+	writeEscapedField(os, resourceMapToString(card.getResourceCost()));
+	writeNumericField(os, card.getVictoryPoints());
+	writeEscapedField(os, card.getCaption());
+	writeEscapedField(os, ColorTypeToString(card.getColor()));
+	writeFinalEscapedField(os, actionPairVectorToString(card.getOnPlayActions()));
 
 	return os;
 }

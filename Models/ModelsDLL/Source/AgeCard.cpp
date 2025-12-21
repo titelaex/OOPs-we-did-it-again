@@ -143,74 +143,55 @@ namespace
 		}
 		return s;
 	}
+
+	std::string ageToCsvString(const Age& age) {
+		switch (age) {
+		case Age::AGE_I: return "AGE_I";
+		case Age::AGE_II: return "AGE_II";
+		case Age::AGE_III: return "AGE_III";
+		default: return "";
+		}
+	}
+
+	void writeEscapedField(std::ostream& out, const std::string& value) {
+		if (!value.empty()) out << csvEscape(value);
+		out << ',';
+	}
+
+	void writeNumericField(std::ostream& out, uint8_t value) {
+		if (value > 0) out << static_cast<int>(value);
+		out << ',';
+	}
+
+	void writeFinalEscapedField(std::ostream& out, const std::string& value) {
+		if (!value.empty()) out << csvEscape(value);
+	}
 }
 
 __declspec(dllexport) std::ostream& Models::operator<<(std::ostream& out, const AgeCard& card)
 {
-	// name
-	out << '"' << csvEscape(card.getName()) << '"' << ',';
+	writeEscapedField(out, card.getName());
+	writeEscapedField(out, resourceMapToString(card.getResourceCost()));
+	writeEscapedField(out, resourceMapToString(card.getResourcesProduction()));
+	writeNumericField(out, card.getVictoryPoints());
+	writeNumericField(out, card.getShieldPoints());
+	writeEscapedField(out, {}); // coinCost placeholder
 
-	// resourceCost
-	out << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
+	std::string scientificSymbol = card.getScientificSymbols().has_value() ? ScientificSymbolTypeToString(card.getScientificSymbols().value()) : std::string{};
+	writeEscapedField(out, scientificSymbol);
 
-	// resourceProduction
-	out << '"' << csvEscape(resourceMapToString(card.getResourcesProduction())) << '"' << ',';
+	std::string hasLink = card.getHasLinkingSymbol().has_value() ? LinkingSymbolTypeToString(card.getHasLinkingSymbol().value()) : std::string{};
+	writeEscapedField(out, hasLink);
 
-	// victoryPoints
-	out << '"';
-	if (card.getVictoryPoints() > 0) {
-		out << static_cast<int>(card.getVictoryPoints());
-	}
-	out << '"' << ',';
+	std::string requiresLink = card.getRequiresLinkingSymbol().has_value() ? LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value()) : std::string{};
+	writeEscapedField(out, requiresLink);
 
-	// shieldPoints
-	out << '"';
-	if (card.getShieldPoints() > 0) {
-		out << static_cast<int>(card.getShieldPoints());
-	}
-	out << '"' << ',';
-
-	// coinCost (placeholder)
-	out << "\"\",";
-
-	// scientificSymbols
-	out << '"';
-	if (card.getScientificSymbols().has_value()) {
-		out << ScientificSymbolTypeToString(card.getScientificSymbols().value());
-	}
-	out << '"' << ',';
-
-	// hasLinkingSymbol
-	out << '"';
-	if (card.getHasLinkingSymbol().has_value()) {
-		out << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value());
-	}
-	out << '"' << ',';
-
-	// requiresLinkingSymbol
-	out << '"';
-	if (card.getRequiresLinkingSymbol().has_value()) {
-		out << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value());
-	}
-	out << '"' << ',';
-
-	// tradeRules
-	out << csvEscape(tradeRuleMapToString(card.getTradeRules())) << ',';
-
-	// caption
-	out << csvEscape(card.getCaption()) << ',';
-
-	// color
-	out << csvEscape(ColorTypeToString(card.getColor())) << ',';
-
-	// age
-	out << csvEscape(ageToString(card.getAge())) << ',';
-
-	// onPlayActions
-	out << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
-
-	// onDiscardActions
-	out << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
+	writeEscapedField(out, tradeRuleMapToString(card.getTradeRules()));
+	writeEscapedField(out, card.getCaption());
+	writeEscapedField(out, ColorTypeToString(card.getColor()));
+	writeEscapedField(out, ageToCsvString(card.getAge()));
+	writeEscapedField(out, actionPairVectorToString(card.getOnPlayActions()));
+	writeFinalEscapedField(out, actionPairVectorToString(card.getOnDiscardActions()));
 
 	return out;
 }

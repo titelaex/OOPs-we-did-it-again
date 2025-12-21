@@ -7,6 +7,8 @@ import <ostream>;
 import <vector>;
 import <functional>;
 import <utility>;
+import <tuple>;
+import <string>;
 
 using namespace Models;
 
@@ -66,21 +68,85 @@ std::vector<Token> Models::loadTokensFromCSV(const std::string& path)
 	return tokens;
 }
 
+namespace
+{
+	std::string csvEscape(const std::string& s)
+	{
+		std::string out;
+		out.reserve(s.size() + 2);
+		out.push_back('"');
+		for (char ch : s) {
+			if (ch == '"') out += "\"\"";
+			else out.push_back(ch);
+		}
+		out.push_back('"');
+		return out;
+	}
+
+	std::string actionPairVectorToString(const std::vector<std::pair<std::function<void()>, std::string>>& actions)
+	{
+		std::string s;
+		bool first = true;
+		for (const auto& actionPair : actions) {
+			if (!first) s += ", ";
+			first = false;
+			s += actionPair.second;
+		}
+		return s;
+	}
+
+	std::string coinsTupleToString(const std::tuple<uint8_t,uint8_t,uint8_t>& coins)
+	{
+		auto [ones, threes, sixes] = coins;
+		if (threes == 0 && sixes == 0) {
+			if (ones == 0) return "";
+			return std::to_string(static_cast<int>(ones));
+		}
+		return std::to_string(static_cast<int>(ones)) + ':' +
+			std::to_string(static_cast<int>(threes)) + ':' +
+			std::to_string(static_cast<int>(sixes));
+	}
+
+	std::string tokenTypeToString(TokenType type)
+	{
+		switch (type) {
+		case TokenType::PROGRESS: return "PROGRESS";
+		case TokenType::MILITARY: return "MILITARY";
+		default: return "UNKNOWN";
+		}
+	}
+}
+
 std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 {
-	std::string typeStr = "UNKNOWN";
-	switch (t.getType()) {
-		case TokenType::PROGRESS: typeStr = "PROGRESS"; break;
-		case TokenType::MILITARY: typeStr = "MILITARY"; break;
-	}
-	auto [ones, threes, sixes] = t.getCoins();
-	uint32_t totalCoins = ones + threes * 3 + sixes * 6;
+	// type
+	os << csvEscape(tokenTypeToString(t.getType())) << ',';
 
-	os << "Name=" << t.getName()
-		<< ";Type=" << typeStr	
-		<< ";Description=" << t.getDescription()
-		<< ";Coins=" << totalCoins
-		<< ";VictoryPoints=" << static_cast<int>(t.getVictoryPoints())
-		<< ";ShieldPoints=" << static_cast<int>(t.getShieldPoints());
+	// name
+	os << csvEscape(t.getName()) << ',';
+
+	// description
+	os << csvEscape(t.getDescription()) << ',';
+
+	// coins
+	os << csvEscape(coinsTupleToString(t.getCoins())) << ',';
+
+	// victoryPoints
+	os << '"';
+	if (t.getVictoryPoints() > 0) {
+		os << static_cast<int>(t.getVictoryPoints());
+	}
+	os << '"' << ',';
+
+	// shieldPoints
+	os << '"';
+	if (t.getShieldPoints() > 0) {
+		os << static_cast<int>(t.getShieldPoints());
+	}
+	os << '"' << ',';
+
+	// onPlayActions
+	os << csvEscape(actionPairVectorToString(t.getOnPlayActions()));
+
 	return os;
 }

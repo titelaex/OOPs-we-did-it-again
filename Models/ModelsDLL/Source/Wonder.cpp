@@ -21,6 +21,7 @@ using namespace Models;
 namespace
 {
 	std::string csvEscape(const std::string& s) {
+		if (s.empty()) return "";
 		std::string out;
 		out.push_back('"');
 		for (char ch : s) {
@@ -53,6 +54,20 @@ namespace
 			s += actionPair.second;
 		}
 		return s;
+	}
+
+	void writeEscapedField(std::ostream& os, const std::string& value) {
+		if (!value.empty()) os << csvEscape(value);
+		os << ',';
+	}
+
+	void writeNumericField(std::ostream& os, uint8_t value) {
+		if (value > 0) os << static_cast<int>(value);
+		os << ',';
+	}
+
+	void writeFinalEscapedField(std::ostream& os, const std::string& value) {
+		if (!value.empty()) os << csvEscape(value);
 	}
 }
 
@@ -131,62 +146,19 @@ const Models::Card* Models::Wonder::getAttachedCard() const
 
 __declspec(dllexport) std::ostream& Models::operator<<(std::ostream& os, const Wonder& card)
 {
-	// name
-	os << '"' << csvEscape(card.getName()) << '"' << ',';
+	writeEscapedField(os, card.getName());
+	writeEscapedField(os, resourceMapToString(card.getResourceCost()));
+	writeNumericField(os, card.getVictoryPoints());
+	writeEscapedField(os, card.getCaption());
+	writeEscapedField(os, ColorTypeToString(card.getColor()));
 
-	// resourceCost
-	os << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
+	std::string produced = card.getResourceProduction() == ResourceType::NO_RESOURCE
+		? std::string{}
+		: ResourceTypeToString(card.getResourceProduction());
+	writeEscapedField(os, produced);
 
-	// resourceProduction
-	std::unordered_map<ResourceType, uint8_t> production;
-	if (card.getResourceProduction() != ResourceType::NO_RESOURCE) {
-		production[card.getResourceProduction()] = 1;
-	}
-	os << '"' << csvEscape(resourceMapToString(production)) << '"' << ',';
-
-	// victoryPoints
-	os << '"';
-	if (card.getVictoryPoints() > 0) {
-		os << static_cast<int>(card.getVictoryPoints());
-	}
-	os << '"' << ',';
-
-	// shieldPoints
-	os << '"';
-	if (card.getShieldPoints() > 0) {
-		os << static_cast<int>(card.getShieldPoints());
-	}
-	os << '"' << ',';
-
-	// coinCost (placeholder)
-	os << "\"\",";
-
-	// scientificSymbols (empty for Wonder)
-	os << "\"\",";
-
-	// hasLinkingSymbol (empty for Wonder)
-	os << "\"\",";
-
-	// requiresLinkingSymbol (empty for Wonder)
-	os << "\"\",";
-
-	// tradeRules (empty for Wonder)
-	os << "\"\",";
-
-	// caption
-	os << csvEscape(card.getCaption()) << ',';
-
-	// color
-	os << csvEscape(ColorTypeToString(card.getColor())) << ',';
-
-	// age (empty for Wonder)
-	os << "\"\",";
-
-	// onPlayActions
-	os << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
-
-	// onDiscardActions
-	os << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
+	writeNumericField(os, card.getShieldPoints());
+	writeFinalEscapedField(os, actionPairVectorToString(card.getOnPlayActions()));
 
 	return os;
 }
