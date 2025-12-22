@@ -7,5 +7,10 @@ import Core.Player;
 export namespace Core {
     void preparation();
     void awardMilitaryTokenIfPresent(Core::Player& receiver);
-    export void PrepareBoardCardPools();
+    void PrepareBoardCardPools();
+    
+    // Game phases
+    void phaseI(Player& p1, Player& p2);
+    void phaseII(Player& p1, Player& p2);
+    void phaseIII(Player& p1, Player& p2);
 }
