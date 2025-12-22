@@ -4,6 +4,7 @@ import <fstream>;
 import <sstream>;
 import <stdexcept>;
 import <ostream>;
+import <istream>;
 import <vector>;
 import <functional>;
 import <utility>;
@@ -23,6 +24,14 @@ uint8_t Token::getVictoryPoints() const noexcept { return m_victoryPoints; }
 uint8_t Token::getShieldPoints() const noexcept { return m_shieldPoints; }
 const std::vector<std::pair<std::function<void()>, std::string>>& Token::getOnPlayActions() const noexcept { return m_onPlayActions; }
 void Token::setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions) { m_onPlayActions = std::move(actions); }
+
+// Setters for deserialization
+void Token::setType(TokenType type) { m_type = type; }
+void Token::setName(const std::string& name) { m_name = name; }
+void Token::setDescription(const std::string& description) { m_description = description; }
+void Token::setCoins(const std::tuple<uint8_t,uint8_t,uint8_t>& coins) { m_coins = coins; }
+void Token::setVictoryPoints(uint8_t points) { m_victoryPoints = points; }
+void Token::setShieldPoints(uint8_t points) { m_shieldPoints = points; }
 
 static std::tuple<uint8_t,uint8_t,uint8_t> ParseCoinsField(const std::string& s) {
 	if (s.empty()) return {0,0,0};
@@ -81,6 +90,49 @@ namespace
 		}
 		out.push_back('"');
 		return out;
+	}
+
+	std::string csvUnescape(const std::string& s)
+	{
+		if (s.empty()) return s;
+		std::string result;
+		result.reserve(s.size());
+		size_t start = 0;
+		size_t end = s.size();
+		if (s.front() == '"' && s.back() == '"' && s.size() >= 2) {
+			start = 1;
+			end = s.size() - 1;
+		}
+		for (size_t i = start; i < end; ++i) {
+			if (s[i] == '"' && i + 1 < end && s[i + 1] == '"') {
+				result.push_back('"');
+				++i;
+			} else {
+				result.push_back(s[i]);
+			}
+		}
+		return result;
+	}
+
+	std::vector<std::string> parseCsvFields(const std::string& line)
+	{
+		std::vector<std::string> fields;
+		std::string field;
+		bool in_quotes = false;
+		for (size_t i = 0; i < line.size(); ++i) {
+			char c = line[i];
+			if (c == '"') {
+				in_quotes = !in_quotes;
+				field.push_back(c);
+			} else if (c == ',' && !in_quotes) {
+				fields.push_back(field);
+				field.clear();
+			} else {
+				field.push_back(c);
+			}
+		}
+		fields.push_back(field);
+		return fields;
 	}
 
 	std::string actionPairVectorToString(const std::vector<std::pair<std::function<void()>, std::string>>& actions)
@@ -149,4 +201,65 @@ std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 	os << csvEscape(actionPairVectorToString(t.getOnPlayActions()));
 
 	return os;
+}
+
+std::istream& Models::operator>>(std::istream& is, Token& t)
+{
+	std::string line;
+	if (!std::getline(is, line)) {
+		return is;
+	}
+
+	auto fields = parseCsvFields(line);
+	if (fields.size() < 6) {
+		is.setstate(std::ios::failbit);
+		return is;
+	}
+
+	// Parse type
+	std::string typeStr = csvUnescape(fields[0]);
+	try {
+		t.setType(tokenTypeFromString(typeStr));
+	} catch (...) {
+		t.setType(TokenType::PROGRESS);
+	}
+
+	// Parse name
+	t.setName(csvUnescape(fields[1]));
+
+	// Parse description
+	t.setDescription(csvUnescape(fields[2]));
+
+	// Parse coins
+	std::string coinsStr = csvUnescape(fields[3]);
+	t.setCoins(ParseCoinsField(coinsStr));
+
+	// Parse victoryPoints
+	std::string victoryStr = csvUnescape(fields[4]);
+	if (!victoryStr.empty()) {
+		try {
+			t.setVictoryPoints(static_cast<uint8_t>(std::stoi(victoryStr)));
+		} catch (...) {
+			t.setVictoryPoints(0);
+		}
+	} else {
+		t.setVictoryPoints(0);
+	}
+
+	// Parse shieldPoints
+	std::string shieldStr = csvUnescape(fields[5]);
+	if (!shieldStr.empty()) {
+		try {
+			t.setShieldPoints(static_cast<uint8_t>(std::stoi(shieldStr)));
+		} catch (...) {
+			t.setShieldPoints(0);
+		}
+	} else {
+		t.setShieldPoints(0);
+	}
+
+	// onPlayActions - stored as strings, functions need to be rebound separately
+	// The caller should rebind actions based on action names if needed
+
+	return is;
 }

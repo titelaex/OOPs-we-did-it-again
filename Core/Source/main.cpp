@@ -30,23 +30,18 @@ int main()
 	gameState.saveGameState("gamestate.csv");
 	std::cout << "Game state saved.\n";
 
-	// Ob?ine referin?e la juc?tori
 	Core::Player& p1 = *gameState.GetPlayer1();
 	Core::Player& p2 = *gameState.GetPlayer2();
 
-	// Joac? Phase I (Age I)
 	std::cout << "\n=== Starting Phase I (Age I) ===\n";
 	Core::phaseI(p1, p2);
 
-	// Joac? Phase II (Age II)
 	std::cout << "\n=== Starting Phase II (Age II) ===\n";
 	Core::phaseII(p1, p2);
 
-	// Joac? Phase III (Age III) - include verificarea victoriei civile la final
 	std::cout << "\n=== Starting Phase III (Age III) ===\n";
 	Core::phaseIII(p1, p2);
 
-	// Afi?eaz? starea final?
 	std::cout << "\n=== Final Board State ===\n";
 	Core::Board::getInstance().displayEntireBoard();
 

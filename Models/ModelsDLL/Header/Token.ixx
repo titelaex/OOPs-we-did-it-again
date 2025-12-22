@@ -9,6 +9,7 @@ import <sstream>;
 import <stdexcept>;
 import <tuple>;
 import <ostream>; // for operator<< declaration
+import <istream>;
 
 export namespace Models
 {
@@ -21,16 +22,16 @@ export namespace Models
     export class __declspec(dllexport) Token
     {
     private:
-        TokenType m_type;
+        TokenType m_type{TokenType::PROGRESS};
         std::string m_name;
         std::string m_description;
-        std::tuple<uint8_t,uint8_t,uint8_t> m_coins;
+        std::tuple<uint8_t,uint8_t,uint8_t> m_coins{0,0,0};
         uint8_t m_victoryPoints{};
         uint8_t m_shieldPoints{};
         std::vector<std::pair<std::function<void()>, std::string>> m_onPlayActions{};
 
     public:
-        Token() = delete;
+        Token() = default;
         explicit Token(TokenType type, std::string name, std::string description, std::tuple<uint8_t,uint8_t,uint8_t> coins = {0,0,0}, uint8_t victoryPoints =0, uint8_t shieldPoints =0);
 
         TokenType getType() const noexcept;
@@ -42,6 +43,13 @@ export namespace Models
         const std::vector<std::pair<std::function<void()>, std::string>>& getOnPlayActions() const noexcept;
         void setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions);
 
+        // Setters for deserialization
+        void setType(TokenType type);
+        void setName(const std::string& name);
+        void setDescription(const std::string& description);
+        void setCoins(const std::tuple<uint8_t,uint8_t,uint8_t>& coins);
+        void setVictoryPoints(uint8_t points);
+        void setShieldPoints(uint8_t points);
     };
 
     export __declspec(dllexport) std::vector<Token> createDefaultTokenSet();
@@ -54,5 +62,5 @@ export namespace Models
     }
     export __declspec(dllexport) std::vector<Token> loadTokensFromCSV(const std::string& path);
     export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const Token& t);
-;
+    export __declspec(dllexport) std::istream& operator>>(std::istream& is, Token& t);
 }

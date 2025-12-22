@@ -95,14 +95,18 @@ void Board::setupCardPools()
 static void displayProgressTokens(const std::vector< std::unique_ptr<Models::Token >>& progressTokens)
 {
 	std::cout << "Progress Tokens: ";
-	for (const auto& t : progressTokens) std::cout << t.get() << " ";
+	for (const auto& t : progressTokens) {
+		if (t) std::cout << t->getName() << " ";
+	}
 	std::cout << "\n\n";
 }
 
 static void displayMilitaryTokens(const std::vector< std::unique_ptr<Models::Token >>& militaryTokens)
 {
 	std::cout << "Military Tokens: ";
-	for (const auto& t : militaryTokens) std::cout << t.get() << " ";
+	for (const auto& t : militaryTokens) {
+		if (t) std::cout << t->getName() << " ";
+	}
 	std::cout << "\n\n";
 }
 
@@ -151,7 +155,7 @@ static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>&
 	for (size_t i = 0; i < age3.size(); ++i) {
 		auto& p = age3[i];
 		if (p) {
-			p->displayCardInfo();
+		 p->displayCardInfo();
 		}
 	}
 	std::cout << "\n";
@@ -348,6 +352,9 @@ namespace Core {
 		board.setMilitaryTokens({});
 		board.setUnusedProgressTokens({});
 
+		std::vector<std::unique_ptr<Models::Token>> progressTokens;
+		std::vector<std::unique_ptr<Models::Token>> militaryTokens;
+
 		std::string line;
 		// Skip header
 		std::getline(in, line);
@@ -370,9 +377,72 @@ namespace Core {
 					board.setPawnPos(static_cast<uint8_t>(std::stoi(columns[2])));
 				}
 			}
-			else if (section == "Token") {
-				// Token loading from CSV is complex as it requires a master list of tokens.
-				// This part is skipped as per the previous implementation's constraints.
+			else if (section == "Token" && columns.size() > 2) {
+				// Reconstruct token data from remaining columns
+				std::vector<std::string> token_cols(columns.begin() + 2, columns.end());
+				if (token_cols.size() >= 5) {
+					auto csvUnescape = [](const std::string& s) -> std::string {
+						if (s.empty()) return s;
+						std::string result;
+						result.reserve(s.size());
+						size_t start = 0;
+						size_t end = s.size();
+						if (s.front() == '"' && s.back() == '"' && s.size() >= 2) {
+							start = 1;
+							end = s.size() - 1;
+						}
+						for (size_t i = start; i < end; ++i) {
+							if (s[i] == '"' && i + 1 < end && s[i + 1] == '"') {
+								result.push_back('"');
+								++i;
+							} else {
+								result.push_back(s[i]);
+							}
+						}
+						return result;
+					};
+
+					auto parseCoins = [](const std::string& s) -> std::tuple<uint8_t,uint8_t,uint8_t> {
+						if (s.empty()) return {0,0,0};
+						std::istringstream ss(s);
+						std::string a,b,c;
+						if (!std::getline(ss,a,':')) return {0,0,0};
+						if (!std::getline(ss,b,':')) return {static_cast<uint8_t>(std::stoi(a)),0,0};
+						if (!std::getline(ss,c)) return {static_cast<uint8_t>(std::stoi(a)), static_cast<uint8_t>(std::stoi(b)),0};
+						return {static_cast<uint8_t>(std::stoi(a)), static_cast<uint8_t>(std::stoi(b)), static_cast<uint8_t>(std::stoi(c))};
+					};
+
+					std::string tokenTypeStr = csvUnescape(token_cols[0]);
+					std::string tokenName = csvUnescape(token_cols[1]);
+					std::string tokenDesc = csvUnescape(token_cols[2]);
+					std::string coinsStr = csvUnescape(token_cols[3]);
+					std::string victoryStr = token_cols.size() > 4 ? csvUnescape(token_cols[4]) : "";
+					std::string shieldStr = token_cols.size() > 5 ? csvUnescape(token_cols[5]) : "";
+
+					Models::TokenType tokenType = Models::TokenType::PROGRESS;
+					try {
+						tokenType = Models::tokenTypeFromString(tokenTypeStr);
+					} catch (...) {}
+
+					auto coins = parseCoins(coinsStr);
+					uint8_t victory = 0;
+					uint8_t shield = 0;
+					if (!victoryStr.empty()) {
+						try { victory = static_cast<uint8_t>(std::stoi(victoryStr)); } catch (...) {}
+					}
+					if (!shieldStr.empty()) {
+						try { shield = static_cast<uint8_t>(std::stoi(shieldStr)); } catch (...) {}
+					}
+
+					auto token = std::make_unique<Models::Token>(tokenType, tokenName, tokenDesc, coins, victory, shield);
+
+					if (type == "Progress") {
+						progressTokens.push_back(std::move(token));
+					}
+					else if (type == "Military") {
+						militaryTokens.push_back(std::move(token));
+					}
+				}
 			}
 			else if (section == "Node" && columns.size() > 2) {
 				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
@@ -422,11 +492,16 @@ namespace Core {
 				discarded.push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
 			}
 			else {
-				// If the line doesn't belong to the board, put it back for the next >> operation
+					// If the line doesn't belong to the board, put it back for the next >> operation
 				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
 				break;
 			}
 		}
+
+		// Set the loaded tokens
+		board.setProgressTokens(std::move(progressTokens));
+		board.setMilitaryTokens(std::move(militaryTokens));
+
 		return in;
 	}
 }
