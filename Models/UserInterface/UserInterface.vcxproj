@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B23CB04B-E4AA-4311-99B1-16483F4D3A8E}</ProjectGuid>
+    <ProjectGuid>{84404673-9C4B-4A8D-8394-A9308CDBB587}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
@@ -63,14 +63,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <EnableModules>true</EnableModules>
-      <AdditionalModuleDependencies>..\Models\x64\$(IntDir)</AdditionalModuleDependencies>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -102,34 +94,9 @@
   <ItemGroup>
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
-    <QtMoc Include="UserInterface.h" />
-    <ClCompile Include="..\Core\Header\AgeTree.ixx" />
-    <ClCompile Include="..\Core\Header\Board.ixx" />
-    <ClCompile Include="..\Core\Header\CardCsvParser.ixx" />
-    <ClCompile Include="..\Core\Header\Game.ixx" />
-    <ClCompile Include="..\Core\Header\GameState.ixx" />
-    <ClCompile Include="..\Core\Header\Node.ixx" />
-    <ClCompile Include="..\Core\Header\Player.ixx" />
-    <ClCompile Include="..\Core\Source\AgeTree.cpp" />
-    <ClCompile Include="..\Core\Source\Board.cpp" />
-    <ClCompile Include="..\Core\Source\CardCsvParser.cpp" />
-    <ClCompile Include="..\Core\Source\Game.cpp" />
-    <ClCompile Include="..\Core\Source\GameState.cpp" />
-    <ClCompile Include="..\Core\Source\Node.cpp" />
-    <ClCompile Include="..\Core\Source\Player.cpp" />
+    <ClInclude Include="UserInterface.h" />
     <ClCompile Include="UserInterface.cpp" />
     <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.vcxproj">
-      <Project>{de5a64fb-c35e-457c-bf64-1483d65e7928}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
-      <Project>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\Core\Board.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

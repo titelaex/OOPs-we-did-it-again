@@ -6,6 +6,7 @@ import Core.Player;
 import <string>;
 import <fstream>;
 import <iostream>;
+import <memory>;
 
 namespace Core
 {
@@ -18,8 +19,8 @@ namespace Core
 		}
 
 		inFile >> m_board;
-		inFile >> m_player1;
-		inFile >> m_player2;
+		if (m_player1) inFile >> *m_player1;
+		if (m_player2) inFile >> *m_player2;
 	}
 
 	void GameState::saveGameState(const std::string& filename)
@@ -31,9 +32,13 @@ namespace Core
 		}
 
 		outFile << m_board;
-		outFile << m_player1;
-		outFile << m_player2;
+		if (m_player1) outFile << *m_player1;
+		if (m_player2) outFile << *m_player2;
 	}
 } 
 
-Core::GameState::GameState() : m_board(Core::Board::getInstance()) {}
+Core::GameState::GameState() : m_board(Core::Board::getInstance())
+{
+	m_player1 = std::make_shared<Core::Player>();
+	m_player2 = std::make_shared<Core::Player>();
+}

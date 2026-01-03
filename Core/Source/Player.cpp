@@ -60,8 +60,8 @@ Core::Player* Core::getOpponentPlayer()
 	Core::Player* cp = getCurrentPlayer();
 	if (!cp) return nullptr;
 	auto& gs = Core::GameState::getInstance();
-	Player* p1 = gs.GetPlayer1();
-	Player* p2 = gs.GetPlayer2();
+	Core::Player* p1 = gs.GetPlayer1().get();
+	Core::Player* p2 = gs.GetPlayer2().get();
 	if (p1 == cp) return p2;
 	if (p2 == cp) return p1;
 	return nullptr;

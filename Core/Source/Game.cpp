@@ -31,9 +31,10 @@ import Core.CardCsvParser;
 import Core.Player;
 import Core.AgeTree; 
 import Core.Node;
+import GameState;
 
 std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
-const int kNrOfRounds = 20;
+const int kNrOfRounds =20;
 static const std::vector<int> kMilitaryTokenPositions = {2,5,8,11,14,17};
 
 void m_receiveMoneyAction(class Player& player) {}
@@ -41,9 +42,11 @@ void m_opponentLosesMoneyAction(class Player& opponent) {}
 void m_playSecondTurnAction(class Player& player) {}
 
 
+//void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2);
+
 std::vector<Models::Token> randomTokenSelector(std::vector<Models::Token>& discardedTokens)
 {
-	const uint8_t tokensToSelect = 3;
+	const uint8_t tokensToSelect =3;
 	if (discardedTokens.size() <= tokensToSelect) return discardedTokens;
 	std::vector<Models::Token> selectedTokens;
 	std::random_device seed; std::mt19937 generator(seed());
@@ -105,12 +108,15 @@ void movePawn(int steps) {
 
 namespace Core {
     
-   
+    
 	void preparation()
 	{
 		try {
 			PrepareBoardCardPools();
-
+ auto& gameState = Core::GameState::getInstance();
+			std::shared_ptr<Core::Player> player1 = gameState.GetPlayer1();
+			std::shared_ptr<Core::Player> player2 = gameState.GetPlayer2();
+			wonderSelection(player1, player2);
 			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
@@ -534,7 +540,7 @@ namespace Core {
         }
     }
 
-    void WonderSelection(std::unique_ptr<Core::Player> p1, std::unique_ptr<Core::Player> p2)
+    void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2)
     {
         bool playerOneTurn = true; // true -> p1's turn, false -> p2's turn
         ///random selection of the player to start the wonder selection

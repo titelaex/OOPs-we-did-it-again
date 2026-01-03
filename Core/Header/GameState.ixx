@@ -3,6 +3,7 @@ import Core.Board;
 import Core.Player;
 
 import <string>;
+import <memory>;
 
 export namespace Core
 {
@@ -16,15 +17,17 @@ export namespace Core
 			static GameState instance;
 			return instance;
 		}
-		// access to players for global helpers
-		Player* GetPlayer1() { return &m_player1; }
-		Player* GetPlayer2() { return &m_player2; }
+		std::shared_ptr<Player> GetPlayer1() { return m_player1; }
+		std::shared_ptr<Player> GetPlayer2() { return m_player2; }
+		std::shared_ptr<const Player> GetPlayer1() const { return m_player1; }
+		std::shared_ptr<const Player> GetPlayer2() const { return m_player2; }
 
 		void saveGameState(const std::string& filename);
 		void loadGameState(const std::string& filename);
 
 	private:
 		Core::Board& m_board;
-		Core::Player m_player1, m_player2;
+		std::shared_ptr<Core::Player> m_player1;
+		std::shared_ptr<Core::Player> m_player2;
 	};
 }
