@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Header\GameState.ixx" />
+    <ClCompile Include="Header\PlayerDecisionMaker.ixx" />
     <ClCompile Include="Source/GameState.cpp" />
     <ClCompile Include="Source/AgeTree.cpp" />
     <ClCompile Include="Header/AgeTree.ixx" />
@@ -166,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
+    <ClInclude Include="Header\PlayerDecisionMaker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

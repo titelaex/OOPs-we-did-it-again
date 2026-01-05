@@ -13,6 +13,7 @@ import <memory>;
 
 #include <exception>
 #include <filesystem>
+#include "..\Header\PlayerDecisionMaker.h"
 
 import Models.AgeCard;
 import Models.GuildCard;
@@ -762,7 +763,7 @@ namespace Core {
         }
     }
 
-    static void performCardAction(int action, Player& cur, Player& opp, std::unique_ptr<Models::Card>& cardPtr, Board& board)
+    static void performCardAction(int action, Player& cur, Player& opp, std::unique_ptr<Models::Card>& cardPtr, Board& board, IPlayerDecisionMaker* decisionMaker = nullptr)
     {
         if (!cardPtr) return;
         switch (action)
@@ -810,29 +811,29 @@ namespace Core {
                 break;
             }
 
-            std::cout << "Choose wonder to construct:\n";
-            for (size_t i = 0; i < candidates.size(); ++i) 
+            if (!decisionMaker)
             {
-                std::cout << "[" << i << "] " << owned[candidates[i]]->getName() << "\n";
+                std::cout << "Choose wonder to construct:\n";
+                for (size_t i = 0; i < candidates.size(); ++i) 
+                {
+                    std::cout << "[" << i << "] " << owned[candidates[i]]->getName() << "\n";
+                }
             }
-            int wchoice = 0;
-            if (!(std::cin >> wchoice) || wchoice < 0 || static_cast<size_t>(wchoice) >= candidates.size())
-            {
-                if (!std::cin) { std::cin.clear(); std::string g; std::getline(std::cin, g); }
-                wchoice = 0;
-            }
-            std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[candidates[static_cast<size_t>(wchoice)]];
+            
+            size_t wchoice = decisionMaker ? decisionMaker->selectWonder(candidates) : 0;
+
+            std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[candidates[wchoice]];
             std::vector<Models::Token> discardedTokens; 
             auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
             cur.playCardWonder(chosenWonderPtr, cardPtr, opp.m_player, discardedTokens, discardedCards);
             break;
         }
-    default:
-        if (cardPtr) {
-            auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-            discarded.push_back(std::move(cardPtr));
-        }
-        break;
+        default:
+            if (cardPtr) {
+                auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+                discarded.push_back(std::move(cardPtr));
+            }
+            break;
         }
     }
 
@@ -845,8 +846,11 @@ namespace Core {
         return 0;
     }
 
-    void phaseI(Player& p1, Player& p2)
+    void phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions)
     {
+        if (!p1Decisions) p1Decisions = new HumanDecisionMaker();
+        if (!p2Decisions) p2Decisions = new HumanDecisionMaker();
+
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
         const auto& nodes = board.getAge1Nodes();
@@ -871,21 +875,13 @@ namespace Core {
 
             Player* cur = playerOneTurn ? &p1 : &p2;
             Player* opp = playerOneTurn ? &p2 : &p1;
+            IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
 
             std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
-            int choice = 0;
-            if (!(std::cin >> choice) || choice < 0 || static_cast<size_t>(choice) >= availableIndex.size()) 
-            {
-                if (!std::cin) 
-                { 
-                    std::cin.clear(); 
-                    std::string garbage;
-                    std::getline(std::cin, garbage); }
-                choice = 0;
-            }
+            size_t choice = curDecisionMaker->selectCard(availableIndex);
 
-            size_t chosenNodeIndex = availableIndex[static_cast<size_t>(choice)];
-            std::unique_ptr<Models::Card> cardPtr= nodes[chosenNodeIndex]->releaseCard();
+            size_t chosenNodeIndex = availableIndex[choice];
+            std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
             if (!cardPtr)
             {
                 std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work.\n";
@@ -897,20 +893,9 @@ namespace Core {
             uint8_t shields = getShieldPointsFromCard(cardPtr.get());
 
             std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
-            int action = 0;
-            if (!(std::cin >> action) || action < 0 || action>2)
-            {
-                ++nrOfRounds;
-                if (!std::cin)
-                {
-                    std::cin.clear();
-                    std::string g;
-                    std::getline(std::cin,g);
-                }
-                action = 0;
-            }
+            int action = curDecisionMaker->selectCardAction();
 
-            performCardAction(action, *cur, *opp, cardPtr, board);
+            performCardAction(action, *cur, *opp, cardPtr, board, curDecisionMaker);
             if (shields > 0)
             {
                 movePawn(static_cast<int>(shields));
@@ -941,25 +926,20 @@ namespace Core {
         std::cout << "Phase I completed.\n";
     }
 
-    void phaseII(Player& p1, Player& p2)
+    void phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions)
     {
+        if (!p1Decisions) p1Decisions = new HumanDecisionMaker();
+        if (!p2Decisions) p2Decisions = new HumanDecisionMaker();
+
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
         const auto& nodes = board.getAge2Nodes();
         bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
+        IPlayerDecisionMaker* chooser = chooserIsPlayer1 ? p1Decisions : p2Decisions;
+        
         std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age II." << "\n";
         std::cout << "Chooser: pick who starts Age II ([0]=Player1, [1]=Player2): ";
-        int starterChoice = 0;
-        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1))
-        {
-            if (!std::cin) 
-            {
-                std::cin.clear(); 
-                std::string g; 
-                std::getline(std::cin, g);
-            }
-            starterChoice = chooserIsPlayer1 ? 0 : 1;
-        }
+        uint8_t starterChoice = chooser->selectStartingPlayer();
         bool playerOneTurn = (starterChoice == 0);
 
         while (nrOfRounds <= kNrOfRounds)
@@ -980,21 +960,12 @@ namespace Core {
 
             Player* cur = playerOneTurn ? &p1 : &p2;
             Player* opp = playerOneTurn ? &p2 : &p1;
+            IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
 
             std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
-            int choice = 0;
-            if (!(std::cin >> choice) || choice < 0 || static_cast<size_t>(choice) >= availableIndex.size())
-            {
-                if (!std::cin)
-                {
-                    std::cin.clear();
-                    std::string garbage;
-                    std::getline(std::cin, garbage);
-                }
-                choice = 0;
-            }
+            size_t choice = curDecisionMaker->selectCard(availableIndex);
 
-            size_t chosenNodeIndex = availableIndex[static_cast<size_t>(choice)];
+            size_t chosenNodeIndex = availableIndex[choice];
             std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
             if (!cardPtr)
             {
@@ -1007,20 +978,9 @@ namespace Core {
             uint8_t shields = getShieldPointsFromCard(cardPtr.get());
 
             std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
-            int action = 0;
-            if (!(std::cin >> action) || action < 0 || action>2)
-            {
-                ++nrOfRounds;
-                if (!std::cin)
-                {
-                    std::cin.clear();
-                    std::string g;
-                    std::getline(std::cin,g);
-                }
-                action = 0;
-            }
+            int action = curDecisionMaker->selectCardAction();
 
-            performCardAction(action, *cur, *opp, cardPtr, board);
+            performCardAction(action, *cur, *opp, cardPtr, board, curDecisionMaker);
             if (shields > 0)
             {
                 movePawn(static_cast<int>(shields));
@@ -1052,25 +1012,20 @@ namespace Core {
         std::cout << "Phase II completed.\n";
     }
 
-    void
-        phaseIII(Player& p1, Player& p2)
+    void phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions)
     {
+        if (!p1Decisions) p1Decisions = new HumanDecisionMaker();
+        if (!p2Decisions) p2Decisions = new HumanDecisionMaker();
+
         int nrOfRounds = 1;
         auto& board = Board::getInstance();
         const auto& nodes = board.getAge3Nodes();
         bool chooserIsPlayer1 = determineChooserFromBoardAndLastActive(g_last_active_was_player_one);
+        IPlayerDecisionMaker* chooser = chooserIsPlayer1 ? p1Decisions : p2Decisions;
+        
         std::cout << (chooserIsPlayer1 ? "Player 1" : "Player 2") << " is the chooser for who begins Age III." << "\n";
         std::cout << "Chooser: pick who starts Age III ([0]=Player1, [1]=Player2): ";
-        int starterChoice = 0;
-        if (!(std::cin >> starterChoice) || (starterChoice != 0 && starterChoice != 1)) {
-            if (!std::cin) 
-            { 
-                std::cin.clear(); 
-                std::string g;
-                std::getline(std::cin, g);
-            }
-            starterChoice = chooserIsPlayer1 ? 0 : 1;
-        }
+        uint8_t starterChoice = chooser->selectStartingPlayer();
         bool playerOneTurn = (starterChoice == 0);
 
         while (nrOfRounds <= kNrOfRounds)
@@ -1093,21 +1048,12 @@ namespace Core {
 
             Player* cur = playerOneTurn ? &p1 : &p2;
             Player* opp = playerOneTurn ? &p2 : &p1;
+            IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
 
             std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
-            int choice = 0;
-            if (!(std::cin >> choice) || choice < 0 || static_cast<size_t>(choice) >= availableIndex.size())
-            {
-                if (!std::cin)
-                {
-                    std::cin.clear();
-                    std::string garbage;
-                    std::getline(std::cin, garbage);
-                }
-                choice = 0;
-            }
+            size_t choice = curDecisionMaker->selectCard(availableIndex);
 
-            size_t chosenNodeIndex = availableIndex[static_cast<size_t>(choice)];
+            size_t chosenNodeIndex = availableIndex[choice];
             std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
             if (!cardPtr)
             {
@@ -1120,20 +1066,9 @@ namespace Core {
             uint8_t shields = getShieldPointsFromCard(cardPtr.get());
 
             std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
-            int action = 0;
-            if (!(std::cin >> action) || action < 0 || action>2)
-            {
-                ++nrOfRounds;
-                if (!std::cin)
-                {
-                    std::cin.clear();
-                    std::string g;
-                    std::getline(std::cin,g);
-                }
-                action = 0;
-            }
+            int action = curDecisionMaker->selectCardAction();
 
-            performCardAction(action, *cur, *opp, cardPtr, board);
+            performCardAction(action, *cur, *opp, cardPtr, board, curDecisionMaker);
             if (shields > 0)
             {
                 movePawn(static_cast<int>(shields));
@@ -1196,4 +1131,4 @@ namespace Core {
         }
         std::cout << "Phase III completed." << "\n";
     }
-}
+}}

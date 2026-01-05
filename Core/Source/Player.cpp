@@ -910,7 +910,16 @@ namespace Core {
 }
 
 // Minimal no-op implementations for methods referenced by CSV-defined lambdas
-void Core::Player::setHasAnotherTurn(bool) { /* no-op for now */ }
+void Core::Player::setHasAnotherTurn(bool hasAnotherTurn)
+{
+	if (!hasAnotherTurn) return;
+	
+	Core::Player* cp = getCurrentPlayer();
+	if (!cp) return;
+
+	std::cout << "Player gets an extra turn!\n";
+	Core::playTurnForCurrentPlayer();
+}
 void Core::Player::discardCard(Models::ColorType color)
 {
 	Core::Player* opponent = Core::getOpponentPlayer();
@@ -951,10 +960,48 @@ void Core::Player::discardCard(Models::ColorType color)
 
 void Core::Player::drawToken()
 {
+	Core::drawTokenForCurrentPlayer();
 }
 
 void Core::Player::takeNewCard()
 {
+	Core::Player* cp = getCurrentPlayer();
+	if (!cp) return;
+
+	auto& board = Core::Board::getInstance();
+	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+	
+	if (discarded.empty()) {
+		std::cout << "No cards in the discard pile.\n";
+		return;
+	}
+
+	std::cout << "Choose a card from the discard pile:\n";
+	for (size_t i = 0; i < discarded.size(); ++i) {
+		if (discarded[i]) {
+			std::cout << "[" << i << "] " << discarded[i]->getName() << "\n";
+		}
+	}
+
+	size_t choice = 0;
+	if (!(std::cin >> choice) || choice >= discarded.size()) {
+		if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
+		choice = 0;
+	}
+
+	if (!discarded[choice]) {
+		std::cout << "Invalid card selection.\n";
+		return;
+	}
+
+	auto card = std::move(discarded[choice]);
+	discarded.erase(discarded.begin() + choice);
+
+	if (!card) return;
+
+	cp->m_player->addCard(std::move(card));
+	std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
+	cp->m_player->getOwnedCards().back()->onPlay();
 }
 
 

@@ -63,6 +63,9 @@
     <ClCompile Include="Header\GameState.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
@@ -88,6 +91,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\PlayerDecisionMaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
