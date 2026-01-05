@@ -7,13 +7,13 @@ import <memory>;
 
 using namespace Models;
 
-uint8_t Player::totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins) { return std::get<0>(coins) + std::get<1>(coins) * 3 + std::get<2>(coins) * 6; }
+uint8_t Player::totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins) { return std::get<0>(coins) + std::get<1>(coins) *3 + std::get<2>(coins) *6; }
 
-uint8_t Player::Points::totalVictoryPoints() { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
+uint8_t Player::Points::totalVictoryPoints() const { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
 
 Player::Player(const uint8_t& id, const std::string& username) : playerId(id), m_playerUsername(username)
 {
-	m_playerPoints = { 0,0,0,0 };
+	m_playerPoints = {0,0,0,0 };
 }
 
 void Player::addCard(const std::unique_ptr<Card>& card) { m_ownedCards.push_back(std::move(const_cast<std::unique_ptr<Card>&>(card))); }
@@ -40,20 +40,24 @@ void Player::setTokensOwned(const std::bitset<10>& tokensOwned) { m_tokensOwned 
 const std::bitset<10>& Player::getTokensOwned() const { return m_tokensOwned; }
 
 void Player::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules) {
-    for (const auto& kv : tradeRules) {
-        if (kv.second) {
-            m_tradeRules[kv.first] = true;
-        } else {
-            if (m_tradeRules.find(kv.first) == m_tradeRules.end()) {
-                m_tradeRules[kv.first] = false;
-            }
-        }
-    }
+ for (const auto& kv : tradeRules) {
+ if (kv.second) {
+ m_tradeRules[kv.first] = true;
+ } else {
+ if (m_tradeRules.find(kv.first) == m_tradeRules.end()) {
+ m_tradeRules[kv.first] = false;
+ }
+ }
+ }
 }
 
 std::unique_ptr<Card> Player::removeOwnedCardAt(size_t idx) {
-    if (idx >= m_ownedCards.size()) return nullptr;
-    std::unique_ptr<Card> out = std::move(m_ownedCards[idx]);
-    m_ownedCards.erase(m_ownedCards.begin() + idx);
-    return out;
+ if (idx >= m_ownedCards.size()) return nullptr;
+ std::unique_ptr<Card> out = std::move(m_ownedCards[idx]);
+ m_ownedCards.erase(m_ownedCards.begin() + idx);
+ return out;
+}
+
+uint8_t Player::getTotalVictoryPoints() const {
+ return m_playerPoints.totalVictoryPoints();
 }

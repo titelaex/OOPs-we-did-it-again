@@ -33,7 +33,7 @@ namespace Models
 			uint8_t m_buildingVictoryPoints;
 			uint8_t m_wonderVictoryPoints;
 			uint8_t m_progressVictoryPoints;
-			uint8_t totalVictoryPoints();
+			uint8_t totalVictoryPoints() const;
 		} m_playerPoints;
 		std::unordered_map<TradeRuleType, bool> m_tradeRules{ 0 };
 		std::bitset<10> m_tokensOwned{};
@@ -72,5 +72,7 @@ namespace Models
 		const std::unordered_map<TradeRuleType, bool>& getTradeRules() const;
 		const std::bitset<10>& getTokensOwned() const;
 		const Points& getPoints() const;
+		uint8_t getTotalVictoryPoints() const;
 	};
+
 }

@@ -12,9 +12,6 @@ public:
     UserInterface(QWidget *parent = nullptr);
     ~UserInterface();
 
-private slots:
-	void on_buttonClicked();
-
 private:
     Ui::UserInterfaceClass ui;
 };
