@@ -1,4 +1,4 @@
-export module GameState;
+export module Core.GameState;
 import Core.Board;
 import Core.Player;
 

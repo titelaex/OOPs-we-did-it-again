@@ -31,7 +31,7 @@ import Core.CardCsvParser;
 import Core.Player;
 import Core.AgeTree; 
 import Core.Node;
-import GameState;
+import Core.GameState;
 
 std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
 const int kNrOfRounds =20;
