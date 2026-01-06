@@ -90,5 +90,8 @@
     <QtMoc Include="PlayerPanelWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="Preparation.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>
