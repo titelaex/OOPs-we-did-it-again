@@ -5,7 +5,7 @@ import Core.Game;
 import Core.Board; 
 import Models.Player;
 import Core.Player;
-import GameState;
+import Core.GameState;
 
 
 int main()

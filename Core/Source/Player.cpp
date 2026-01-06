@@ -15,7 +15,7 @@ import Models.Card;
 import Models.Player;
 import Models.Token;
 import Models.LinkingSymbolType;
-import GameState;
+import Core.GameState;
 import Core.Board;
 
 import Models.AgeCard;

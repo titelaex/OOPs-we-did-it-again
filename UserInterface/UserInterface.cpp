@@ -1,5 +1,6 @@
 import Models.ColorType;
 import Models.Player;
+import Core.GameState;
 #include "UserInterface.h"
 #include "PlayerPanelWidget.h"
 #include "Preparation.h"

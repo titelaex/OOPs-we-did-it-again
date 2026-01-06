@@ -2,7 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_UserInterface.h"
-import GameState;
+import Core.GameState;
 
 class UserInterface : public QMainWindow
 {
