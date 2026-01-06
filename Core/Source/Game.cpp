@@ -540,104 +540,56 @@ namespace Core {
         }
     }
 
+    static std::vector<std::unique_ptr<Models::Wonder>> takeNextFourWonders()
+    {
+        auto& wondersPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getUnusedWonders());
+        std::vector<std::unique_ptr<Models::Wonder>> batch;
+        for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
+            size_t idx = 0; bool found = false;
+            for (; idx < wondersPool.size(); ++idx) {
+                if (!wondersPool[idx]) continue;
+                if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
+            }
+            if (!found) break;
+            std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+            wondersPool.erase(wondersPool.begin() + idx);
+            Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
+            batch.emplace_back(raw);
+        }
+        return batch;
+    }
+
+    static void promptPick(const char* prompt, std::shared_ptr<Core::Player>& player, std::vector<std::unique_ptr<Models::Wonder>>& batch)
+    {
+        if (batch.empty()) return;
+        displayAvailableWonders(batch);
+        std::cout << prompt << " (0-" << (batch.size() - 1) << "): ";
+        uint8_t idx = 0;
+        if (!(std::cin >> idx) || idx >= batch.size()) {
+            if (!std::cin) { std::cin.clear(); std::string g; std::getline(std::cin, g); }
+            idx = 0;
+        }
+        player->chooseWonder(batch, idx);
+    }
+
     void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2)
     {
-        bool playerOneTurn = true; // true -> p1's turn, false -> p2's turn
-        ///random selection of the player to start the wonder selection
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, 1);
-        playerOneTurn = (dis(gen) == 0) ? true : false;
-
-        // get the first 4 wonders from the unusedWonders pool (move, don't copy)
-        std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
-        auto& wondersPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getUnusedWonders());
-        // select up to 4 wonder objects by moving them out of the pool
-        for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
-            // find next wonder-derived card in the pool
-            size_t idx = 0; bool found = false;
-            for (; idx < wondersPool.size(); ++idx) {
-                if (!wondersPool[idx]) continue;
-                if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
-            }
-            if (!found) break;
-            // move the unique_ptr<Card> out, convert to unique_ptr<Wonder>
-            std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
-            wondersPool.erase(wondersPool.begin() + idx);
-            Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
-            availableWonders.emplace_back(raw);
+        {
+            auto batch = takeNextFourWonders();
+            if (batch.empty()) return;
+            promptPick("Player1, choose your wonder", p1, batch);
+            if (!batch.empty()) promptPick("Player2, choose your wonder", p2, batch);
+            if (!batch.empty()) promptPick("Player2, choose your second wonder", p2, batch);
+            if (!batch.empty()) p1->chooseWonder(batch, 0);
         }
-
-        displayAvailableWonders(availableWonders);
-
-        uint8_t chosenIndex = 0;
-        playerOneTurn ?
-            (std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                displayAvailableWonders(availableWonders),
-                std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                p1->chooseWonder(availableWonders, 0)) // ssa o fac automat din chooseWonder
-            :
-            (std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                displayAvailableWonders(availableWonders),
-                std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                p2->chooseWonder(availableWonders, 0));
-
-
-        // get the next 4 wonders from the unusedWonders pool (move)
-        for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
-            size_t idx = 0; bool found = false;
-            for (; idx < wondersPool.size(); ++idx) {
-                if (!wondersPool[idx]) continue;
-                if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
-            }
-            if (!found) break;
-            std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
-            wondersPool.erase(wondersPool.begin() + idx);
-            Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
-            availableWonders.emplace_back(raw);
+        {
+            auto batch = takeNextFourWonders();
+            if (batch.empty()) return;
+            promptPick("Player2, choose your wonder", p2, batch);
+            if (!batch.empty()) promptPick("Player1, choose your wonder", p1, batch);
+            if (!batch.empty()) promptPick("Player1, choose your second wonder", p1, batch);
+            if (!batch.empty()) p1->chooseWonder(batch, 0);
         }
-
-
-        displayAvailableWonders(availableWonders);
-
-        !playerOneTurn ?
-            (std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                displayAvailableWonders(availableWonders),
-                std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                p1->chooseWonder(availableWonders, 0)) // ssa o fac automat din chooseWonder
-            :
-            (std::cout << "Player 2, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p2->chooseWonder(availableWonders, chosenIndex),
-                displayAvailableWonders(availableWonders),
-                std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                std::cout << "Player 1, choose your wonder (0-" << availableWonders.size() - 1 << "): ",
-                std::cin >> chosenIndex,
-                p1->chooseWonder(availableWonders, chosenIndex),
-                p2->chooseWonder(availableWonders, 0));
     }
 }
 

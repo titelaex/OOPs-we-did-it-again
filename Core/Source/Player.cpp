@@ -149,39 +149,34 @@ void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& av
 	{
 		m_player->addWonder(std::move(availableWonders[0]));
 		availableWonders.erase(availableWonders.begin());
-		std::cout << "Only one wonder available. Automatically chosen: " << m_player->getOwnedWonders().back()->getName() << "->\n";
+		std::cout << "Only one wonder available. Automatically chosen: " << m_player->getOwnedWonders().back()->getName() << "\n";
 		return;
 	}
 
 	if (chosenIndex >= availableWonders.size())
 	{
-		std::cout << "Invalid wonder index->\n";
+		std::cout << "Invalid wonder index\n";
 		return;
 	}
 	auto& chosenWonder = availableWonders[chosenIndex];
 	m_player->addWonder(std::move(chosenWonder));
 	availableWonders.erase(availableWonders.begin() + chosenIndex);
-	std::cout << "Chosen wonder: " << m_player->getOwnedWonders().back()->getName() << "->\n";
+	std::cout << "Chosen wonder: " << m_player->getOwnedWonders().back()->getName() << "\n";
 
 }
 
 void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
-	// 1. Calculate Base Value
 	uint8_t coinsToGain = 2;
-
-	// 2. Calculate Yellow Card Bonus
 
 	uint8_t yellowCardCount = countYellowCards();
 	coinsToGain += yellowCardCount;
 
-	// 3. Add coins to Treasury
 	addCoins(coinsToGain);
 
 	std::cout << "Player sold \"" << ageCard->getName() << "\" for "
 		<< static_cast<int>(coinsToGain) << " coins.\n";
 
-	// 4. Move card to Discard Pile
 	discardedCards.push_back(std::move(ageCard));
 }
 
@@ -203,19 +198,19 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 {
 	if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders)
 	{
-		std::cout << "All wonders have been built in the game->\n";
+		std::cout << "All wonders have been built in the game\n";
 		return;
 	}
 
 	if (wonder->IsConstructed())
 	{
-		std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed->\n";
+		std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed\n";
 		return;
 	}
 
 	if (!canAffordWonder(wonder, opponent))
 	{
-		std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\"->\n";
+		std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\n";
 		return;
 	}
 
@@ -231,7 +226,7 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 	const auto builtCount = Models::Wonder::incrementWondersBuilt();
 	if (builtCount == Models::Wonder::MaxWonders)
 	{
-		std::cout << "All wonders have been built in the game->\n";
+		std::cout << "All wonders have been built in the game\n";
 		discardRemainingWonder(opponent);
 	}
 	//ageCard.reset()
@@ -244,7 +239,7 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 		Core::awardMilitaryTokenIfPresent(*this);
 	}
 
-	std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully->\n";
+	std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully\n";
 }
 
 bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
