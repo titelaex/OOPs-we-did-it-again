@@ -1,4 +1,4 @@
-#include "PlayerPanelWidget.h"
+﻿#include "PlayerPanelWidget.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -24,6 +24,20 @@ QString PlayerPanelWidget::ColorToCss(Models::ColorType c) const {
 	case Models::ColorType::PURPLE: return "#8B5CF6";
 	default: return "#6B7280"; // gray
 	}
+}
+
+void PlayerPanelWidget::refreshWonders()
+{
+	// Ștergem widget-ul vechi de wonders dacă există și îl reconstruim
+	// Notă: Aceasta este o abordare simplificată pentru începători.
+	// Ideal ar fi să avem pointeri la acele QLabel-uri și să le setăm textul.
+
+	// Pentru simplitate acum, vom re-apela logica de construire a secțiunii
+	// Dar trebuie să modifici puțin buildUi() ca să păstrezi referința la layout-ul principal sau să cureți layout-ul.
+
+	// VARIANTĂ MAI SIMPLĂ ȘI SIGURĂ: 
+	// Modifică "addWonderSection" să șteargă conținutul vechi înainte să adauge.
+	// Îți voi da un snippet complet pentru asta mai jos, în etapa de integrare.
 }
 
 PlayerPanelWidget::PlayerPanelWidget(std::shared_ptr<Core::Player> player, QWidget* parent, bool isLeftPanel)

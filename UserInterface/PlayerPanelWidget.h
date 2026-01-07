@@ -28,4 +28,7 @@ private:
 
 	QString QStringBuilder(const std::string& s) const;
 	QString ColorToCss(Models::ColorType c) const;
+
+public:
+	void refreshWonders(); 
 };

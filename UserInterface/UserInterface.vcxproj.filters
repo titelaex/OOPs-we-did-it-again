@@ -85,12 +85,18 @@
     <ClCompile Include="PlayerPanelWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WonderSelectionWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PlayerPanelWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="Preparation.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="WonderSelectionWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

@@ -107,6 +107,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="WonderSelectionWidget.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
     <QtMoc Include="UserInterface.h" />
@@ -141,6 +142,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Preparation.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="WonderSelectionWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
