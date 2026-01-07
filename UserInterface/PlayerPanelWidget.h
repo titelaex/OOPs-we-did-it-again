@@ -5,6 +5,7 @@
 import Core.Player; 
 import Models.ColorType;
 
+class QGridLayout;
 class QLabel;
 class QVBoxLayout;
 
@@ -19,6 +20,8 @@ private:
 	std::shared_ptr<Core::Player> m_player;
 	QVBoxLayout* m_layout;
 	bool m_isLeftPanel{ false };
+
+	QGridLayout* m_wondersGrid = nullptr;
 
 	void buildUi();
 	void addStatsRow();

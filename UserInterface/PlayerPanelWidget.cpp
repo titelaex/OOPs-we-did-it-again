@@ -28,16 +28,71 @@ QString PlayerPanelWidget::ColorToCss(Models::ColorType c) const {
 
 void PlayerPanelWidget::refreshWonders()
 {
-	// Ștergem widget-ul vechi de wonders dacă există și îl reconstruim
-	// Notă: Aceasta este o abordare simplificată pentru începători.
-	// Ideal ar fi să avem pointeri la acele QLabel-uri și să le setăm textul.
+	if (!m_wondersGrid) return;
 
-	// Pentru simplitate acum, vom re-apela logica de construire a secțiunii
-	// Dar trebuie să modifici puțin buildUi() ca să păstrezi referința la layout-ul principal sau să cureți layout-ul.
+	QLayoutItem* item;
+	while ((item = m_wondersGrid->takeAt(0)) != nullptr) {
+		if (item->widget()) {
+			delete item->widget(); 
+		}
+		delete item; 
+	}
 
-	// VARIANTĂ MAI SIMPLĂ ȘI SIGURĂ: 
-	// Modifică "addWonderSection" să șteargă conținutul vechi înainte să adauge.
-	// Îți voi da un snippet complet pentru asta mai jos, în etapa de integrare.
+	auto title = new QLabel("Wonders:", this);
+	title->setStyleSheet("font-weight: bold; margin-right:6px;");
+	title->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
+	m_wondersGrid->addWidget(title, 0, 0, 1, 2);
+
+	bool hasPlayer = (m_player && m_player->m_player);
+
+	for (int i = 0; i < 4; ++i) {
+		auto slot = new QLabel(this);
+		slot->setAlignment(Qt::AlignCenter);
+		slot->setFixedSize(150, 70); 
+
+		int row = (i / 2) + 1;
+		int col = i % 2;
+
+		if (m_isLeftPanel) {
+			col = 1 - col;
+		}
+
+		QString emptyStyle = "background-color: rgba(255,255,255,0.04); border:1px solid #374151; border-radius:6px; color:#9CA3AF; font-style:italic;";
+
+		if (hasPlayer) {
+			auto& wonders = m_player->m_player->getOwnedWonders();
+
+			if (static_cast<size_t>(i) < wonders.size() && wonders[i]) {
+				const auto* w = wonders[i].get();
+				QString name = QStringBuilder(w->getName());
+				bool built = w->IsConstructed();
+
+				slot->setText(name + (built ? "\n(constructed)" : "\n(unbuilt)"));
+
+				QString bg = ColorToCss(w->getColor());
+				QString style = QString(
+					"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
+					"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600;")
+					.arg(m_isLeftPanel ? 1 : 0)
+					.arg(m_isLeftPanel ? 0 : 1)
+					.arg(bg);
+
+				if (built) style += "opacity:0.8;";
+				slot->setStyleSheet(style);
+				slot->setToolTip(name);
+			}
+			else {
+				slot->setText("<empty>");
+				slot->setStyleSheet(emptyStyle);
+			}
+		}
+		else {
+			slot->setText("<empty>");
+			slot->setStyleSheet(emptyStyle);
+		}
+
+		m_wondersGrid->addWidget(slot, row, col);
+	}
 }
 
 PlayerPanelWidget::PlayerPanelWidget(std::shared_ptr<Core::Player> player, QWidget* parent, bool isLeftPanel)
@@ -67,71 +122,20 @@ void PlayerPanelWidget::buildUi()
 
 	m_layout->addStretch(1);
 }
+
 void PlayerPanelWidget::addWonderSection()
 {
 	QWidget* wondersSection = new QWidget(this);
-	auto* wondersGrid = new QGridLayout(wondersSection);
-	wondersGrid->setContentsMargins(4, 4, 4, 4);
-	wondersGrid->setSpacing(8);
 
-	auto title = new QLabel("Wonders:", wondersSection);
-	title->setStyleSheet("font-weight: bold; margin-right:6px;");
-	title->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
-
-	wondersGrid->addWidget(title, 0, 0, 1, 2);
-
-	bool hasPlayer = (m_player && m_player->m_player);
-
-	for (int i = 0; i < 4; ++i) {
-		auto slot = new QLabel(wondersSection);
-		slot->setAlignment(Qt::AlignCenter);
-		slot->setFixedSize(150, 70);
-
-
-		int row = (i / 2) + 1;
-		int col = i % 2;
-
-		if (m_isLeftPanel) {
-			col = 1 - col;
-		}
-
-		QString emptyStyle = "background-color: rgba(255,255,255,0.04); border:1px solid #374151; border-radius:6px; color:#9CA3AF; font-style:italic;";
-
-		if (hasPlayer) {
-			auto& wonders = m_player->m_player->getOwnedWonders();
-			if (static_cast<size_t>(i) < wonders.size() && wonders[i]) {
-				const auto* w = wonders[i].get();
-				QString name = QStringBuilder(w->getName());
-				bool built = w->IsConstructed();
-				slot->setText(name + (built ? "\n(constructed)" : "\n(unbuilt)"));
-
-				QString bg = ColorToCss(w->getColor());
-				QString style = QString(
-					"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
-					"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600;")
-					.arg(m_isLeftPanel ? 1 : 0)
-					.arg(m_isLeftPanel ? 0 : 1)
-					.arg(bg);
-
-				if (built) style += "opacity:0.8;";
-				slot->setStyleSheet(style);
-				slot->setToolTip(name);
-			}
-			else {
-				slot->setText("<empty>");
-				slot->setStyleSheet(emptyStyle);
-			}
-		}
-		else {
-			slot->setText("<empty>");
-			slot->setStyleSheet(emptyStyle);
-		}
-
-		wondersGrid->addWidget(slot, row, col);
-	}
+	m_wondersGrid = new QGridLayout(wondersSection);
+	m_wondersGrid->setContentsMargins(4, 4, 4, 4);
+	m_wondersGrid->setSpacing(8);
 
 	m_layout->addWidget(wondersSection);
+
+	refreshWonders();
 }
+
 
 void PlayerPanelWidget::addProgressTokensSection()
 {

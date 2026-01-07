@@ -116,7 +116,7 @@ namespace Core {
  auto& gameState = Core::GameState::getInstance();
 			std::shared_ptr<Core::Player> player1 = gameState.GetPlayer1();
 			std::shared_ptr<Core::Player> player2 = gameState.GetPlayer2();
-			wonderSelection(player1, player2);
+		//	wonderSelection(player1, player2);
 			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
