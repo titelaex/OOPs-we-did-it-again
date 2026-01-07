@@ -33,7 +33,6 @@ export namespace Models
 		std::vector<std::pair<std::function<void()>, std::string>> m_onDiscardActions{};
 		bool m_isVisible{ false };
 		bool m_isAvailable{ false };
-		//std::string m_modelPath = "UI path placeholder";
 
 	public:
 		Card() = default;

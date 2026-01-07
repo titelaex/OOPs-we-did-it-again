@@ -52,23 +52,18 @@ UserInterface::UserInterface(QWidget* parent)
             p2->m_player->setPlayerUsername(n2.toStdString());
     }
 
-    // Construcția Interfetei (Stânga - Centru - Dreapta)
-
-    // Panel Stanga (Player 1)
     m_leftPanel = new PlayerPanelWidget(p1, splitter, true);
     auto leftScroll = new QScrollArea(splitter);
     leftScroll->setWidgetResizable(true);
     leftScroll->setWidget(m_leftPanel);
     splitter->addWidget(leftScroll);
 
-    // Centru (Wonder Selection)
     m_centerWidget = new WonderSelectionWidget(this);
     m_centerWidget->setOnWonderClicked([this](int index) {
         this->onWonderSelected(index);
         });
     splitter->addWidget(m_centerWidget);
 
-    // Panel Dreapta (Player 2)
     m_rightPanel = new PlayerPanelWidget(p2, splitter, false);
     auto rightScroll = new QScrollArea(splitter);
     rightScroll->setWidgetResizable(true);
@@ -134,14 +129,12 @@ void UserInterface::onWonderSelected(int index)
     std::shared_ptr<Core::Player> currentPlayer;
 
     if (m_selectionPhase == 0) {
-        // Faza 1: Ordine 1-2-2-1
         if (m_cardsPickedInPhase == 0) currentPlayer = p1;
         else if (m_cardsPickedInPhase == 1) currentPlayer = p2;
         else if (m_cardsPickedInPhase == 2) currentPlayer = p2;
         else currentPlayer = p1;
     }
     else {
-        // Faza 2: Ordine 2-1-1-2
         if (m_cardsPickedInPhase == 0) currentPlayer = p2;
         else if (m_cardsPickedInPhase == 1) currentPlayer = p1;
         else if (m_cardsPickedInPhase == 2) currentPlayer = p1;
@@ -175,8 +168,8 @@ void UserInterface::onWonderSelected(int index)
      m_rightPanel->refreshWonders();
 
     if (m_currentBatch.size() == 1) {
-        if (m_selectionPhase == 0) currentPlayer = p1; // În faza 1, ultimul e P1
-        else currentPlayer = p2;                       // În faza 2, ultimul e P2
+        if (m_selectionPhase == 0) currentPlayer = p1; 
+        else currentPlayer = p2;                       
 
         Models::Wonder* lastRawPtr = m_currentBatch[0];
 
@@ -229,8 +222,6 @@ void UserInterface::updateTurnLabel()
 
     QString currentPlayerName;
 
-    // Logica 1-2-2-1 pentru Faza 0
-    // Logica 2-1-1-2 pentru Faza 1
     if (m_selectionPhase == 0) {
         if (m_cardsPickedInPhase == 0) currentPlayerName = p1Name;
         else if (m_cardsPickedInPhase == 1) currentPlayerName = p2Name;

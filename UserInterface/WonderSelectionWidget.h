@@ -2,13 +2,12 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QHBoxLayout>
-#include <QVBoxLayout> // <--- Adăugat
-#include <QLabel>      // <--- Adăugat
+#include <QVBoxLayout> 
+#include <QLabel>      
 #include <vector>
 #include <memory>
 #include <functional>
 
-// Importuri
 import Models.Wonder; 
 import Core.Player;
 
@@ -21,13 +20,14 @@ public:
 
     void loadWonders(std::vector<Models::Wonder*> wonders);
     void setOnWonderClicked(std::function<void(int index)> callback);
-
+    bool eventFilter(QObject* watched, QEvent* event);
     void setTurnMessage(QString message);
 
 private:
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_cardsLayout; 
-    QLabel* m_infoLabel;        
+    QLabel* m_infoLabel;       
+    std::vector<Models::Wonder*> m_wonders;
 
     std::vector<QPushButton*> m_buttons;
     std::function<void(int index)> m_callback;
