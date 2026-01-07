@@ -27,10 +27,17 @@ private:
     PlayerPanelWidget* m_rightPanel;
     WonderSelectionWidget* m_centerWidget; 
 
+    // center container panels (so we can color and lock sizes)
+    QWidget* m_centerContainer{ nullptr };
+    QWidget* m_centerTop{ nullptr };
+    QWidget* m_centerMiddle{ nullptr };
+    QWidget* m_centerBottom{ nullptr };
+
     // Starea selectiei Wonder-urilor
     int m_selectionPhase = 0; // 0 = Primele 4, 1 = Următoarele 4, 2 = Gata
     int m_cardsPickedInPhase = 0; // Câte cărți s-au ales în faza curentă (0-3)
 
+    int m_currentPlayerIndex = 0; // 0 = player1, 1 = player2 (used for UI actions)
 
     std::vector<Models::Wonder*> m_currentBatch;
 
@@ -39,4 +46,10 @@ private:
     void onWonderSelected(int index);
     void updatePanels();
     void updateTurnLabel();
+
+    // Show visual representation of age tree inside the center middle panel
+    void showAgeTree(int age);
+
+    // Handle click on a leaf node button
+    void handleLeafClicked(int nodeIndex, int age);
 };

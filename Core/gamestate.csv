@@ -1,99 +1,99 @@
 Section,Type,Data
 Pawn,Track,0000000000000000000
 Pawn,Position,0
+Token,Progress,"PROGRESS","Masonry","Any future blue cards constructed by you will cost 2 fewer resources.","","","","applyToken"
 Token,Progress,"PROGRESS","Philosophy","The token is worth 7 victory points.","","7","","getVictoryPoints, applyToken"
-Token,Progress,"PROGRESS","Strategy","Once this token enters play your new military Buildings (red cards) will benefit from 1 extra Shield.","","","","applyToken"
-Token,Progress,"PROGRESS","Economy","You get the money spent by your opponent when they trade for resources","","","","applyToken"
-Token,Progress,"PROGRESS","Theology","All future Wonders constructed by you are all treated as though they have the PLAY AGAIN effect","","","","applyToken"
+Token,Progress,"PROGRESS","Mathematics","At the end of the game score 3 victory points for each Progress token in your possession (including itself)","","","","applyToken"
 Token,Progress,"PROGRESS","Law","Is worth a scientific symbol","","","","lawTokenEffect, applyToken"
+Token,Progress,"PROGRESS","Strategy","Once this token enters play your new military Buildings (red cards) will benefit from 1 extra Shield.","","","","applyToken"
 Token,Military,"MILITARY","Military Loss 2","Your opponent loses 2 coins","","","",""
 Token,Military,"MILITARY","Military Loss 5","Your opponent loses 5 coins","","","",""
-Node,Age1,"Quarry",,"STONE:1",,,,,,,,"Produces 1 stone","BROWN","AGE_I","getResource","takeResource"
-Node,Age1,"Guard Tower",,,,1,,,,,,"Provides 1 shield","RED","AGE_I","getShieldPoints",
-Node,Age1,"Garrison","CLAY:1",,,1,,,"DAGGER",,,"Provides 1 shield and target symbol","RED","AGE_I","getShieldPoints",
 Node,Age1,"Scriptorium",,,,,,"FEATHER","BOOK",,,"Provides tablet symbol","GREEN","AGE_I","getScientificSymbol,payCoins",
-Node,Age1,"Baths","STONE:1",,3,,,,"WATER",,,"Gives 3 victory points and drop symbol","BLUE","AGE_I","getVictoryPoints",
-Node,Age1,"Stone Reserve",,"STONE:1",,,,,,,"Stone:true","Buy 1 stone for 1 coin","YELLOW","AGE_I","getTradeRule,payCoins",
-Node,Age1,"Clay Reserve",,"CLAY:1",,,,,,,"Clay:true","Buy 1 clay for 1 coins","YELLOW","AGE_I","getTradeRule,payCoins",
-Node,Age1,"Apothecary","PAPYRUS:1",,,,,"WHEEL",,,,"Provides compass symbol","GREEN","AGE_I","getVictoryPoints,getScientificSymbol",
-Node,Age1,"Workshop","GLASS:1",,,,,"PENDULUM",,,,"Provides gear symbol","GREEN","AGE_I","getVictoryPoints,getScientificSymbol",
-Node,Age1,"Stable","WOOD:1",,,1,,,"HORSESHOE",,,"Provides 1 shield and horse symbol","RED","AGE_I","getShieldPoints",
-Node,Age1,"Lumber Yard",,"WOOD:1",,,,,,,,"Produces 1 wood","BROWN","AGE_I","getResource","takeResource"
-Node,Age1,"Wood Reserve",,"WOOD:1",,,,,,,"Wood:true","Buy 1 wood for 1 coin","YELLOW","AGE_I","getTradeRule,payCoins",
-Node,Age1,"Palisade",,,,1,,,"TOWER",,,"Provides 1 shield and wall symbol","RED","AGE_I","getShieldPoints,payCoins",
-Node,Age1,"Clay Pit",,"CLAY:1",,,,,,,,"Produces 1 clay","BROWN","AGE_I","getResource,payCoins","takeResource"
 Node,Age1,"Clay Pool",,"CLAY:1",,,,,,,,"Produces 1 clay","BROWN","AGE_I","getResource","takeResource"
 Node,Age1,"Tavern",,,,,,,"VESSEL",,,"Gain 4 coins","YELLOW","AGE_I","getCoins(4)",
-Node,Age1,"Press",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Stone Pit",,"STONE:1",,,,,,,,"Produces 1 stone","BROWN","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Lumber Yard",,"WOOD:1",,,,,,,,"Produces 1 wood","BROWN","AGE_I","getResource","takeResource"
+Node,Age1,"Quarry",,"STONE:1",,,,,,,,"Produces 1 stone","BROWN","AGE_I","getResource","takeResource"
 Node,Age1,"Altar",,,3,,,,"MOON",,,"Gives 3 victory points and moon symbol","BLUE","AGE_I","getVictoryPoints",
+Node,Age1,"Glassworks",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Press",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Garrison","CLAY:1",,,1,,,"DAGGER",,,"Provides 1 shield and target symbol","RED","AGE_I","getShieldPoints",
+Node,Age1,"Clay Pit",,"CLAY:1",,,,,,,,"Produces 1 clay","BROWN","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Stable","WOOD:1",,,1,,,"HORSESHOE",,,"Provides 1 shield and horse symbol","RED","AGE_I","getShieldPoints",
 Node,Age1,"Pharmacist",,,,,,"MOJAR","COG",,,"Provides compass symbol","GREEN","AGE_I","getScientificSymbol,payCoins",
+Node,Age1,"Workshop","GLASS:1",,,,,"PENDULUM",,,,"Provides gear symbol","GREEN","AGE_I","getVictoryPoints,getScientificSymbol",
+Node,Age1,"Apothecary","PAPYRUS:1",,,,,"WHEEL",,,,"Provides compass symbol","GREEN","AGE_I","getVictoryPoints,getScientificSymbol",
+Node,Age1,"Stone Reserve",,"STONE:1",,,,,,,"Stone:true","Buy 1 stone for 1 coin","YELLOW","AGE_I","getTradeRule,payCoins",
+Node,Age1,"Logging Camp",,"WOOD:1",,,,,,,,"Produces 1 wood","BROWN","AGE_I","getResource,payCoins","takeResource"
+Node,Age1,"Baths","STONE:1",,3,,,,"WATER",,,"Gives 3 victory points and drop symbol","BLUE","AGE_I","getVictoryPoints",
+Node,Age1,"Palisade",,,,1,,,"TOWER",,,"Provides 1 shield and wall symbol","RED","AGE_I","getShieldPoints,payCoins",
 Node,Age1,"Theater",,,3,,,,"DRAMA",,,"Gives 3 victory points and mask symbol","BLUE","AGE_I","getVictoryPoints",
-Node,Age2,"Caravansery","GLASS:1,PAPYRUS:1",,,,,,,,,"Gives either wood, clay or stone","YELLOW","AGE_II","getResource,payCoins",
-Node,Age2,"Archery Range","WOOD:1,PAPYRUS:1,STONE:1",,,2,,,"TARGET",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
-Node,Age2,"Drying Room",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_II","getResource","takeResource"
-Node,Age2,"Statue","CLAY:2",,4,,,,"PILLAR","DRAMA",,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
-Node,Age2,"Glass-Blower",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_II","getResource","takeResource"
-Node,Age2,"Laboratory","WOOD:1,GLASS:2",,1,,,"PENDULUM","LAMP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
-Node,Age2,"School","WOOD:1,PAPYRUS:2",,1,,,"WHEEL","HARP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
 Node,Age2,"Courthouse","WOOD:2,GLASS:1",,5,,,,,,,"Gives 5 Victory Points","BLUE","AGE_II","getVictoryPoints",
-Node,Age2,"Parade Ground","CLAY:2,GLASS:1",,,2,,,"SPARTAN",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
-Node,Age2,"Forum","CLAY:3",,,,,,,,,"Gives either glass or papyrus","YELLOW","AGE_II","getResource,payCoins",
-Node,Age2,"Brewery",,,,,,,"BARREL",,,"Gives 6 Coins","YELLOW","AGE_II","getCoins(6)",
-Node,Age2,"Walls","STONE:2",,,2,,,,,,"Provides 2 shields and fort symbol","RED","AGE_II","getShieldPoints",
-Node,Age2,"Library","WOOD:1,GLASS:1,STONE:1",,2,,,"FEATHER",,"BOOK",,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
 Node,Age2,"Shelf Quarry",,"STONE:2",,,,,,,,"Produces 2 stone","BROWN","AGE_II","getResource,payCoins","takeResource"
+Node,Age2,"Dispensary","CLAY:2,STONE:1",,2,,,"MOJAR",,,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
 Node,Age2,"Aqueduct","STONE:3",,5,,,,,"WATER",,"Gives 5 Victory Points","BLUE","AGE_II","getVictoryPoints",
-Node,Age2,"Rostrum","WOOD:1,STONE:1",,4,,,,"TEMPLE",,,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
-Node,Age2,"Horse Breeders","WOOD:1,CLAY:1",,,1,,,,"HORSESHOE",,"Gives 1 War Point","RED","AGE_II","getShieldPoints",
-Node,Age2,"Barracks",,,,1,,,,"DAGGER",,"Gives 1 War Point","RED","AGE_II","getShieldPoints,payCoins",
-Node,Age2,"Temple","WOOD:1,PAPYRUS:1",,4,,,,"SUN","MOON",,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
 Node,Age2,"Customs House",,,,,,,,,,"Produces 1 wood, stone, clay","YELLOW","AGE_II","getTradeRule,payCoins",
-Node,Age3,"Port","WOOD:1,GLASS:1,PAPYRUS:1",,3,,,,,,,"Gives 3 victory point and 2 coins per brown card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(BROWN)",
-Node,Age3,"Observatory","STONE:1,PAPYRUS:2",,2,,,"GLOBE",,"LAMP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
-Node,Age3,"Academy","STONE:1,WOOD:1,GLASS:2",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
-Node,Age3,"Siege Workshop","WOOD:3,GLASS:1",,,2,,,,"TARGET",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
-Node,Age3,"Gardens","CLAY:2,WOOD:2",,6,,,,,"PILLAR",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
-Node,Age3,"Study","WOOD:2,GLASS:1",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
-Node,Age3,""Traders Guild"","""","""","","","","","","","","1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(YELLOW)",""
-Node,Age3,"Pretorium",,,,3,,,,,,"Gives 3 War Points","RED","AGE_III","getShieldPoints,payCoins",
-Node,Age3,"Palace","CLAY:1,STONE:1,WOOD:1",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
-Node,Age3,"University","CLAY:1,GLASS:1,PAPYRUS:1",,2,,,"GLOBE",,"HARP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
-Node,Age3,"Fortifications","STONE:2,CLAY:1,PAPYRUS:1",,,2,,,,"TOWER",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
-Node,Age3,"Chamber Of Commerce","PAPYRUS:2",,3,,,,,,,"Gives 3 victory point and 3 coins per grey card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(GREY)",
-Node,Age3,"Senate","STONE:1,CLAY:2,PAPYRUS:1",,5,,,,,"TEMPLE",,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
-Node,Age3,"Town Hall","STONE:3,WOOD:2",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
-Node,Age3,"Arena","STONE:1,WOOD:1,CLAY:1",,3,,,,,"BARREL",,"Gives 3 Victory Points and 2 coins per wonder","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(WONDER)",
-Node,Age3,""Magistrates Guild"","""","""","","","","","","","","1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(BLUE)",""
-Node,Age3,""Scientists Guild"","""","""","","","","","","","","1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(GREEN)",""
-Node,Age3,"Pantheon","CLAY:1,WOOD:1,PAPYRUS:2",,6,,,,,"SUN",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Node,Age2,"Statue","CLAY:2",,4,,,,"PILLAR","DRAMA",,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
+Node,Age2,"Brickyard",,"CLAY:2",,,,,,,,"Produces 2 clay","BROWN","AGE_II","getResource,payCoins","takeResource"
+Node,Age2,"Parade Ground","CLAY:2,GLASS:1",,,2,,,"SPARTAN",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
+Node,Age2,"Brewery",,,,,,,"BARREL",,,"Gives 6 Coins","YELLOW","AGE_II","getCoins(6)",
+Node,Age2,"Forum","CLAY:3",,,,,,,,,"Gives either glass or papyrus","YELLOW","AGE_II","getResource,payCoins",
+Node,Age2,"Glass-Blower",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_II","getResource","takeResource"
+Node,Age2,"Drying Room",,"PAPYRUS:1",,,,,,,,"Produces 1 papyrus","GREY","AGE_II","getResource","takeResource"
+Node,Age2,"Walls","STONE:2",,,2,,,,,,"Provides 2 shields and fort symbol","RED","AGE_II","getShieldPoints",
+Node,Age2,"Archery Range","WOOD:1,PAPYRUS:1,STONE:1",,,2,,,"TARGET",,,"Gives 2 War Points","RED","AGE_II","getShieldPoints",
+Node,Age2,"Laboratory","WOOD:1,GLASS:2",,1,,,"PENDULUM","LAMP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
+Node,Age2,"Caravansery","GLASS:1,PAPYRUS:1",,,,,,,,,"Gives either wood, clay or stone","YELLOW","AGE_II","getResource,payCoins",
+Node,Age2,"Horse Breeders","WOOD:1,CLAY:1",,,1,,,,"HORSESHOE",,"Gives 1 War Point","RED","AGE_II","getShieldPoints",
+Node,Age2,"Temple","WOOD:1,PAPYRUS:1",,4,,,,"SUN","MOON",,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
+Node,Age2,"Sawmill",,"WOOD:2",,,,,,,,"Produces 2 wood","BROWN","AGE_II","getResource,payCoins","takeResource"
+Node,Age2,"Rostrum","WOOD:1,STONE:1",,4,,,,"TEMPLE",,,"Gives 4 Victory Points","BLUE","AGE_II","getVictoryPoints",
 Node,Age3,"Lighthouse","CLAY:2,GLASS:1",,3,,,,,"VESSEL",,"Gives 3 Victory Points and 1 coint per yellow card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(YELLOW)",
+Node,Age3,""Scientists Guild"","""","""","","","","","","","","1 coin/(grren in the city which has the most at that time)+1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(GREEN)",""
+Node,Age3,"Circus","STONE:2,CLAY:2",,,2,,,,"SPARTAN",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+Node,Age3,""Traders Guild"","""","""","","","","","","","","1 coin/(yellow in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(YELLOW)",""
 Node,Age3,"Arsenal","CLAY:3,WOOD:2",,,3,,,,,,"Gives 3 War Points","RED","AGE_III","getShieldPoints",
-Unused,Age1,"Logging Camp",,"WOOD:1",,,,,,,,"Produces 1 wood","BROWN","AGE_I","getResource,payCoins","takeResource"
-Unused,Age1,"Stone Pit",,"STONE:1",,,,,,,,"Produces 1 stone","BROWN","AGE_I","getResource,payCoins","takeResource"
-Unused,Age1,"Glassworks",,"GLASS:1",,,,,,,,"Produces 1 glass","GREY","AGE_I","getResource,payCoins","takeResource"
-Unused,Age2,"Brickyard",,"CLAY:2",,,,,,,,"Produces 2 clay","BROWN","AGE_II","getResource,payCoins","takeResource"
-Unused,Age2,"Sawmill",,"WOOD:2",,,,,,,,"Produces 2 wood","BROWN","AGE_II","getResource,payCoins","takeResource"
-Unused,Age2,"Dispensary","CLAY:2,STONE:1",,2,,,"MOJAR",,,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
-Unused,Age3,"Circus","STONE:2,CLAY:2",,,2,,,,"SPARTAN",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
-Unused,Age3,"Armory","STONE:2,GLASS:1",,3,,,,,,,"Gives 3 victory point and 1 coin per red card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(RED)",
-Unused,Age3,"Obelisk","STONE:2,GLASS:1",,5,,,,,,,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
-Unused,Guild,""Builders Guild"","""","""","","","","","","","","2 victory points for each Wonder constructed in the city which has the most wonders.","PURPLE","Unknown","applyGuildCoinWorth(WONDER)",""
+Node,Age3,""Magistrates Guild"","""","""","","","","","","","","1 coin/(blue in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(BLUE)",""
+Node,Age3,"Study","WOOD:2,GLASS:1",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
+Node,Age3,"Arena","STONE:1,WOOD:1,CLAY:1",,3,,,,,"BARREL",,"Gives 3 Victory Points and 2 coins per wonder","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(WONDER)",
+Node,Age3,"Gardens","CLAY:2,WOOD:2",,6,,,,,"PILLAR",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Node,Age3,"Observatory","STONE:1,PAPYRUS:2",,2,,,"GLOBE",,"LAMP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
+Node,Age3,"Town Hall","STONE:3,WOOD:2",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Node,Age3,"Armory","STONE:2,GLASS:1",,3,,,,,,,"Gives 3 victory point and 1 coin per red card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(RED)",
+Node,Age3,"Chamber Of Commerce","PAPYRUS:2",,3,,,,,,,"Gives 3 victory point and 3 coins per grey card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(GREY)",
+Node,Age3,"Obelisk","STONE:2,GLASS:1",,5,,,,,,,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Node,Age3,"Siege Workshop","WOOD:3,GLASS:1",,,2,,,,"TARGET",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+Node,Age3,"Fortifications","STONE:2,CLAY:1,PAPYRUS:1",,,2,,,,"TOWER",,"Gives 2 War Points","RED","AGE_III","getShieldPoints",
+Node,Age3,"Academy","STONE:1,WOOD:1,GLASS:2",,3,,,"CLOCK",,,,"Gives Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
+Node,Age3,"Port","WOOD:1,GLASS:1,PAPYRUS:1",,3,,,,,,,"Gives 3 victory point and 2 coins per brown card","YELLOW","AGE_III","getVictoryPoints,applyAgeCoinWorth(BROWN)",
+Node,Age3,"Pantheon","CLAY:1,WOOD:1,PAPYRUS:2",,6,,,,,"SUN",,"Gives 6 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Node,Age3,"Senate","STONE:1,CLAY:2,PAPYRUS:1",,5,,,,,"TEMPLE",,"Gives 5 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Unused,Age1,"Guard Tower",,,,1,,,,,,"Provides 1 shield","RED","AGE_I","getShieldPoints",
+Unused,Age1,"Clay Reserve",,"CLAY:1",,,,,,,"Clay:true","Buy 1 clay for 1 coins","YELLOW","AGE_I","getTradeRule,payCoins",
+Unused,Age1,"Wood Reserve",,"WOOD:1",,,,,,,"Wood:true","Buy 1 wood for 1 coin","YELLOW","AGE_I","getTradeRule,payCoins",
+Unused,Age2,"School","WOOD:1,PAPYRUS:2",,1,,,"WHEEL","HARP",,,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
+Unused,Age2,"Library","WOOD:1,GLASS:1,STONE:1",,2,,,"FEATHER",,"BOOK",,"Gives scientific symbol","GREEN","AGE_II","getVictoryPoints,getScientificSymbol",
+Unused,Age2,"Barracks",,,,1,,,,"DAGGER",,"Gives 1 War Point","RED","AGE_II","getShieldPoints,payCoins",
+Unused,Age3,"Palace","CLAY:1,STONE:1,WOOD:1",,7,,,,,,,"Gives 7 Victory Points","BLUE","AGE_III","getVictoryPoints",
+Unused,Age3,"University","CLAY:1,GLASS:1,PAPYRUS:1",,2,,,"GLOBE",,"HARP",,"Gives 2 Victory Points and Scientific Symbol","GREEN","AGE_III","getVictoryPoints,getScientificSymbol",
+Unused,Age3,"Pretorium",,,,3,,,,,,"Gives 3 War Points","RED","AGE_III","getShieldPoints,payCoins",
 Unused,Guild,""Moneylenders Guild"","""","""","","","","","","",""," at the end h 1 victory point for each set of 3 coins in the richest city.","PURPLE","Unknown","applyGuildCoinWorth()",""
-Unused,Guild,""Tacticians Guild"","""","""","","","","","","","","1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(RED)",""
+Unused,Guild,""Builders Guild"","""","""","","","","","","","","2 victory points for each Wonder constructed in the city which has the most wonders.","PURPLE","Unknown","applyGuildCoinWorth(WONDER)",""
 Unused,Guild,""Shipowners Guild"","""","""","","","","","","","","1 coin/(gray+brown in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(GREYBROWN)",""
-Unused,Wonder,"The Appian Way",,3,"VALUE","UNKNOWN",,,
+Unused,Guild,""Tacticians Guild"","""","""","","","","","","","","1 coin/(red in the city which has the most at that time)+ 1v_point/(same thing at the end)","PURPLE","Unknown","applyGuildCoinWorth(RED)",""
 Unused,Wonder,"The Great Library",,4,"A center of knowledge. Randomly draw 3 progress tokens from the discard pile, choose one, play it and place the others back. This wonder is worth 4 victory points.","UNKNOWN",,,"drawToken,getVictoryPoints"
-Unused,Wonder,"The Great Lighthouse",,4,"A beacon for ships.This Wonder produces one unit of the resources shown (Stone, Clay, or Wood) for you each turn. This wonder is worth 4 victory points","UNKNOWN","CONDITION_RAW_GOODS",,"getVictoryPoints,getResource"
+Unused,Wonder,"The Appian Way",,3,"VALUE","UNKNOWN",,,
+Unused,Wonder,"Piraeus",,2,"A bustling port. Gain 2 victory points, play a second turn and produce one unit of the resources shown (Papyrus, Glass) each turn","UNKNOWN","CONDITION_MANUFACTURED_GOODS",,"getVictoryPoints,getResource,playAnotherTurn"
+Unused,Wonder,"The Colossus",,3,"A bronze giant at the harbor. Gain 2 shields and 3 victory points.","UNKNOWN",,2,"getVictoryPoints,getShieldPoints"
+Unused,Wonder,"The Statue of Zeus",,3,"A tribute to the king of gods. Put in the discard pile one brown card (Raw goods) of your choice constructed by their opponent. This Wonder is worth 1 Shield and is worth 3 victory points.","UNKNOWN",,1,"discardOpponentCard(BROWN),getShieldPoints,getVictoryPoints"
+Unused,Wonder,"The Mausoleum",,2,"A grand tomb. Construct a building of your choice from the discard pile for free. This wonder is worth 2 victory points.","UNKNOWN",,,"getVictoryPoints,takeNewCard"
+Unused,Wonder,"The Temple of Artemis",,,"VALUE","UNKNOWN",,,
 Unused,Wonder,"The Sphinx",,6,"A mythical guardian. Gain 6 victory points and play a second turn.","UNKNOWN",,,"getVictoryPoints,playAnotherTurn"
-Player,Username,as
+Unused,Wonder,"The Hanging Gardens",,3,"Lush gardens in Babylon. Gain 6 coins, 3 victory points, and play a second turn.","UNKNOWN",,,"getVictoryPoints,getCoins(6),playAnotherTurn"
+Unused,Wonder,"Circus Maximus",,3,"A grand arena. Gain 3 victory points, 1 shield and put in the discard pile one grey card of your choice constructed by your opponent.","UNKNOWN",,1,"getVictoryPoints,discardOpponentCard(GREY),getShieldPoints"
+Unused,Wonder,"The Pyramids",,9,"Eternal monuments. Gain 9 victory points.","UNKNOWN",,,"getVictoryPoints"
+Unused,Wonder,"The Great Lighthouse",,4,"A beacon for ships.This Wonder produces one unit of the resources shown (Stone, Clay, or Wood) for you each turn. This wonder is worth 4 victory points","UNKNOWN","CONDITION_RAW_GOODS",,"getVictoryPoints,getResource"
+Player,Username,a
 Player,Coins,7
-Player,Wonder,"Piraeus",,2,"A bustling port. Gain 2 victory points, play a second turn and produce one unit of the resources shown (Papyrus, Glass) each turn","UNKNOWN","CONDITION_MANUFACTURED_GOODS",,"getVictoryPoints,getResource,playAnotherTurn"
-Player,Wonder,"The Statue of Zeus",,3,"A tribute to the king of gods. Put in the discard pile one brown card (Raw goods) of your choice constructed by their opponent. This Wonder is worth 1 Shield and is worth 3 victory points.","UNKNOWN",,1,"discardOpponentCard(BROWN),getShieldPoints,getVictoryPoints"
-Player,Wonder,"The Pyramids",,9,"Eternal monuments. Gain 9 victory points.","UNKNOWN",,,"getVictoryPoints"
-Player,Wonder,"The Mausoleum",,2,"A grand tomb. Construct a building of your choice from the discard pile for free. This wonder is worth 2 victory points.","UNKNOWN",,,"getVictoryPoints,takeNewCard"
-Player,Wonder,"Circus Maximus",,3,"A grand arena. Gain 3 victory points, 1 shield and put in the discard pile one grey card of your choice constructed by your opponent.","UNKNOWN",,1,"getVictoryPoints,discardOpponentCard(GREY),getShieldPoints"
-Player,Username,ad
+Player,Username,b
 Player,Coins,7
-Player,Wonder,"The Temple of Artemis",,,"VALUE","UNKNOWN",,,
-Player,Wonder,"The Hanging Gardens",,3,"Lush gardens in Babylon. Gain 6 coins, 3 victory points, and play a second turn.","UNKNOWN",,,"getVictoryPoints,getCoins(6),playAnotherTurn"
-Player,Wonder,"The Colossus",,3,"A bronze giant at the harbor. Gain 2 shields and 3 victory points.","UNKNOWN",,2,"getVictoryPoints,getShieldPoints"

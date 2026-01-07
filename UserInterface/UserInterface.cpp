@@ -7,16 +7,48 @@
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QWidget> 
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsRectItem>
+#include <QtWidgets/QGraphicsTextItem>
+#include <QtWidgets/QGraphicsProxyWidget>
+#include <QtGui/QPen>
+#include <QtGui/QBrush>
+#include <QtCore/QTimer>
 #include <algorithm> 
 #include <vector>  
 #include <memory>  
 
 
+
 import Core.Board;
+import Core.Game; // need preparation() and game phase functions
 import Models.Wonder;
 import Models.Card;   
 import Core.Player;
 import Core.GameState;
+
+namespace {
+    // helper to clear a layout
+    void clearLayout(QLayout* layout) {
+        if (!layout) return;
+        QLayoutItem* item;
+        while ((item = layout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                delete item->widget();
+            }
+            else if (item->layout()) {
+                clearLayout(item->layout());
+                delete item->layout();
+            }
+            delete item;
+        }
+    }
+}
 
 UserInterface::UserInterface(QWidget* parent)
     : QMainWindow(parent)
@@ -52,17 +84,46 @@ UserInterface::UserInterface(QWidget* parent)
             p2->m_player->setPlayerUsername(n2.toStdString());
     }
 
+    // Build card pools and age trees now that players have been named
+    Core::preparation();
+
     m_leftPanel = new PlayerPanelWidget(p1, splitter, true);
     auto leftScroll = new QScrollArea(splitter);
     leftScroll->setWidgetResizable(true);
     leftScroll->setWidget(m_leftPanel);
     splitter->addWidget(leftScroll);
 
-    m_centerWidget = new WonderSelectionWidget(this);
+    // Create a vertical container for the center column and split it into three rows (20%/40%/40%)
+    m_centerContainer = new QWidget(splitter);
+    auto* centerLayout = new QVBoxLayout(m_centerContainer);
+    centerLayout->setContentsMargins(0, 0, 0, 0);
+    centerLayout->setSpacing(0);
+
+    m_centerTop = new QWidget(m_centerContainer);
+    m_centerMiddle = new QWidget(m_centerContainer);
+    m_centerBottom = new QWidget(m_centerContainer);
+
+    // Middle panel will host the WonderSelectionWidget (or later the age tree)
+    auto* middleLayout = new QVBoxLayout(m_centerMiddle);
+    middleLayout->setContentsMargins(8, 8, 8, 8);
+    middleLayout->setSpacing(8);
+
+    // color the middle panel brown so boundaries are visible
+    m_centerMiddle->setStyleSheet("background-color: #A0522D;");
+
+    // Add the three panels with stretch factors 2:4:4 (relative -> 20%:40%:40%)
+    centerLayout->addWidget(m_centerTop, 2);
+    centerLayout->addWidget(m_centerMiddle, 4);
+    centerLayout->addWidget(m_centerBottom, 4);
+
+    splitter->addWidget(m_centerContainer);
+
+    // Create the selection widget as a child of the middle panel so it occupies the middle 40%
+    m_centerWidget = new WonderSelectionWidget(m_centerMiddle);
     m_centerWidget->setOnWonderClicked([this](int index) {
         this->onWonderSelected(index);
-        });
-    splitter->addWidget(m_centerWidget);
+    });
+    middleLayout->addWidget(m_centerWidget);
 
     m_rightPanel = new PlayerPanelWidget(p2, splitter, false);
     auto rightScroll = new QScrollArea(splitter);
@@ -70,6 +131,7 @@ UserInterface::UserInterface(QWidget* parent)
     rightScroll->setWidget(m_rightPanel);
     splitter->addWidget(rightScroll);
 
+    // Splitter columns proportions remain 2:1:2
     splitter->setStretchFactor(0, 2);
     splitter->setStretchFactor(1, 1);
     splitter->setStretchFactor(2, 2);
@@ -112,9 +174,259 @@ void UserInterface::loadNextBatch()
         return;
     }
 
+    m_centerWidget->show();
     m_centerWidget->loadWonders(m_currentBatch);
 
 	updateTurnLabel();
+}
+
+void UserInterface::showAgeTree(int age)
+{
+    auto& board = Core::Board::getInstance();
+    const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
+    const auto& nodes = *nodesPtr;
+
+    // determine row pattern
+    std::vector<int> rows;
+    if (age == 1) rows = {2,3,4,5,6};
+    else if (age == 2) rows = {6,5,4,3,2};
+    else rows = {2,3,4,2,4,3,2};
+
+    // clear existing layout/widgets in middle panel
+    QLayout* existing = m_centerMiddle->layout();
+    if (existing) {
+        clearLayout(existing);
+        delete existing;
+    }
+
+    auto* layout = new QVBoxLayout(m_centerMiddle);
+    layout->setContentsMargins(8,8,8,8);
+    layout->setSpacing(0);
+    m_centerMiddle->setLayout(layout);
+
+    // Create scene and view
+    QGraphicsScene* scene = new QGraphicsScene(this);
+    QGraphicsView* view = new QGraphicsView(scene, m_centerMiddle);
+    view->setRenderHint(QPainter::Antialiasing);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setFrameStyle(QFrame::NoFrame);
+
+    // sizing constants (increased for readability)
+    const int cardW = 180; // increased width
+    const int cardH = 110;  // increased height
+    const int hgap = 28;   // horizontal gap
+    const int vgap = 30;   // vertical gap
+
+    // compute positions per row, center them
+    std::vector<QPointF> positions;
+    positions.resize(nodes.size());
+
+    int totalRows = static_cast<int>(rows.size());
+    int idx = 0;
+    int sceneWidth = 0;
+    int sceneHeight = 0;
+    for (int r = 0; r < totalRows; ++r) {
+        int cols = rows[r];
+        // compute row width
+        int rowWidth = cols * cardW + (cols - 1) * hgap;
+        sceneWidth = std::max(sceneWidth, rowWidth);
+    }
+
+    // starting y
+    int y = 0;
+    for (int r = 0; r < totalRows; ++r) {
+        int cols = rows[r];
+        int rowWidth = cols * cardW + (cols - 1) * hgap;
+        int x0 = (sceneWidth - rowWidth) / 2;
+        for (int c = 0; c < cols; ++c) {
+            if (idx >= static_cast<int>(nodes.size())) break;
+            int x = x0 + c * (cardW + hgap);
+            positions[idx] = QPointF(x, y);
+            ++idx;
+        }
+        y += cardH + vgap;
+    }
+    sceneHeight = y;
+    scene->setSceneRect(0,0, std::max(sceneWidth, 800), std::max(sceneHeight, 400));
+
+    // store mapping from node shared_ptr to index for wiring lines
+    std::unordered_map<Core::Node*, int> ptrToIndex;
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        ptrToIndex[nodes[i].get()] = static_cast<int>(i);
+    }
+
+    // draw nodes (rects for internal, proxy buttons for leaves)
+    std::vector<QGraphicsRectItem*> rects(nodes.size(), nullptr);
+    idx = 0;
+    for (int r = 0; r < totalRows; ++r) {
+        int cols = rows[r];
+        for (int c = 0; c < cols; ++c) {
+            if (idx >= static_cast<int>(nodes.size())) break;
+            QPointF pos = positions[idx];
+            bool isLeafRow = (r == totalRows - 1);
+            if (isLeafRow) {
+                // add a background rect first (so lines can be underneath and button above)
+                QRectF rrect(pos, QSizeF(cardW, cardH));
+                QGraphicsRectItem* bg = scene->addRect(rrect, QPen(QColor("#7C4A1C"), 2), QBrush(Qt::white));
+                bg->setZValue(0);
+                rects[idx] = bg;
+
+                // create QPushButton and embed
+                QString name = "<empty>";
+                bool avail = false;
+                if (nodes[idx]) {
+                    auto* card = nodes[idx]->getCard();
+                    if (card) name = QString::fromStdString(card->getName());
+                    avail = nodes[idx]->isAvailable();
+                }
+                QPushButton* btn = new QPushButton(name);
+                btn->setFixedSize(cardW - 8, cardH - 8); // small padding
+                btn->setEnabled(avail);
+                btn->setStyleSheet("QPushButton { background: white; border:2px solid #7C4A1C; border-radius:6px; font-weight:bold; } QPushButton:disabled { background:#e5e7eb; color:#9ca3af; }");
+                QGraphicsProxyWidget* proxy = scene->addWidget(btn);
+                proxy->setPos(pos + QPointF(4,4));
+                proxy->setZValue(2);
+                proxy->setAcceptedMouseButtons(Qt::LeftButton);
+                // capture index and age
+                connect(btn, &QPushButton::clicked, this, [this, idx, age]() { this->handleLeafClicked(idx, age); });
+            } else {
+                // draw card rectangle
+                QRectF rect(pos, QSizeF(cardW, cardH));
+                QColor bg = nodes[idx] && nodes[idx]->isAvailable() ? QColor("#B58860") : QColor("#EDE7E0");
+                QGraphicsRectItem* ritem = scene->addRect(rect, QPen(QColor("#7C4A1C"), 3), QBrush(bg));
+                ritem->setZValue(1);
+                // add text
+                QString name = "<empty>";
+                if (nodes[idx] && nodes[idx]->getCard()) name = QString::fromStdString(nodes[idx]->getCard()->getName());
+                QGraphicsTextItem* t = scene->addText(name);
+                t->setDefaultTextColor(nodes[idx] && nodes[idx]->isAvailable() ? Qt::white : Qt::black);
+                QRectF tb = t->boundingRect();
+                t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+                t->setZValue(2);
+                rects[idx] = ritem;
+            }
+            ++idx;
+        }
+    }
+
+    // draw edges based on node child links (put lines under rects and proxies)
+    QPen linePen(QColor("#3b2b1b")); linePen.setWidth(3);
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        if (!nodes[i]) continue;
+        auto child1 = nodes[i]->getChild1();
+        auto child2 = nodes[i]->getChild2();
+        QPointF fromCenter = positions[i] + QPointF(cardW/2.0, cardH/2.0);
+        if (child1) {
+            auto it = ptrToIndex.find(child1.get());
+            if (it != ptrToIndex.end()) {
+                int ci = it->second;
+                QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
+                QGraphicsLineItem* line = scene->addLine(QLineF(fromCenter, toCenter), linePen);
+                line->setZValue(0);
+            }
+        }
+        if (child2) {
+            auto it = ptrToIndex.find(child2.get());
+            if (it != ptrToIndex.end()) {
+                int ci = it->second;
+                QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
+                QGraphicsLineItem* line = scene->addLine(QLineF(fromCenter, toCenter), linePen);
+                line->setZValue(0);
+            }
+        }
+    }
+
+    // add view and scale to fit after layout pass
+    layout->addWidget(view);
+    QTimer::singleShot(0, this, [view, scene]() {
+        QSize vp = view->viewport()->size();
+        QRectF sb = scene->itemsBoundingRect();
+        double sceneW = sb.width();
+        double sceneH = sb.height();
+        if (sceneW <= 0 || sceneH <= 0) {
+            view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+            return;
+        }
+        double scaleX = static_cast<double>(vp.width()) / sceneW;
+        double scaleY = static_cast<double>(vp.height()) / sceneH;
+        double scale = std::min(scaleX, scaleY);
+        const double minReadable = 0.75; // do not shrink below this for readability
+        if (scale < minReadable) scale = minReadable;
+        // apply transform
+        view->resetTransform();
+        view->scale(scale, scale);
+        view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    });
+}
+
+void UserInterface::handleLeafClicked(int nodeIndex, int age)
+{
+    auto& board = Core::Board::getInstance();
+    const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
+    if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
+    auto node = nodes[static_cast<size_t>(nodeIndex)];
+    if (!node) return;
+    auto* card = node->getCard();
+    if (!card) return;
+
+    // show choices: Build, Sell, Use as Wonder
+    QMessageBox msg(this);
+    msg.setWindowTitle("Choose action");
+    msg.setText(QString::fromStdString(card->getName()));
+    QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
+    QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
+    QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
+    msg.addButton(QMessageBox::Cancel);
+
+    msg.exec();
+
+    QPushButton* clicked = qobject_cast<QPushButton*>(msg.clickedButton());
+    if (!clicked) return;
+
+    // Determine selected action
+    int action = -1; // 0=build,1=sell,2=wonder
+    if (clicked == buildBtn) action = 0;
+    else if (clicked == sellBtn) action = 1;
+    else if (clicked == wonderBtn) action = 2;
+    else return;
+
+    // Perform action using Core::Player wrappers. Determine current player from m_currentPlayerIndex
+    auto& gs = Core::GameState::getInstance();
+    Core::Player* cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+    Core::Player* opp = (m_currentPlayerIndex == 0) ? gs.GetPlayer2().get() : gs.GetPlayer1().get();
+    if (!cur || !opp) return;
+
+    // set current player for CSV actions
+    Core::setCurrentPlayer(cur);
+
+    // release card from node into unique_ptr
+    std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
+    if (!cardPtr) return;
+
+    if (action == 0) {
+        // build -> call playCardBuilding
+        cur->playCardBuilding(cardPtr, opp->m_player);
+    }
+    else if (action == 1) {
+        // sell
+        auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+        cur->sellCard(cardPtr, discarded);
+    }
+    else if (action == 2) {
+        // use as wonder: will prompt inside core
+        std::vector<Models::Token> discardedTokens;
+        auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+        // need to find an available wonder from current player's owned wonders
+        cur->playCardWonder(*reinterpret_cast<std::unique_ptr<Models::Wonder>*>(nullptr), cardPtr, opp->m_player, discardedTokens, discardedCards);
+        // Note: calling playCardWonder requires a wonder pointer; in real flow you'd pick a wonder. For UI we skip actual wonder play here.
+    }
+
+    // refresh UI: update left/right panels and redraw tree
+    m_leftPanel->refreshWonders();
+    m_rightPanel->refreshWonders();
+    showAgeTree(age);
 }
 
 void UserInterface::onWonderSelected(int index)
@@ -199,6 +511,16 @@ void UserInterface::onWonderSelected(int index)
         }
         else {
             m_centerWidget->setTurnMessage("");
+            // lock middle panel height so it remains fixed after selection finished
+            if (m_centerMiddle) {
+                int h = m_centerMiddle->height();
+                if (h > 0) m_centerMiddle->setFixedHeight(h);
+            }
+            // hide selection widget and show age I tree
+            if (m_centerWidget) m_centerWidget->hide();
+            showAgeTree(1);
+
+            // Optionally start phase I automatically (console version) in background - not starting here to keep UI responsive
         }
     }
     if (m_currentBatch.size() > 1)
