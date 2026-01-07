@@ -70,9 +70,9 @@ UserInterface::UserInterface(QWidget* parent)
 	leftScroll->setWidget(leftPanel);
 	splitter->insertWidget(0, leftScroll);
 
-	splitter->setStretchFactor(0, 2);
+	splitter->setStretchFactor(0, 0.8);
 	splitter->setStretchFactor(1, 4);
-	splitter->setStretchFactor(2, 2);
+	splitter->setStretchFactor(2, 0.8);
 
 	setCentralWidget(splitter);
 }

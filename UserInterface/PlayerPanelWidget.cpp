@@ -47,6 +47,7 @@ void PlayerPanelWidget::buildUi()
 	m_layout->addWidget(usernameLbl);
 
 	addStatsRow();
+	addProgressTokensSection();
 	addCardSections();
 	addWonderSection();
 
@@ -118,6 +119,48 @@ void PlayerPanelWidget::addWonderSection()
 	m_layout->addWidget(wondersSection);
 }
 
+void PlayerPanelWidget::addProgressTokensSection()
+{
+	QWidget* tokensSection = new QWidget(this);
+	auto* tokensLayout = new QHBoxLayout(tokensSection);
+	tokensLayout->setContentsMargins(4, 4, 4, 4);
+	tokensLayout->setSpacing(8);
+	tokensLayout->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
+
+	QString baseStyle = "color:#F9FAFB; font-size:11px; padding:0;";
+	QString circleStyleFilled = baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; width:36px; height:36px; background-color:#4B5563;";
+	QString circleStyleEmpty = baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; width:36px; height:36px; background-color:transparent;";
+
+	int rendered = 0;
+	if (m_player && m_player->m_player) {
+		const auto& ownedTokens = m_player->m_player->getOwnedTokens();
+		for (const auto& t : ownedTokens) {
+			if (!t) continue;
+			auto tokenLbl = new QLabel(QString(), tokensSection);
+			tokenLbl->setFixedSize(36, 36);
+			tokenLbl->setAlignment(Qt::AlignCenter);
+			tokenLbl->setStyleSheet(circleStyleFilled);
+			tokenLbl->setToolTip(QStringBuilder(t->getName()));
+		
+			QString name = QStringBuilder(t->getName());
+			if (!name.isEmpty()) {
+				QString initials = name.section(' ', 0, 0).left(2).toUpper();
+				tokenLbl->setText(initials);
+			}
+			tokensLayout->addWidget(tokenLbl);
+			if (++rendered >= 3) break;
+		}
+	}
+	for (; rendered < 3; ++rendered) {
+		auto placeholder = new QLabel(QString(), tokensSection);
+		placeholder->setFixedSize(36, 36);
+		placeholder->setAlignment(Qt::AlignCenter);
+		placeholder->setStyleSheet(circleStyleEmpty);
+		tokensLayout->addWidget(placeholder);
+	}
+	m_layout->addWidget(tokensSection);
+}
+
 void PlayerPanelWidget::addStatsRow()
 {
 	uint8_t coinsVal = 0;
@@ -145,11 +188,11 @@ void PlayerPanelWidget::addStatsRow()
 
 	if (m_isLeftPanel) {
 		statsRow->addStretch(1);
-		statsRow->addWidget(vpLbl);
 		statsRow->addWidget(new QLabel("VP:", this));
+		statsRow->addWidget(vpLbl);
 		statsRow->addSpacing(8);
+		statsRow->addWidget(new QLabel("Coins:", this));	
 		statsRow->addWidget(coinsLbl);
-		statsRow->addWidget(new QLabel("Coins:", this));
 	}
 	else {
 		statsRow->addWidget(new QLabel("Coins:", this));
