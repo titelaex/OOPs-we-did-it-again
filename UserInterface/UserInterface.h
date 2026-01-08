@@ -3,6 +3,7 @@
 #include "ui_UserInterface.h"
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 namespace Core { class Player; }
 namespace Models { class Wonder; }
@@ -18,6 +19,9 @@ class UserInterface : public QMainWindow
 public:
     UserInterface(QWidget* parent = nullptr);
     ~UserInterface();
+
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
     Ui::UserInterfaceClass ui;
@@ -40,6 +44,9 @@ private:
     int m_currentPlayerIndex = 0; // 0 = player1, 1 = player2 (used for UI actions)
 
     std::vector<Models::Wonder*> m_currentBatch;
+
+    // map widget -> proxy for hover scaling
+    std::unordered_map<QWidget*, QGraphicsProxyWidget*> m_proxyMap;
 
     void startWonderSelection();
     void loadNextBatch();

@@ -19,6 +19,9 @@
 #include <QtGui/QPen>
 #include <QtGui/QBrush>
 #include <QtCore/QTimer>
+#include <QtCore/QEvent>
+#include <QtCore/QPropertyAnimation>
+#include <QtGui/QTransform>
 #include <algorithm> 
 #include <vector>  
 #include <memory>  
@@ -113,8 +116,8 @@ UserInterface::UserInterface(QWidget* parent)
 
     // Add the three panels with stretch factors 2:4:4 (relative -> 20%:40%:40%)
     centerLayout->addWidget(m_centerTop, 2);
-    centerLayout->addWidget(m_centerMiddle, 4);
-    centerLayout->addWidget(m_centerBottom, 4);
+    centerLayout->addWidget(m_centerMiddle, 5);
+    centerLayout->addWidget(m_centerBottom, 3);
 
     splitter->addWidget(m_centerContainer);
 
@@ -139,6 +142,43 @@ UserInterface::UserInterface(QWidget* parent)
     setCentralWidget(splitter);
 
     startWonderSelection();
+}
+
+bool UserInterface::eventFilter(QObject* obj, QEvent* event)
+{
+    // handle hover enter/leave on QWidgets (buttons embedded in proxies)
+    if (event->type() == QEvent::Enter) {
+        if (auto w = qobject_cast<QWidget*>(obj)) {
+            auto it = m_proxyMap.find(w);
+            if (it != m_proxyMap.end()) {
+                QGraphicsProxyWidget* proxy = it->second;
+                // set transform origin to center and animate scale up
+                proxy->setTransformOriginPoint(proxy->boundingRect().center());
+                QPropertyAnimation* anim = new QPropertyAnimation(proxy, "scale", proxy);
+                anim->setDuration(140);
+                anim->setStartValue(proxy->scale());
+                anim->setEndValue(1.08);
+                anim->setEasingCurve(QEasingCurve::OutCubic);
+                anim->start(QAbstractAnimation::DeleteWhenStopped);
+            }
+        }
+    }
+    else if (event->type() == QEvent::Leave) {
+        if (auto w = qobject_cast<QWidget*>(obj)) {
+            auto it = m_proxyMap.find(w);
+            if (it != m_proxyMap.end()) {
+                QGraphicsProxyWidget* proxy = it->second;
+                // animate scale back to normal
+                QPropertyAnimation* anim = new QPropertyAnimation(proxy, "scale", proxy);
+                anim->setDuration(120);
+                anim->setStartValue(proxy->scale());
+                anim->setEndValue(1.0);
+                anim->setEasingCurve(QEasingCurve::OutCubic);
+                anim->start(QAbstractAnimation::DeleteWhenStopped);
+            }
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }
 
 void UserInterface::startWonderSelection()
@@ -256,7 +296,7 @@ void UserInterface::showAgeTree(int age)
         ptrToIndex[nodes[i].get()] = static_cast<int>(i);
     }
 
-    // draw nodes (rects for internal, proxy buttons for leaves)
+    // draw nodes (rects for internal, proxy buttons for available nodes)
     std::vector<QGraphicsRectItem*> rects(nodes.size(), nullptr);
     idx = 0;
     for (int r = 0; r < totalRows; ++r) {
@@ -264,8 +304,12 @@ void UserInterface::showAgeTree(int age)
         for (int c = 0; c < cols; ++c) {
             if (idx >= static_cast<int>(nodes.size())) break;
             QPointF pos = positions[idx];
-            bool isLeafRow = (r == totalRows - 1);
-            if (isLeafRow) {
+
+            // If node is available -> render as button (clickable), otherwise render as plain card
+            bool isAvailable = false;
+            if (nodes[idx]) isAvailable = nodes[idx]->isAvailable();
+
+            if (isAvailable) {
                 // add a background rect first (so lines can be underneath and button above)
                 QRectF rrect(pos, QSizeF(cardW, cardH));
                 QGraphicsRectItem* bg = scene->addRect(rrect, QPen(QColor("#7C4A1C"), 2), QBrush(Qt::white));
@@ -274,23 +318,27 @@ void UserInterface::showAgeTree(int age)
 
                 // create QPushButton and embed
                 QString name = "<empty>";
-                bool avail = false;
                 if (nodes[idx]) {
                     auto* card = nodes[idx]->getCard();
                     if (card) name = QString::fromStdString(card->getName());
-                    avail = nodes[idx]->isAvailable();
                 }
                 QPushButton* btn = new QPushButton(name);
                 btn->setFixedSize(cardW - 8, cardH - 8); // small padding
-                btn->setEnabled(avail);
+                btn->setEnabled(true);
                 btn->setStyleSheet("QPushButton { background: white; border:2px solid #7C4A1C; border-radius:6px; font-weight:bold; } QPushButton:disabled { background:#e5e7eb; color:#9ca3af; }");
                 QGraphicsProxyWidget* proxy = scene->addWidget(btn);
                 proxy->setPos(pos + QPointF(4,4));
                 proxy->setZValue(2);
                 proxy->setAcceptedMouseButtons(Qt::LeftButton);
+                // set transform origin to center so scaling looks natural
+                proxy->setTransformOriginPoint(proxy->boundingRect().center());
+                // install event filter on the widget and remember proxy
+                btn->installEventFilter(this);
+                m_proxyMap[btn] = proxy;
                 // capture index and age
                 connect(btn, &QPushButton::clicked, this, [this, idx, age]() { this->handleLeafClicked(idx, age); });
-            } else {
+            }
+            else {
                 // draw card rectangle
                 QRectF rect(pos, QSizeF(cardW, cardH));
                 QColor bg = nodes[idx] && nodes[idx]->isAvailable() ? QColor("#B58860") : QColor("#EDE7E0");
