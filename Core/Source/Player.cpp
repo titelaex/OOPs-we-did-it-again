@@ -513,10 +513,10 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		{
 			if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
 			{
-				m_player->addCard(card);
 				card->setIsVisible(false);
 				std::cout << "Card \"" << card->getName() << "\" constructed for free via chain->\n";
 				applyCardEffects(card);
+				m_player->addCard(std::move(card));
 				return;
 			}
 		}
@@ -525,10 +525,10 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 
 	if (card->getResourceCost().empty())
 	{
-		m_player->addCard(card);
 		card->setIsVisible(false);
 		std::cout << "Card \"" << card->getName() << "\" constructed for free->\n";
 		applyCardEffects(card);
+		m_player->addCard(std::move(card));
 		return;
 	}
 
@@ -540,57 +540,57 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 
 	payForCard(card, opponent);
 
-	m_player->addCard(card);
 	card->setIsVisible(false);
 	std::cout << "Card \"" << card->getName() << "\" constructed->\n";
 	applyCardEffects(card);
+	m_player->addCard(std::move(card));
 }
 
 bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-	if (card->getResourceCost().empty())
-		return true;
+    if (card->getResourceCost().empty())
+        return true;
 
 
-	if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
-	{
-		for (const auto& ownedCard : m_player->getOwnedCards())
-		{
-			if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
-				return true;
-		}
-	}
+    if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    {
+        for (const auto& ownedCard : m_player->getOwnedCards())
+        {
+            if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
+                return true;
+        }
+    }
 
-	const auto& cost = card->getResourceCost();
-	const auto& ownPermanent = m_player->getOwnedPermanentResources();
-	const auto& ownTrading = m_player->getOwnedTradingResources();
-	const auto& opponentProduction = opponent->getOwnedPermanentResources();
+    const auto& cost = card->getResourceCost();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownTrading = m_player->getOwnedTradingResources();
+    const auto& opponentProduction = opponent->getOwnedPermanentResources();
 
-	uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
+    uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
 
-	for (const auto& kv : cost)
-	{
-		auto resource = kv.first;
-		auto requiredAmount = kv.second;
+    for (const auto& kv : cost)
+    {
+        auto resource = kv.first;
+        auto requiredAmount = kv.second;
 
-		uint8_t produced = 0;
-		if (ownPermanent.find(resource) != ownPermanent.end())
-			produced += ownPermanent.at(resource);
-		if (ownTrading.find(resource) != ownTrading.end())
-			produced += ownTrading.at(resource);
+        uint8_t produced = 0;
+        if (ownPermanent.find(resource) != ownPermanent.end())
+            produced += ownPermanent.at(resource);
+        if (ownTrading.find(resource) != ownTrading.end())
+            produced += ownTrading.at(resource);
 
-		if (produced >= requiredAmount)
-			continue;
+        if (produced >= requiredAmount)
+            continue;
 
-		uint8_t missing = requiredAmount - produced;
-		uint8_t opponentAmount = (opponentProduction.find(resource) != opponentProduction.end()) ? opponentProduction.at(resource) : 0;
-		uint8_t costPerUnit = 2 + opponentAmount;
+        uint8_t missing = requiredAmount - produced;
+        uint8_t opponentAmount = (opponentProduction.find(resource) != opponentProduction.end()) ? opponentProduction.at(resource) : 0;
+        uint8_t costPerUnit = 2 + opponentAmount;
 
-		uint8_t totalCost = costPerUnit * missing;
-		if (availableCoins < totalCost)
-			return false;
-	}
-	return true;
+        uint8_t totalCost = costPerUnit * missing;
+        if (availableCoins < totalCost)
+            return false;
+    }
+    return true;
 }
 
 void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
@@ -866,7 +866,7 @@ namespace Core {
 			else if (type == "Wonder" && columns.size() > 3) {
 				std::vector<std::string> wonder_cols(columns.begin() + 2, columns.end());
 				auto wonder = std::make_unique<Models::Wonder>(wonderFactory(wonder_cols));
-				player.m_player->addWonder(wonder);
+				player.m_player->addWonder(std::move(wonder));
 			}
 			else if (type == "Token" && columns.size() > 2) {
 				// This requires finding the token from a global list, which is not available here.

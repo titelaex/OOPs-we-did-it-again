@@ -16,9 +16,9 @@ Player::Player(const uint8_t& id, const std::string& username) : playerId(id), m
 	m_playerPoints = {0,0,0,0 };
 }
 
-void Player::addCard(const std::unique_ptr<Card>& card) { m_ownedCards.push_back(std::move(const_cast<std::unique_ptr<Card>&>(card))); }
-void Player::addWonder(const std::unique_ptr<Wonder>& wonder) { m_ownedWonders.push_back(std::move(const_cast<std::unique_ptr<Wonder>&>(wonder))); }
-void Player::addToken(const std::unique_ptr<Token>& token) { m_ownedTokens.push_back(std::move(const_cast<std::unique_ptr<Token>&>(token))); }
+void Player::addCard(std::unique_ptr<Card> card) { m_ownedCards.push_back(std::move(card)); }
+void Player::addWonder(std::unique_ptr<Wonder> wonder) { m_ownedWonders.push_back(std::move(wonder)); }
+void Player::addToken(std::unique_ptr<Token> token) { m_ownedTokens.push_back(std::move(token)); } 
 void Player::addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedPermanentResources[resourceType] += quantity; }
 void Player::addTradingResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedTradingResources[resourceType] += quantity; }
 void Models::Player::setPlayerUsername(const std::string& username) { m_playerUsername = username; }

@@ -48,9 +48,10 @@ namespace Models
 		Player() = default;
 		~Player() = default;
 		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
-		void addCard(const std::unique_ptr<Card>& card);
-		void addWonder(const std::unique_ptr<Wonder>& wonder);
-		void addToken(const std::unique_ptr<Token>& token);
+		// replace these three declarations:
+		void addCard(std::unique_ptr<Card> card);
+		void addWonder(std::unique_ptr<Wonder> wonder);
+		void addToken(std::unique_ptr<Token> token);
 		void addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity);
 		void addTradingResource(const ResourceType& resourceType, const uint8_t& quantity);
 		void setPlayerUsername(const std::string& username);
