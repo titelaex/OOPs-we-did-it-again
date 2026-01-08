@@ -179,6 +179,103 @@ namespace Core {
 
 }
 
+// Debug helpers
+namespace {
+    void debugPrintAgeTree(const std::vector<std::shared_ptr<Core::Node>>& nodes, int age)
+    {
+        std::cout << "--- [DEBUG] Age " << age << " tree (all nodes in layout order) ---\n";
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            if (nodes[i] && nodes[i]->getCard()) std::cout << nodes[i]->getCard()->getName();
+            else std::cout << "<empty>";
+            if (i + 1 < nodes.size()) std::cout << " | ";
+        }
+        std::cout << "\n";
+
+        std::cout << "Available (isAvailable==1): ";
+        bool first = true;
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            if (nodes[i] && nodes[i]->getCard() && nodes[i]->isAvailable()) {
+                if (!first) std::cout << ", ";
+                std::cout << nodes[i]->getCard()->getName();
+                first = false;
+            }
+        }
+        if (first) std::cout << "<none>";
+        std::cout << "\n\n";
+    }
+
+    void debugPrintTreeDetailed(const std::vector<std::shared_ptr<Core::Node>>& nodes, const std::vector<size_t>& rows, int age)
+    {
+        std::ostringstream oss;
+        oss << "--- [DEBUG DETAILED] Age " << age << " tree ---\n";
+        // map node ptr to index
+        std::unordered_map<Core::Node*, int> idxMap;
+        for (size_t i = 0; i < nodes.size(); ++i) if (nodes[i]) idxMap[nodes[i].get()] = static_cast<int>(i);
+
+        // print rows
+        size_t idx = 0;
+        for (size_t r = 0; r < rows.size(); ++r) {
+            size_t cols = rows[r];
+            oss << "Row " << r << " (cols=" << cols << "): ";
+            for (size_t c = 0; c < cols && idx < nodes.size(); ++c, ++idx) {
+                auto& n = nodes[idx];
+                if (!n || !n->getCard()) oss << "[" << idx << "]<empty>";
+                else oss << "[" << idx << "]" << n->getCard()->getName();
+                if (c + 1 < cols) oss << " | ";
+            }
+            oss << "\n";
+        }
+
+        // print full node info
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            auto& n = nodes[i];
+            oss << "node[" << i << "] ";
+            if (!n || !n->getCard()) { oss << "<empty>\n"; continue; }
+            auto* card = n->getCard();
+            oss << "name=\"" << card->getName() << "\"";
+            oss << " age=";
+            // try to get age if AgeCard
+            if (auto ac = dynamic_cast<Models::AgeCard*>(card)) oss << static_cast<int>(ac->getAge()); else oss << "-";
+            oss << " vis=" << (card->isVisible() ? "1" : "0") << " avail=" << (n->isAvailable() ? "1" : "0");
+
+            auto p1 = n->getParent1(); auto p2 = n->getParent2();
+            oss << " parents=[";
+            if (p1) { auto it = idxMap.find(p1.get()); if (it!=idxMap.end()) oss << it->second; else oss << "?"; } else oss << "-";
+            oss << ",";
+            if (p2) { auto it = idxMap.find(p2.get()); if (it!=idxMap.end()) oss << it->second; else oss << "?"; } else oss << "-";
+            oss << "]";
+
+            auto c1 = n->getChild1(); auto c2 = n->getChild2();
+            oss << " children=[";
+            if (c1) { auto it = idxMap.find(c1.get()); if (it!=idxMap.end()) oss << it->second; else oss << "?"; } else oss << "-";
+            oss << ",";
+            if (c2) { auto it = idxMap.find(c2.get()); if (it!=idxMap.end()) oss << it->second; else oss << "?"; } else oss << "-";
+            oss << "]";
+
+            oss << "\n";
+        }
+        oss << "--- end detailed age " << age << " ---\n\n";
+
+        // output to console and append to log file
+        std::string out = oss.str();
+        std::cout << out;
+        try {
+            std::ofstream fout("TreeDebug.log", std::ios::app);
+            if (fout.is_open()) fout << out;
+        }
+        catch (...) {}
+    }
+
+    void debugPrintAllAgeTrees()
+    {
+        auto& board = Core::Board::getInstance();
+        // Detailed prints including row layout and parent/child indices
+        debugPrintTreeDetailed(board.getAge1Nodes(), std::vector<size_t>{2,3,4,5,6}, 1);
+        debugPrintTreeDetailed(board.getAge2Nodes(), std::vector<size_t>{6,5,4,3,2}, 2);
+        debugPrintTreeDetailed(board.getAge3Nodes(), std::vector<size_t>{2,3,4,2,4,3,2}, 3);
+    }
+}
+
 ///CONTINUT GamePhases
 
 
@@ -279,7 +376,8 @@ namespace Core {
                     if (auto node = nodes[idx]) {
                         if (auto* card = node->getCard()) {
                             card->setIsVisible(rowVisible);
-                            card->setIsAvailable(isLastRow);
+                            bool noChildren = !(node->getChild1() || node->getChild2());
+                            card->setIsAvailable(noChildren);
                         }
                     }
                 }
@@ -527,7 +625,11 @@ namespace Core {
             configureRowVisibility(age3Nodes, { 2,3,4,2,4,3,2 });
             board.setAge3Nodes(std::move(age3Nodes));
         }
+
+        // Debug: print age trees after construction
+        debugPrintAllAgeTrees();
     }
+
 
     void displayAvailableWonders(const std::vector<std::unique_ptr<Models::Wonder>>& wonders)
     {

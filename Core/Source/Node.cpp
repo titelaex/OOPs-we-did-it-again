@@ -51,11 +51,11 @@ std::unique_ptr<Models::Card> Node::releaseCard()
 bool Node::isAvailable() const
 {
     if (!m_card) return false;
-    auto p1 = m_parent1.lock();
-    auto p2 = m_parent2.lock();
-    bool p1Empty = (!p1) || (p1->getCard() == nullptr);
-    bool p2Empty = (!p2) || (p2->getCard() == nullptr);
-    return p1Empty && p2Empty;
+    auto c1 = m_child1.lock();
+    auto c2 = m_child2.lock();
+    bool c1Empty = (!c1) || (c1->getCard() == nullptr);
+    bool c2Empty = (!c2) || (c2->getCard() == nullptr);
+    return c1Empty && c2Empty;
 }
 
 }
