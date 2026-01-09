@@ -63,8 +63,11 @@
     <ClCompile Include="Header\GameState.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
+    <ClCompile Include="Source\PlayerDecisionMaker.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -88,13 +91,5 @@
     <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Board.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Header\PlayerDecisionMaker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

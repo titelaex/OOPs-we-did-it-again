@@ -149,6 +149,7 @@
     <ClCompile Include="Header/Node.ixx" />
     <ClCompile Include="Source/Player.cpp" />
     <ClCompile Include="Header/Player.ixx" />
+    <ClCompile Include="Source\PlayerDecisionMaker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/AgeCards.csv" />
@@ -164,10 +165,6 @@
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
       <Project>{ec4d212f-fa2e-4721-8dcf-186394ccf7c6}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Board.h" />
-    <ClInclude Include="Header\PlayerDecisionMaker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,7 +13,7 @@ import <memory>;
 
 #include <exception>
 #include <filesystem>
-#include "..\Header\PlayerDecisionMaker.h"
+import Core.PlayerDecisionMaker;
 
 import Models.AgeCard;
 import Models.GuildCard;
@@ -114,7 +114,7 @@ namespace Core {
 	{
 		try {
 			PrepareBoardCardPools();
- auto& gameState = Core::GameState::getInstance();
+            auto& gameState = Core::GameState::getInstance();
 			std::shared_ptr<Core::Player> player1 = gameState.GetPlayer1();
 			std::shared_ptr<Core::Player> player2 = gameState.GetPlayer2();
 			wonderSelection(player1, player2);
@@ -528,6 +528,46 @@ namespace Core {
             configureRowVisibility(age3Nodes, { 2,3,4,2,4,3,2 });
             board.setAge3Nodes(std::move(age3Nodes));
         }
+
+        // display trees
+        auto printNodes = [](const char* title, const std::vector<std::shared_ptr<Node>>& nodes)
+        {
+            std::cout << "===== " << title << " (" << nodes.size() << ") =====\n";
+            auto idxOf = [&](const Node* ptr) -> std::string {
+                if (!ptr) return "-";
+                for (size_t j = 0; j < nodes.size(); ++j) {
+                    if (nodes[j].get() == ptr) return std::to_string(j);
+                }
+                return "?";
+            };
+            auto nameOf = [&](const Node* ptr) -> std::string {
+                if (!ptr) return "-";
+                auto* c = ptr->getCard();
+                return c ? c->getName() : std::string{"<none>"};
+            };
+
+            for (size_t i = 0; i < nodes.size(); ++i) {
+                const auto& n = nodes[i];
+                if (!n) continue;
+                auto* c = n->getCard();
+                std::cout << "[" << i << "] " << (c ? c->getName() : std::string{"<none>"}) << "\n";
+
+                const Node* p1 = n->getParent1().get();
+                const Node* p2 = n->getParent2().get();
+                const Node* ch1 = n->getChild1().get();
+                const Node* ch2 = n->getChild2().get();
+
+                std::cout << "  Parents: (" << idxOf(p1) << ") " << nameOf(p1)
+                          << ", (" << idxOf(p2) << ") " << nameOf(p2) << "\n";
+                std::cout << "  Children: (" << idxOf(ch1) << ") " << nameOf(ch1)
+                          << ", (" << idxOf(ch2) << ") " << nameOf(ch2) << "\n";
+            }
+            std::cout << std::flush;
+        };
+
+        printNodes("Age I", Board::getInstance().getAge1Nodes());
+        printNodes("Age II", Board::getInstance().getAge2Nodes());
+        printNodes("Age III", Board::getInstance().getAge3Nodes());
     }
 
     void displayAvailableWonders(const std::vector<std::unique_ptr<Models::Wonder>>& wonders)
@@ -553,6 +593,7 @@ namespace Core {
         // get the first 4 wonders from the unusedWonders pool (move, don't copy)
         std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
         auto& wondersPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getUnusedWonders());
+        debugWonders(wondersPool);
         // select up to 4 wonder objects by moving them out of the pool
         for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
             // find next wonder-derived card in the pool
@@ -640,6 +681,64 @@ namespace Core {
                 p1->chooseWonder(availableWonders, chosenIndex),
                 p2->chooseWonder(availableWonders, 0));
     }
+    void debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool)
+    {
+        std::cout << "WondersPool" << '\n';
+        for (const auto& uptr : pool) {
+            if (!uptr) continue;
+            const auto* w = dynamic_cast<const Models::Wonder*>(uptr.get());
+            if (!w) continue;
+
+            // Basic data
+            std::cout << "- Name: " << w->getName() << '\n';
+            std::cout << "  Victory Points: " << static_cast<int>(w->getVictoryPoints()) << '\n';
+            std::cout << "  Color: " << Models::ColorTypeToString(w->getColor()) << '\n';
+            std::cout << "  Caption: " << w->getCaption() << '\n';
+
+            // Cost
+            const auto& cost = w->getResourceCost();
+            std::cout << "  Cost: ";
+            if (cost.empty()) {
+                std::cout << "-";
+            }
+            else {
+                bool first = true;
+                for (const auto& kv : cost) {
+                    if (!first) std::cout << ", ";
+                    first = false;
+                    std::cout << Models::ResourceTypeToString(kv.first) << ':' << static_cast<int>(kv.second);
+                }
+            }
+            std::cout << '\n';
+
+            // Wonder specifics
+            std::cout << "  Shield Points: " << static_cast<int>(w->getShieldPoints()) << '\n';
+            std::cout << "  Resource Production: ";
+            if (w->getResourceProduction() == Models::ResourceType::NO_RESOURCE) {
+                std::cout << "-";
+            }
+            else {
+                std::cout << Models::ResourceTypeToString(w->getResourceProduction());
+            }
+            std::cout << '\n';
+
+            // Actions
+            const auto& actions = w->getOnPlayActions();
+            std::cout << "  On-Play Actions: ";
+            if (actions.empty()) {
+                std::cout << "-";
+            }
+            else {
+                bool firstA = true;
+                for (const auto& p : actions) {
+                    if (!firstA) std::cout << ", ";
+                    firstA = false;
+                    std::cout << p.second;
+                }
+            }
+            std::cout << "\n\n";
+        }
+    }
 }
 
 
@@ -703,7 +802,7 @@ namespace Core {
     {
         auto safePointsRaw = [](Models::Player* mp)->uint32_t {
             if (!mp) 
-                0;
+                return 0;
             const auto& ptsRef = mp->getPoints();
             uint32_t pts = static_cast<uint32_t>(ptsRef.m_militaryVictoryPoints)
                 + static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
@@ -884,7 +983,7 @@ namespace Core {
             std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
             if (!cardPtr)
             {
-                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work.\n";
+                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work." << "\n";
                 playerOneTurn = !playerOneTurn;
                 ++nrOfRounds;
                 continue;
@@ -923,7 +1022,7 @@ namespace Core {
             playerOneTurn = !playerOneTurn;
         }
         g_last_active_was_player_one = !playerOneTurn;
-        std::cout << "Phase I completed.\n";
+        std::cout << "Phase I completed." << "\n";
     }
 
     void phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions)
@@ -969,7 +1068,7 @@ namespace Core {
             std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
             if (!cardPtr)
             {
-                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work.\n";
+                std::cout << "Error: the node doesn't have a card or releaseCard() doesn't work." << "\n";
                 playerOneTurn = !playerOneTurn;
                 ++nrOfRounds;
                 continue;
@@ -1009,7 +1108,7 @@ namespace Core {
         }
         
         g_last_active_was_player_one = !playerOneTurn;
-        std::cout << "Phase II completed.\n";
+        std::cout << "Phase II completed." << "\n";
     }
 
     void phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions)
@@ -1131,4 +1230,4 @@ namespace Core {
         }
         std::cout << "Phase III completed." << "\n";
     }
-}}
+}
