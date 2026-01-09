@@ -1,18 +1,13 @@
-module Core.Node;
-
+﻿module Core.Node;
 import Models.Card;
 import <utility>;
 import <memory>;
-
 import Core.Node;
-
 namespace Core {
-
 Node::Node(std::unique_ptr<Models::Card> card)
     : m_card(std::move(card))
 {
 }
-
 void Node::attachParent(const std::shared_ptr<Node>& parent)
 {
     if (!parent) return;
@@ -26,7 +21,6 @@ void Node::attachParent(const std::shared_ptr<Node>& parent)
         m_parent2 = parent;
     }
 }
-
 void Node::setChild1(const std::shared_ptr<Node>& child)
 {
     m_child1 = child;
@@ -34,7 +28,6 @@ void Node::setChild1(const std::shared_ptr<Node>& child)
         child->attachParent(shared_from_this());
     }
 }
-
 void Node::setChild2(const std::shared_ptr<Node>& child)
 {
     m_child2 = child;
@@ -42,12 +35,10 @@ void Node::setChild2(const std::shared_ptr<Node>& child)
         child->attachParent(shared_from_this());
     }
 }
-
 std::unique_ptr<Models::Card> Node::releaseCard()
 {
     return std::move(m_card);
 }
-
 bool Node::isAvailable() const
 {
     if (!m_card) return false;
@@ -57,5 +48,4 @@ bool Node::isAvailable() const
     bool c2Empty = (!c2) || (c2->getCard() == nullptr);
     return c1Empty && c2Empty;
 }
-
 }

@@ -1,26 +1,37 @@
-export module Core.Game;
-
+﻿export module Core.Game;
 import <memory>;
 import <vector>;
+import <string>;
 import Core.Board;
 import Core.Node;
 import Core.Player;
 import Models.Card;
-
-// Forward declare the interface (defined in PlayerDecisionMaker.h)
-namespace Core {
-    class IPlayerDecisionMaker;
-}
-
+import Core.PlayerDecisionMaker;
+import Core.TrainingLogger;
 export namespace Core {
-    void preparation();
-    void awardMilitaryTokenIfPresent(Core::Player& receiver);
-    void PrepareBoardCardPools();
-    
-    // Game phases with decision maker support
-    void phaseI(Player& p1, Player& p2, Core::IPlayerDecisionMaker* p1Decisions = nullptr, Core::IPlayerDecisionMaker* p2Decisions = nullptr);
-    void phaseII(Player& p1, Player& p2, Core::IPlayerDecisionMaker* p1Decisions = nullptr, Core::IPlayerDecisionMaker* p2Decisions = nullptr);
-    void phaseIII(Player& p1, Player& p2, Core::IPlayerDecisionMaker* p1Decisions = nullptr, Core::IPlayerDecisionMaker* p2Decisions = nullptr);
-    void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2);
-    void debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool);
+    class Game {
+    public:
+        static void preparation();
+        static void PrepareBoardCardPools();
+        static void phaseI(Player& p1, Player& p2, 
+                          IPlayerDecisionMaker* p1Decisions = nullptr, 
+                          IPlayerDecisionMaker* p2Decisions = nullptr,
+                          TrainingLogger* logger = nullptr);
+        static void phaseII(Player& p1, Player& p2, 
+                           IPlayerDecisionMaker* p1Decisions = nullptr, 
+                           IPlayerDecisionMaker* p2Decisions = nullptr,
+                           TrainingLogger* logger = nullptr);
+        static void phaseIII(Player& p1, Player& p2, 
+                            IPlayerDecisionMaker* p1Decisions = nullptr, 
+                            IPlayerDecisionMaker* p2Decisions = nullptr,
+                            TrainingLogger* logger = nullptr);
+        static void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2, 
+                                    IPlayerDecisionMaker* p1Decisions = nullptr, IPlayerDecisionMaker* p2Decisions = nullptr);
+        static void debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool);
+        static void awardMilitaryTokenIfPresent(Player& receiver);
+        static void movePawn(int steps);
+        static void displayPlayerHands(const Player& p1, const Player& p2);
+        static void displayTurnStatus(const Player& p1, const Player& p2);
+        static void announceVictory(int winner, const std::string& victoryType, const Player& p1, const Player& p2);
+    };
 }

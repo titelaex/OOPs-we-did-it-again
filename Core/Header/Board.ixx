@@ -1,5 +1,4 @@
-export module Core.Board;
-
+﻿export module Core.Board;
 import <bitset>;
 import <vector>;
 import <memory>;
@@ -12,9 +11,7 @@ import Models.Wonder;
 import Models.Token;
 import Models.Card;
 import Models.Bank;
-
 export namespace Core {
-
     export class Board{
         private:
         Models::Bank bank{};
@@ -23,15 +20,12 @@ export namespace Core {
         std::vector<std::unique_ptr<Models::Card>> unusedAgeThreeCards;
         std::vector<std::unique_ptr<Models::Card>> unusedGuildCards;
         std::vector<std::unique_ptr<Models::Card>> unusedWonders;
-
 		std::vector<std::unique_ptr<Models::Card>> discardedCards;
-
         std::bitset<19> pawnTrack;
         uint8_t pawnPos;
         std::vector<std::unique_ptr<Models::Token>> progressTokens;
         std::vector<std::unique_ptr<Models::Token>> militaryTokens;
         std::vector<std::unique_ptr<Models::Token>> unusedProgressTokens;
-
         std::vector<std::shared_ptr<Node>> age1Nodes;
         std::vector<std::shared_ptr<Node>> age2Nodes;
         std::vector<std::shared_ptr<Node>> age3Nodes;
@@ -69,8 +63,6 @@ export namespace Core {
 		const std::vector<std::shared_ptr<Node>>& getAge3Nodes() const;
 		void setAge3Nodes(std::vector<std::shared_ptr<Node>> v);
 		std::deque<Models::Card*> getAvailableCardsByAge(int age) const;
-
-
     private:
         Board();
         Board(const Board&) = delete;

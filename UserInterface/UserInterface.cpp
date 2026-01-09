@@ -88,7 +88,7 @@ UserInterface::UserInterface(QWidget* parent)
     }
 
     // Build card pools and age trees now that players have been named
-    Core::preparation();
+    Core::Game::preparation();
 
     m_leftPanel = new PlayerPanelWidget(p1, splitter, true);
     auto leftScroll = new QScrollArea(splitter);

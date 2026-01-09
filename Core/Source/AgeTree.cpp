@@ -1,16 +1,11 @@
-module Core.AgeTree;
-
+﻿module Core.AgeTree;
 import <vector>;
 import <memory>;
 import <algorithm>;
-
 import Core.Node;
 import Models.Card;
-
 namespace Core {
-
     using NodeRow = std::vector<std::shared_ptr<Node>>;
-
     static std::vector<NodeRow> makeRows(std::vector<std::shared_ptr<Node>>& ownedNodes, const std::vector<size_t>& rows) {
         std::vector<NodeRow> ptrs;
         size_t idx = 0;
@@ -24,7 +19,6 @@ namespace Core {
         }
         return ptrs;
     }
-
     static void wireTriangularRange(const std::vector<NodeRow>& rows, size_t start, size_t endExclusive) {
         if (start >= endExclusive) return;
         for (size_t r = start; r + 1 < endExclusive && r + 1 < rows.size(); ++r) {
@@ -42,7 +36,6 @@ namespace Core {
             }
         }
     }
-
     static void wireReversedRange(const std::vector<NodeRow>& rows, size_t start, size_t endExclusive) {
         if (start >= endExclusive) return;
         for (size_t r = start; r + 1 < endExclusive && r + 1 < rows.size(); ++r) {
@@ -62,7 +55,6 @@ namespace Core {
             }
         }
     }
-
     static void fixSingleParentDuplicates(const std::vector<NodeRow>& rows) {
         for (const auto& row : rows) {
             for (const auto& node : row) {
@@ -74,7 +66,6 @@ namespace Core {
             }
         }
     }
-
     Age1Tree::Age1Tree(std::vector<std::unique_ptr<Models::Card>>&& cards) {
         const std::vector<size_t> rows = { 2,3,4,5,6 };
         size_t total = 0; for (auto v : rows) total += v;
@@ -86,11 +77,9 @@ namespace Core {
         wireTriangularRange(rowPtrs, 0 , rows.size());
         fixSingleParentDuplicates(rowPtrs);
     }
-
     std::vector<std::shared_ptr<Node>> Age1Tree::releaseNodes() {
         return std::move(m_nodes);
     }
-
     Age2Tree::Age2Tree(std::vector<std::unique_ptr<Models::Card>>&& cards) {
         const std::vector<size_t> rows = { 6,5,4,3,2 };
         size_t total = 0; for (auto v : rows) total += v;
@@ -102,11 +91,9 @@ namespace Core {
         wireReversedRange(rowPtrs, 0, rows.size());
         fixSingleParentDuplicates(rowPtrs);
     }
-
     std::vector<std::shared_ptr<Node>> Age2Tree::releaseNodes() {
         return std::move(m_nodes);
     }
-
     Age3Tree::Age3Tree(std::vector<std::unique_ptr<Models::Card>>&& cards) {
         const std::vector<size_t> rows = { 2,3,4,2,4,3,2 };
         size_t total = 0; for (auto v : rows) total += v;
@@ -116,24 +103,20 @@ namespace Core {
         }
         auto rowPtrs = makeRows(m_nodes, rows);
         wireTriangularRange(rowPtrs, 0, 3);
-
         if (rowPtrs.size() >= 5 && rowPtrs[2].size() == 4 && rowPtrs[3].size() == 2 && rowPtrs[4].size() >= 4) {
             const auto& A = rowPtrs[2];
             const auto& B = rowPtrs[3];
             const auto& C = rowPtrs[4];
-
             if (A.size() == 4 && B.size() == 2) {
                 A[0]->setChild1(B[0]);
                 A[1]->setChild1(B[0]);
                 A[2]->setChild1(B[1]);
                 A[3]->setChild1(B[1]);
             }
-
             if (C.size() >= 4) {
                 B[0]->setChild1(C[0]); B[0]->setChild2(C[1]);
                 B[1]->setChild1(C[2]); B[1]->setChild2(C[3]);
             }
-
             wireReversedRange(rowPtrs, 4, rowPtrs.size());
         }
         else {
@@ -141,9 +124,7 @@ namespace Core {
         }
         fixSingleParentDuplicates(rowPtrs);
     }
-
     std::vector<std::shared_ptr<Node>> Age3Tree::releaseNodes() {
         return std::move(m_nodes);
     }
-
 }

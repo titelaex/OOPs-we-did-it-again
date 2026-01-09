@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    Core::preparation();
+    Core::Game::preparation();
 
     UserInterface window;
     window.show();

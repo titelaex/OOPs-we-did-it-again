@@ -69,6 +69,27 @@
     <ClCompile Include="Header\PlayerDecisionMaker.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MCTS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TrainingLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\AIConfig.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\TrainingLogger.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\MCTS.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WeightOptimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\WeightOptimizer.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
@@ -86,6 +107,26 @@
     <None Include="gamestate.csv">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="AI_GUIDE.md" />
+    <None Include="batch_training.ps1" />
+    <None Include="IMPLEMENTATION_SUMMARY.md" />
+    <None Include="BATCH_TRAINING_GUIDE.md" />
+    <None Include="BATCH_QUICK_REF.md" />
+    <None Include="BATCH_STATUS.md" />
+    <None Include="PHASE2_PROGRESS.md" />
+    <None Include="FINAL_STATUS.md" />
+    <None Include="TURN_LOGGING_STATUS.md" />
+    <None Include="ENABLE_TURN_LOGGING.md" />
+    <None Include="MCTS_MODULE_FIX.md" />
+    <None Include="DISPLAY_FIXES.md" />
+    <None Include="STATUS_AND_FIX_NEEDED.md" />
+    <None Include="FINAL_STATUS_SUMMARY.md" />
+    <None Include="MISSING_FUNCTIONS.md" />
+    <None Include="GAME_RULES_FIX_SUMMARY.md" />
+    <None Include="INFINITE_LOOP_FIX.md" />
+    <None Include="optimize_weights.ps1" />
+    <None Include="WEIGHT_OPTIMIZATION_GUIDE.md" />
+    <None Include="remove_all_comments.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log">

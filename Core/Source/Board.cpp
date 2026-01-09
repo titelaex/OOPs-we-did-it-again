@@ -1,4 +1,4 @@
-module Core.Board;
+﻿module Core.Board;
 import Core.Node;
 import Models.AgeCard;
 import Models.GuildCard;
@@ -6,8 +6,6 @@ import Models.Wonder;
 import Models.Token;
 import Models.Card;
 import Models.Bank;
-
-
 import <vector>;
 import <algorithm>;
 import <bitset>;
@@ -16,13 +14,9 @@ import <deque>;
 import <string>;
 import <sstream>;
 import Core.CardCsvParser;
-
 using namespace Core;
-
 Board::Board() : bank{}, pawnTrack{}, pawnPos{ 0 } {}
-
 Models::Bank& Board::getBank() { return bank; }
-
 const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeOneCards() const { return unusedAgeOneCards; }
 void Board::setUnusedAgeOneCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedAgeOneCards = std::move(v); }
 const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedAgeTwoCards() const { return unusedAgeTwoCards; }
@@ -33,15 +27,12 @@ const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedGuildCards() c
 void Board::setUnusedGuildCards(std::vector<std::unique_ptr<Models::Card>> v) { unusedGuildCards = std::move(v); }
 const std::vector<std::unique_ptr<Models::Card>>& Board::getUnusedWonders() const { return unusedWonders; }
 void Board::setUnusedWonders(std::vector<std::unique_ptr<Models::Card>> v) { unusedWonders = std::move(v); }
-
 const std::vector<std::unique_ptr<Models::Card>>& Board::getDiscardedCards() const { return discardedCards; }
 void Board::setDiscardedCards(std::vector<std::unique_ptr<Models::Card>> v) { discardedCards = std::move(v); }
-
 const std::bitset<19>& Board::getPawnTrack() const { return pawnTrack; }
 void Board::setPawnTrack(const std::bitset<19>& track) { pawnTrack = track; }
 uint8_t Board::getPawnPos() const { return pawnPos; }
 void Board::setPawnPos(uint8_t pos) { pawnPos = pos; }
-
 const std::vector<std::unique_ptr<Models::Token>>& Board::getProgressTokens() const { return progressTokens; }
 void Board::setProgressTokens(std::vector<std::unique_ptr<Models::Token>> v) { progressTokens = std::move(v); }
 const std::vector<std::unique_ptr<Models::Token>>& Core::Board::getUnusedProgressTokens() const{ return unusedProgressTokens; }
@@ -51,14 +42,12 @@ void Core::Board::setUnusedProgressTokens(std::vector<std::unique_ptr<Models::To
 }
 const std::vector<std::unique_ptr<Models::Token>>& Board::getMilitaryTokens() const { return militaryTokens; }
 void Board::setMilitaryTokens(std::vector<std::unique_ptr<Models::Token>> v) { militaryTokens = std::move(v); }
-
 const std::vector<std::shared_ptr<Node>>& Board::getAge1Nodes() const { return age1Nodes; }
 void Board::setAge1Nodes(std::vector<std::shared_ptr<Node>> v) { age1Nodes = std::move(v); }
 const std::vector<std::shared_ptr<Node>>& Board::getAge2Nodes() const { return age2Nodes; }
 void Board::setAge2Nodes(std::vector<std::shared_ptr<Node>> v) { age2Nodes = std::move(v); }
 const std::vector<std::shared_ptr<Node>>& Board::getAge3Nodes() const { return age3Nodes; }
 void Board::setAge3Nodes(std::vector<std::shared_ptr<Node>> v) { age3Nodes = std::move(v); }
-
 std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
 {
     const std::vector<std::shared_ptr<Node>>* source = nullptr;
@@ -69,10 +58,8 @@ std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
     case 3: source = &age3Nodes; break;
     default: return {};
     }
-
     std::deque<Models::Card*> available;
     if (!source) return available;
-
     for (const auto& node : *source)
     {
         if (!node) continue;
@@ -82,7 +69,6 @@ std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
     }
     return available;
 }
-
 void Board::setupCardPools()
 {
 	unusedAgeOneCards.reserve(23);
@@ -91,7 +77,6 @@ void Board::setupCardPools()
 	unusedGuildCards.reserve(7);
 	unusedWonders.reserve(12);
 }
-
 static void displayProgressTokens(const std::vector< std::unique_ptr<Models::Token >>& progressTokens)
 {
 	std::cout << "Progress Tokens: ";
@@ -100,7 +85,6 @@ static void displayProgressTokens(const std::vector< std::unique_ptr<Models::Tok
 	}
 	std::cout << "\n\n";
 }
-
 static void displayMilitaryTokens(const std::vector< std::unique_ptr<Models::Token >>& militaryTokens)
 {
 	std::cout << "Military Tokens: ";
@@ -109,26 +93,21 @@ static void displayMilitaryTokens(const std::vector< std::unique_ptr<Models::Tok
 	}
 	std::cout << "\n\n";
 }
-
 void Board::displayBoard()
 {
 	displayProgressTokens(progressTokens);
-
 	std::cout << "C1 |";
 	for (int i = 0; i < 19; ++i) {
 		if (pawnTrack.test(i))
 			std::cout << " ! ";
 		else
 			std::cout << " _ ";
-
 		if (((i + 1) % 3 == 0 && i < 9) || (i % 3 == 0 && i >= 9))
 			std::cout << "|";
 	}
 	std::cout << " C2\n\n";
-
 	displayMilitaryTokens(militaryTokens);
 }
-
 static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>& age1,
 	const std::vector<std::unique_ptr<Models::Card>>& age2,
 	const std::vector<std::unique_ptr<Models::Card>>& age3,
@@ -176,7 +155,6 @@ static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>&
 		}
 	}
 }
-
 static void displayAgeCards(const char* title, const std::vector<std::shared_ptr<Node>>& nodes)
 {
 	std::cout << title << " (" << nodes.size() << " nodes) ---\n";
@@ -188,7 +166,6 @@ static void displayAgeCards(const char* title, const std::vector<std::shared_ptr
 		c->displayCardInfo();
 	}
 }
-
 void Board::displayEntireBoard()
 {
     std::cout << "=== Board State ===\n";
@@ -200,7 +177,6 @@ void Board::displayEntireBoard()
     displayAgeCards("--- Age II Cards", age2Nodes);
     displayAgeCards("--- Age III Cards", age3Nodes);
 }
-
 namespace {
     void streamCardByType(std::ostream& out, const Models::Card* card)
     {
@@ -219,31 +195,22 @@ namespace {
         }
     }
 }
-
 namespace Core {
     std::ostream& operator<<(std::ostream& out, const Board& board)
     {
         out << "Section,Type,Data\n";
-
-        // Pawn Track and Position
         out << "Pawn,Track," << board.getPawnTrack().to_string() << "\n";
         out << "Pawn,Position," << static_cast<int>(board.getPawnPos()) << "\n";
-
-        // Progress Tokens
         for (const auto& token : board.getProgressTokens()) {
             if (token) {
                 out << "Token,Progress," << *token << "\n";
             }
         }
-
-        // Military Tokens
         for (const auto& token : board.getMilitaryTokens()) {
             if (token) {
                 out << "Token,Military," << *token << "\n";
             }
         }
-
-        // Age 1 Nodes
         for (const auto& node : board.getAge1Nodes()) {
             if (node && node->getCard()) {
                 out << "Node,Age1,";
@@ -251,8 +218,6 @@ namespace Core {
                 out << "\n";
             }
         }
-
-        // Age 2 Nodes
         for (const auto& node : board.getAge2Nodes()) {
             if (node && node->getCard()) {
                 out << "Node,Age2,";
@@ -260,8 +225,6 @@ namespace Core {
                 out << "\n";
             }
         }
-
-        // Age 3 Nodes
         for (const auto& node : board.getAge3Nodes()) {
             if (node && node->getCard()) {
                 out << "Node,Age3,";
@@ -269,8 +232,6 @@ namespace Core {
                 out << "\n";
             }
         }
-
-        // Unused Cards
         for (const auto& card : board.getUnusedAgeOneCards()) {
             if (card) {
                 out << "Unused,Age1,";
@@ -306,8 +267,6 @@ namespace Core {
                 out << "\n";
             }
         }
-
-        // Discarded Cards
         for (const auto& card : board.getDiscardedCards()) {
             if (card) {
                 out << "Discarded,Card,";
@@ -315,7 +274,6 @@ namespace Core {
                 out << "\n";
             }
         }
-
         return out;
     }
 	namespace {
@@ -325,7 +283,6 @@ namespace Core {
 			std::string cell;
 			bool in_quotes = false;
 			char c;
-
 			while (ss.get(c)) {
 				if (c == '"') {
 					in_quotes = !in_quotes;
@@ -351,24 +308,17 @@ namespace Core {
 		board.setProgressTokens({});
 		board.setMilitaryTokens({});
 		board.setUnusedProgressTokens({});
-
 		std::vector<std::unique_ptr<Models::Token>> progressTokens;
 		std::vector<std::unique_ptr<Models::Token>> militaryTokens;
-
 		std::string line;
-		// Skip header
 		std::getline(in, line);
-
 		while (std::getline(in, line))
 		{
 			if (line.empty()) continue;
-
 			auto columns = splitCsvLine(line);
 			if (columns.size() < 2) continue;
-
 			const std::string& section = columns[0];
 			const std::string& type = columns[1];
-
 			if (section == "Pawn") {
 				if (type == "Track" && columns.size() > 2) {
 					board.setPawnTrack(std::bitset<19>(columns[2]));
@@ -378,7 +328,6 @@ namespace Core {
 				}
 			}
 			else if (section == "Token" && columns.size() > 2) {
-				// Reconstruct token data from remaining columns
 				std::vector<std::string> token_cols(columns.begin() + 2, columns.end());
 				if (token_cols.size() >= 5) {
 					auto csvUnescape = [](const std::string& s) -> std::string {
@@ -401,7 +350,6 @@ namespace Core {
 						}
 						return result;
 					};
-
 					auto parseCoins = [](const std::string& s) -> std::tuple<uint8_t,uint8_t,uint8_t> {
 						if (s.empty()) return {0,0,0};
 						std::istringstream ss(s);
@@ -411,19 +359,16 @@ namespace Core {
 						if (!std::getline(ss,c)) return {static_cast<uint8_t>(std::stoi(a)), static_cast<uint8_t>(std::stoi(b)),0};
 						return {static_cast<uint8_t>(std::stoi(a)), static_cast<uint8_t>(std::stoi(b)), static_cast<uint8_t>(std::stoi(c))};
 					};
-
 					std::string tokenTypeStr = csvUnescape(token_cols[0]);
 					std::string tokenName = csvUnescape(token_cols[1]);
 					std::string tokenDesc = csvUnescape(token_cols[2]);
 					std::string coinsStr = csvUnescape(token_cols[3]);
 					std::string victoryStr = token_cols.size() > 4 ? csvUnescape(token_cols[4]) : "";
 					std::string shieldStr = token_cols.size() > 5 ? csvUnescape(token_cols[5]) : "";
-
 					Models::TokenType tokenType = Models::TokenType::PROGRESS;
 					try {
 						tokenType = Models::tokenTypeFromString(tokenTypeStr);
 					} catch (...) {}
-
 					auto coins = parseCoins(coinsStr);
 					uint8_t victory = 0;
 					uint8_t shield = 0;
@@ -433,9 +378,7 @@ namespace Core {
 					if (!shieldStr.empty()) {
 						try { shield = static_cast<uint8_t>(std::stoi(shieldStr)); } catch (...) {}
 					}
-
 					auto token = std::make_unique<Models::Token>(tokenType, tokenName, tokenDesc, coins, victory, shield);
-
 					if (type == "Progress") {
 						progressTokens.push_back(std::move(token));
 					}
@@ -492,16 +435,12 @@ namespace Core {
 				discarded.push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
 			}
 			else {
-					// If the line doesn't belong to the board, put it back for the next >> operation
 				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
 				break;
 			}
 		}
-
-		// Set the loaded tokens
 		board.setProgressTokens(std::move(progressTokens));
 		board.setMilitaryTokens(std::move(militaryTokens));
-
 		return in;
 	}
 }
