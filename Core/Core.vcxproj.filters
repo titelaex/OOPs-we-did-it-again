@@ -63,6 +63,12 @@
     <ClCompile Include="Header\GameState.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PlayerDecisionMaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
@@ -85,10 +91,5 @@
     <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Board.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
