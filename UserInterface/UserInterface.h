@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <QtWidgets/QLabel>
 
 namespace Core { class Player; }
 namespace Models { class Wonder; }
@@ -36,6 +37,9 @@ private:
     QWidget* m_centerTop{ nullptr };
     QWidget* m_centerMiddle{ nullptr };
     QWidget* m_centerBottom{ nullptr };
+
+    // Phase banner label in top area
+    QLabel* m_phaseBanner { nullptr };
 
     // Starea selectiei Wonder-urilor
     int m_selectionPhase = 0; // 0 = Primele 4, 1 = Următoarele 4, 2 = Gata

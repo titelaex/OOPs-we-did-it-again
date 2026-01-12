@@ -5,6 +5,7 @@
 #include <QString>
 #include <QEvent>
 import Models.ResourceType;
+import Models.Wonder;
 
 WonderSelectionWidget::WonderSelectionWidget(QWidget* parent): QWidget(parent)
 {
@@ -37,7 +38,10 @@ static QString resourceToString(Models::ResourceType r)
 	case Models::ResourceType::CLAY:    return "Clay";
 	case Models::ResourceType::PAPYRUS: return "Papyrus";
 	case Models::ResourceType::GLASS:   return "Glass";
-	default: return QString("Type %1").arg(static_cast<int>(r));
+	case Models::ResourceType::CONDITION_RAW_GOODS: return "Condition Raw Goods";
+	case Models::ResourceType::CONDITION_MANUFACTURED_GOODS: return "Condition Manufactured Goods";
+	default:
+		return "No resource";
 	}
 }
 static QString buildWonderText(Models::Wonder* w)
@@ -54,7 +58,7 @@ static QString buildWonderText(Models::Wonder* w)
 	text += QString("Shield points: %1\n").arg(shields);
 	text += QString("Victory points: %1\n").arg(victoryPoints);
 	
-	text += "Resource Cost:";
+	text += "Resource Cost:\n";
 	const auto& cost = w->getResourceCost();
 	if (cost.empty()) {
 		text += " No resource cost\n";
@@ -66,6 +70,9 @@ static QString buildWonderText(Models::Wonder* w)
 			text += QString(" • %1 x %2\n").arg(static_cast<int>(amount)).arg(resourceToString(res));
 		}
 	}
+	text += "Resource Production:\n";
+	const auto& production = w->getResourceProduction();
+	text += QString(" • %1\n").arg(resourceToString(production));
 	return text;
 }
 
