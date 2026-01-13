@@ -116,6 +116,7 @@
     <ClCompile Include="..\Core\Source\PlayerDecisionMaker.cpp" />
     <ClCompile Include="..\Core\Source\TrainingLogger.cpp" />
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
+    <ClCompile Include="BoardWidget.cpp" />
     <ClCompile Include="WonderSelectionWidget.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
@@ -154,6 +155,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="WonderSelectionWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="BoardWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

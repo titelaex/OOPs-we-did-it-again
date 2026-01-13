@@ -115,6 +115,9 @@
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BoardWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PlayerPanelWidget.h">
@@ -124,6 +127,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="WonderSelectionWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="BoardWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

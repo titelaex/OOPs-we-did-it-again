@@ -1,4 +1,5 @@
-﻿#include "UserInterface.h"
+﻿#include "BoardWidget.h"
+#include "UserInterface.h"
 #include "PlayerPanelWidget.h"
 #include "WonderSelectionWidget.h" 
 #include "Preparation.h"
@@ -106,6 +107,15 @@ UserInterface::UserInterface(QWidget* parent)
 	m_centerTop = new QWidget(m_centerContainer);
 	m_centerMiddle = new QWidget(m_centerContainer);
 	m_centerBottom = new QWidget(m_centerContainer);
+	m_centerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	m_centerBottom->setMinimumHeight(250); // Ensure it has a minimum size
+
+	// Add BoardWidget in bottom panel
+	auto* bottomLayout = new QVBoxLayout(m_centerBottom);
+	bottomLayout->setContentsMargins(8, 8, 8, 8);
+	bottomLayout->setSpacing(0);
+	m_boardWidget = new BoardWidget(m_centerBottom);
+	bottomLayout->addWidget(m_boardWidget);
 
 	// Add a banner label to top area for phase messages
 	auto* topLayout = new QHBoxLayout(m_centerTop);
@@ -131,9 +141,9 @@ UserInterface::UserInterface(QWidget* parent)
 	middleLayout->setSpacing(8);
 	m_centerMiddle->setStyleSheet("background-color: transparent;");
 
-	centerLayout->addWidget(m_centerTop, 2);
-	centerLayout->addWidget(m_centerMiddle, 5);
-	centerLayout->addWidget(m_centerBottom, 3);
+	centerLayout->addWidget(m_centerTop, 0);
+	centerLayout->addWidget(m_centerMiddle, 1);
+	centerLayout->addWidget(m_centerBottom, 1);
 
 	splitter->addWidget(m_centerContainer);
 
@@ -163,6 +173,9 @@ UserInterface::UserInterface(QWidget* parent)
 	setCentralWidget(splitter);
 
 	startWonderSelection();
+
+	// Refresh board after setup
+	if (m_boardWidget) m_boardWidget->refresh();
 }
 
 bool UserInterface::eventFilter(QObject* obj, QEvent* event)
@@ -242,22 +255,24 @@ void UserInterface::loadNextBatch()
 void UserInterface::showAgeTree(int age)
 {
 	auto& board = Core::Board::getInstance();
-	const auto* nodesPtr = (age ==1) ? &board.getAge1Nodes() : (age ==2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
+	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
-	// Expand the middle area to maximum height for the tree
+	// Give middle and bottom panels equal stretch
 	if (auto* rootLayout = qobject_cast<QVBoxLayout*>(m_centerContainer->layout())) {
-		rootLayout->setStretch(0,0); // top compact
-		rootLayout->setStretch(1,1); // middle fills
-		rootLayout->setStretch(2,0); // bottom compact
+		rootLayout->setStretch(0, 0); // top compact
+		rootLayout->setStretch(1, 1); // middle gets space
+		rootLayout->setStretch(2, 1); // bottom gets equal space
 	}
 	if (m_centerTop) m_centerTop->setVisible(false);
-	if (m_centerBottom) m_centerBottom->setVisible(false);
+	if (m_centerBottom) m_centerBottom->setVisible(true);
 
 	// determine row pattern
 	std::vector<int> rows;
 	if (age ==1) rows = {2,3,4,5,6 };
+
 	else if (age ==2) rows = {6,5,4,3,2 };
+
 	else rows = {2,3,4,2,4,3,2 };
 
 	// clear existing layout/widgets in middle panel

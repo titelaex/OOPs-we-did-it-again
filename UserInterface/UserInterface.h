@@ -8,6 +8,7 @@
 
 class QGraphicsView;
 class QGraphicsScene;
+class BoardWidget;
 
 namespace Core { class Player; }
 namespace Models { class Wonder; }
@@ -48,6 +49,9 @@ private:
     QGraphicsView* m_ageView { nullptr };
     QGraphicsScene* m_ageScene { nullptr };
     void fitAgeTree();
+
+    // Board widget for bottom panel
+    BoardWidget* m_boardWidget { nullptr };
 
     // Starea selectiei Wonder-urilor
     int m_selectionPhase = 0; // 0 = Primele 4, 1 = Următoarele 4, 2 = Gata
