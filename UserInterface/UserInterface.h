@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <QtWidgets/QLabel>
 
+class QGraphicsView;
+class QGraphicsScene;
+
 namespace Core { class Player; }
 namespace Models { class Wonder; }
 class PlayerPanelWidget;
@@ -40,6 +43,11 @@ private:
 
     // Phase banner label in top area
     QLabel* m_phaseBanner { nullptr };
+
+    // Graphics items for current age tree view
+    QGraphicsView* m_ageView { nullptr };
+    QGraphicsScene* m_ageScene { nullptr };
+    void fitAgeTree();
 
     // Starea selectiei Wonder-urilor
     int m_selectionPhase = 0; // 0 = Primele 4, 1 = Următoarele 4, 2 = Gata
