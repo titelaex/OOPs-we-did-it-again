@@ -206,10 +206,9 @@ namespace {
             } catch (const std::exception& ex) {
                 std::cerr << "Exception in playCardBuilding: " << ex.what() << "\n";
             }
-            if (cardPtr) {
-                auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-                discarded.push_back(std::move(cardPtr));
-            }
+            // cardPtr will be null if playCardBuilding succeeded
+            // If it's still non-null here, the build failed - DON'T discard it
+            // The outer retry loop will handle putting it back on the tree
             break;
         }
         case 1: { 
@@ -878,9 +877,11 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
         availableIndex.reserve(nodes.size());
         for (size_t i = 0; i < nodes.size(); ++i) {
             if (!nodes[i]) continue;
-            if (!nodes[i]->isAvailable()) continue;
             auto* c = nodes[i]->getCard();
             if (!c) continue;
+            // Check BOTH node availability (tree structure) AND card availability (explicitly marked)
+            if (!nodes[i]->isAvailable()) continue;
+            if (!c->isAvailable()) continue;
             availableIndex.push_back(i);
         }
         if (availableIndex.empty()) break;
@@ -966,6 +967,38 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
             nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
             continue; 
         }
+        
+        // After a card is successfully taken, mark newly exposed parent cards as available
+        auto& takenNode = nodes[chosenNodeIndex];
+        if (takenNode) {
+            auto parent1 = takenNode->getParent1();
+            auto parent2 = takenNode->getParent2();
+            
+            if (parent1) {
+                auto p1_child1 = parent1->getChild1();
+                auto p1_child2 = parent1->getChild2();
+                bool p1_c1_empty = (!p1_child1) || (p1_child1->getCard() == nullptr);
+                bool p1_c2_empty = (!p1_child2) || (p1_child2->getCard() == nullptr);
+                if (p1_c1_empty && p1_c2_empty) {
+                    if (auto* p1_card = parent1->getCard()) {
+                        p1_card->setIsAvailable(true);
+                    }
+                }
+            }
+            
+            if (parent2) {
+                auto p2_child1 = parent2->getChild1();
+                auto p2_child2 = parent2->getChild2();
+                bool p2_c1_empty = (!p2_child1) || (p2_child1->getCard() == nullptr);
+                bool p2_c2_empty = (!p2_child2) || (p2_child2->getCard() == nullptr);
+                if (p2_c1_empty && p2_c2_empty) {
+                    if (auto* p2_card = parent2->getCard()) {
+                        p2_card->setIsAvailable(true);
+                    }
+                }
+            }
+        }
+        
         if (logger) {
             MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
             MCTSAction mctsAction;
@@ -977,7 +1010,7 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
             logger->logTurn(turn);
         }
         if (shields > 0) {
-            Game::movePawn(static_cast<int>(shields));
+            Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
             int win = checkImmediateMilitaryVictory();
             if (win != -1) {
@@ -1101,6 +1134,38 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
             nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
             continue; 
         }
+        
+        // After a card is successfully taken, mark newly exposed parent cards as available
+        auto& takenNode = nodes[chosenNodeIndex];
+        if (takenNode) {
+            auto parent1 = takenNode->getParent1();
+            auto parent2 = takenNode->getParent2();
+            
+            if (parent1) {
+                auto p1_child1 = parent1->getChild1();
+                auto p1_child2 = parent1->getChild2();
+                bool p1_c1_empty = (!p1_child1) || (p1_child1->getCard() == nullptr);
+                bool p1_c2_empty = (!p1_child2) || (p1_child2->getCard() == nullptr);
+                if (p1_c1_empty && p1_c2_empty) {
+                    if (auto* p1_card = parent1->getCard()) {
+                        p1_card->setIsAvailable(true);
+                    }
+                }
+            }
+            
+            if (parent2) {
+                auto p2_child1 = parent2->getChild1();
+                auto p2_child2 = parent2->getChild2();
+                bool p2_c1_empty = (!p2_child1) || (p2_child1->getCard() == nullptr);
+                bool p2_c2_empty = (!p2_child2) || (p2_child2->getCard() == nullptr);
+                if (p2_c1_empty && p2_c2_empty) {
+                    if (auto* p2_card = parent2->getCard()) {
+                        p2_card->setIsAvailable(true);
+                    }
+                }
+            }
+        }
+        
         if (logger) {
             MCTSGameState state = MCTS::captureGameState(2, playerOneTurn);
             MCTSAction mctsAction;
@@ -1112,7 +1177,7 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
             logger->logTurn(turn);
         }
         if (shields > 0) {
-            Game::movePawn(static_cast<int>(shields));
+            Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
             int win = checkImmediateMilitaryVictory();
             if (win != -1) {
@@ -1236,6 +1301,38 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
             nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
             continue; 
         }
+        
+        // After a card is successfully taken, mark newly exposed parent cards as available
+        auto& takenNode = nodes[chosenNodeIndex];
+        if (takenNode) {
+            auto parent1 = takenNode->getParent1();
+            auto parent2 = takenNode->getParent2();
+            
+            if (parent1) {
+                auto p1_child1 = parent1->getChild1();
+                auto p1_child2 = parent1->getChild2();
+                bool p1_c1_empty = (!p1_child1) || (p1_child1->getCard() == nullptr);
+                bool p1_c2_empty = (!p1_child2) || (p1_child2->getCard() == nullptr);
+                if (p1_c1_empty && p1_c2_empty) {
+                    if (auto* p1_card = parent1->getCard()) {
+                        p1_card->setIsAvailable(true);
+                    }
+                }
+            }
+            
+            if (parent2) {
+                auto p2_child1 = parent2->getChild1();
+                auto p2_child2 = parent2->getChild2();
+                bool p2_c1_empty = (!p2_child1) || (p2_child1->getCard() == nullptr);
+                bool p2_c2_empty = (!p2_child2) || (p2_child2->getCard() == nullptr);
+                if (p2_c1_empty && p2_c2_empty) {
+                    if (auto* p2_card = parent2->getCard()) {
+                        p2_card->setIsAvailable(true);
+                    }
+                }
+            }
+        }
+        
         if (logger) {
             MCTSGameState state = MCTS::captureGameState(3, playerOneTurn);
             MCTSAction mctsAction;
@@ -1247,7 +1344,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
             logger->logTurn(turn);
         }
         if (shields > 0) {
-            Game::movePawn(static_cast<int>(shields));
+            Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
             int win = checkImmediateMilitaryVictory();
             if (win != -1) {
@@ -1295,8 +1392,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
     } else {
         announceVictory(civil, "Civilian", p1, p2);
     }
-    std::cout << "Phase III completed." << "\n";
-}
+ }
 void Game::movePawn(int steps) {
     auto& board = Core::Board::getInstance();
     auto position = board.getPawnPos();

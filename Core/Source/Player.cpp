@@ -417,11 +417,19 @@ void Core::Player::discardRemainingWonder(const std::unique_ptr<Models::Player>&
 }
 void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
-	if (!card->isVisible())
+	if (!card)
 	{
-		std::cout << "Card \"" << card->getName() << "\" is not accessible\n";
+		std::cout << "Card is null\n";
 		return;
 	}
+	
+	// Check if card is available (must be in the last row of the tree)
+	if (!card->isAvailable())
+	{
+		std::cout << "Card \"" << card->getName() << "\" is not available for building\n";
+		return;
+	}
+	
 	if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
 	{
 		for (const auto& ownedCard : m_player->getOwnedCards())

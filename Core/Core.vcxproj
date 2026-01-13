@@ -159,34 +159,16 @@
     <ClCompile Include="Source\WeightOptimizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AI_GUIDE.md" />
-    <None Include="BATCH_QUICK_REF.md" />
-    <None Include="BATCH_STATUS.md" />
     <None Include="batch_training.ps1" />
-    <None Include="BATCH_TRAINING_GUIDE.md" />
     <None Include="Config/AgeCards.csv" />
     <None Include="Config/Guilds.csv" />
     <None Include="Config/Tokens.csv" />
     <None Include="Config/Wonders.csv" />
-    <None Include="DISPLAY_FIXES.md" />
-    <None Include="ENABLE_TURN_LOGGING.md" />
-    <None Include="FINAL_STATUS.md" />
-    <None Include="FINAL_STATUS_SUMMARY.md" />
     <None Include="gamestate.csv" />
-    <None Include="GAME_RULES_FIX_SUMMARY.md" />
-    <None Include="IMPLEMENTATION_SUMMARY.md" />
-    <None Include="INFINITE_LOOP_FIX.md" />
-    <None Include="MCTS_MODULE_FIX.md" />
-    <None Include="MISSING_FUNCTIONS.md" />
-    <None Include="optimize_weights.ps1" />
-    <None Include="PHASE2_PROGRESS.md" />
-    <None Include="remove_all_comments.ps1" />
-    <None Include="STATUS_AND_FIX_NEEDED.md" />
-    <None Include="TURN_LOGGING_STATUS.md" />
-    <None Include="WEIGHT_OPTIMIZATION_GUIDE.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log" />
+    <Text Include="phaseI_fix.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">
