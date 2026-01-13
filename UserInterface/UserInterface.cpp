@@ -3,6 +3,7 @@
 #include "PlayerPanelWidget.h"
 #include "WonderSelectionWidget.h" 
 #include "Preparation.h"
+#include "AgeTreeWidget.h"
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QMessageBox>
@@ -254,246 +255,23 @@ void UserInterface::loadNextBatch()
 
 void UserInterface::showAgeTree(int age)
 {
-	auto& board = Core::Board::getInstance();
-	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
-	const auto& nodes = *nodesPtr;
-
-	// Give middle and bottom panels equal stretch
-	if (auto* rootLayout = qobject_cast<QVBoxLayout*>(m_centerContainer->layout())) {
-		rootLayout->setStretch(0, 0); // top compact
-		rootLayout->setStretch(1, 1); // middle gets space
-		rootLayout->setStretch(2, 1); // bottom gets equal space
+	// remove existing AgeTreeWidget
+	if (m_ageTreeWidget) {
+		m_centerMiddle->layout()->removeWidget(m_ageTreeWidget);
+		m_ageTreeWidget->deleteLater();
+		m_ageTreeWidget = nullptr;
 	}
+
+	// hide top and show bottom
 	if (m_centerTop) m_centerTop->setVisible(false);
 	if (m_centerBottom) m_centerBottom->setVisible(true);
 
-	// determine row pattern
-	std::vector<int> rows;
-	if (age ==1) rows = {2,3,4,5,6 };
-
-	else if (age ==2) rows = {6,5,4,3,2 };
-
-	else rows = {2,3,4,2,4,3,2 };
-
-	// clear existing layout/widgets in middle panel
-	QLayout* existing = m_centerMiddle->layout();
-	if (existing) {
-		clearLayout(existing);
-		delete existing;
-	}
-
-	auto* layout = new QVBoxLayout(m_centerMiddle);
-	layout->setContentsMargins(8,8,8,8);
-	layout->setSpacing(0);
-	m_centerMiddle->setLayout(layout);
-
-	// Dispose previous scene/view if any
-	if (m_ageView) { m_ageView->deleteLater(); m_ageView = nullptr; }
-	if (m_ageScene) { m_ageScene->deleteLater(); m_ageScene = nullptr; }
-
-	// Create scene and view (members)
-	m_ageScene = new QGraphicsScene(this);
-	m_ageView = new QGraphicsView(m_ageScene, m_centerMiddle);
-	m_ageView->setRenderHint(QPainter::Antialiasing);
-	m_ageView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	m_ageView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	m_ageView->setFrameStyle(QFrame::NoFrame);
-	m_ageView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	m_ageView->setAlignment(Qt::AlignCenter);
-
-	// sizing constants (bigger for readability)
-	const int cardW =220; // wider
-	const int cardH =145; // taller
-	const int hgap =40; // more gap
-	const int vgap =44; // more gap
-
-	// compute positions per row, center them
-	std::vector<QPointF> positions;
-	positions.resize(nodes.size());
-
-	int totalRows = static_cast<int>(rows.size());
-	int idx =0;
-	int sceneWidth =0;
-	int sceneHeight =0;
-	for (int r =0; r < totalRows; ++r) {
-		int cols = rows[r];
-		// compute row width
-		int rowWidth = cols * cardW + (cols -1) * hgap;
-		sceneWidth = std::max(sceneWidth, rowWidth);
-	}
-
-	// starting y
-	int y =0;
-	for (int r =0; r < totalRows; ++r) {
-		int cols = rows[r];
-		int rowWidth = cols * cardW + (cols -1) * hgap;
-		int x0 = (sceneWidth - rowWidth) /2;
-		for (int c =0; c < cols; ++c) {
-			if (idx >= static_cast<int>(nodes.size())) break;
-			int x = x0 + c * (cardW + hgap);
-			positions[idx] = QPointF(x, y);
-			++idx;
-		}
-		y += cardH + vgap;
-	}
-	sceneHeight = y;
-	m_ageScene->setSceneRect(0,0, std::max(sceneWidth,800), std::max(sceneHeight,400));
-
-	// store mapping from node shared_ptr to index for wiring lines
-	std::unordered_map<Core::Node*, int> ptrToIndex;
-	for (size_t i =0; i < nodes.size(); ++i) {
-		ptrToIndex[nodes[i].get()] = static_cast<int>(i);
-	}
-
-	// draw nodes (rects for internal, proxy buttons for available nodes)
-	std::vector<QGraphicsItem*> rects(nodes.size(), nullptr);
-	idx =0;
-	for (int r =0; r < totalRows; ++r) {
-		int cols = rows[r];
-		for (int c =0; c < cols; ++c) {
-			if (idx >= static_cast<int>(nodes.size())) break;
-			QPointF pos = positions[idx];
-
-			// If node is available -> render as button (clickable), otherwise render as plain card
-			bool isAvailable = false;
-			if (nodes[idx]) isAvailable = nodes[idx]->isAvailable();
-
-			if (isAvailable) {
-				// add a background rounded rect first (so lines can be underneath and button above)
-				QRectF rrect(pos, QSizeF(cardW, cardH));
-				QPen abgPen(QColor("#f59e0b"));
-				abgPen.setWidth(3);
-				abgPen.setJoinStyle(Qt::RoundJoin);
-				QPainterPath bgPath; bgPath.addRoundedRect(rrect,12,12);
-				QGraphicsPathItem* bg = m_ageScene->addPath(bgPath, abgPen, QBrush(QColor("#1f2937")));
-				bg->setZValue(0);
-				rects[idx] = bg;
-
-				// create QPushButton and embed
-				QString name = "<empty>";
-				if (nodes[idx]) {
-					auto* card = nodes[idx]->getCard();
-					if (card) name = QString::fromStdString(card->getName());
-				}
-				QPushButton* btn = new QPushButton(name);
-				btn->setFixedSize(cardW -8, cardH -8); // small padding
-				btn->setEnabled(true);
-				btn->setStyleSheet(
-					"QPushButton {"
-					" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #334155, stop:1 #0f172a);"
-					" color: #e5e7eb;"
-					" border:2px solid #f59e0b;"
-					" border-radius:10px;"
-					" font-weight:600;"
-					" font-size:14px;"
-					" }"
-					"QPushButton:disabled { background:#111827; color:#6b7280; border-color:#374151; }"
-					"QPushButton:hover { border-color:#fbbf24; }"
-				);
-				QGraphicsProxyWidget* proxy = m_ageScene->addWidget(btn);
-				proxy->setPos(pos + QPointF(4,4));
-				proxy->setZValue(2);
-				proxy->setAcceptedMouseButtons(Qt::LeftButton);
-				// set transform origin to center so scaling looks natural
-				proxy->setTransformOriginPoint(proxy->boundingRect().center());
-				// subtle shadow for accessible cards
-				auto* shadow = new QGraphicsDropShadowEffect();
-				shadow->setBlurRadius(18);
-				shadow->setOffset(0,3);
-				shadow->setColor(QColor(0,0,0,160));
-				proxy->setGraphicsEffect(shadow);
-				// install event filter on the widget and remember proxy
-				btn->installEventFilter(this);
-				m_proxyMap[btn] = proxy;
-				// capture index and age
-				connect(btn, &QPushButton::clicked, this, [this, idx, age]() { this->handleLeafClicked(idx, age); });
-			}
-			else {
-				// draw card rounded rectangle (unavailable)
-				QRectF rect(pos, QSizeF(cardW, cardH));
-				QColor bg = nodes[idx] && nodes[idx]->isAvailable() ? QColor("#334155") : QColor("#0f172a");
-				QLinearGradient grad(rect.topLeft(), rect.bottomLeft());
-				grad.setColorAt(0.0, bg.lighter(130));
-				grad.setColorAt(1.0, bg);
-				QPen pen(QColor("#94a3b8")); pen.setWidth(3); pen.setJoinStyle(Qt::RoundJoin);
-				QPainterPath path; path.addRoundedRect(rect,12,12);
-				QGraphicsPathItem* ritem = m_ageScene->addPath(path, pen, QBrush(grad));
-				ritem->setZValue(1);
-				ritem->setOpacity(0.95);
-				// subtle shadow to lift the card
-				auto* itemShadow = new QGraphicsDropShadowEffect();
-				itemShadow->setBlurRadius(14);
-				itemShadow->setOffset(0,2);
-				itemShadow->setColor(QColor(0,0,0,110));
-				ritem->setGraphicsEffect(itemShadow);
-				// add text with modern font and drop shadow
-				QString name = "<empty>";
-				if (nodes[idx] && nodes[idx]->getCard()) name = QString::fromStdString(nodes[idx]->getCard()->getName());
-				QGraphicsTextItem* t = m_ageScene->addText(name, QFont("Segoe UI",12, QFont::Bold));
-				t->setDefaultTextColor(Qt::white);
-				QRectF tb = t->boundingRect();
-				t->setPos(pos.x() + (cardW - tb.width()) /2, pos.y() + (cardH - tb.height()) /2);
-				t->setZValue(2);
-				// subtle shadow behind text
-				QGraphicsTextItem* shadowText = m_ageScene->addText(name, QFont("Segoe UI",12, QFont::Bold));
-				shadowText->setDefaultTextColor(QColor(0,0,0,120));
-				shadowText->setPos(t->pos() + QPointF(1.5,1.5));
-				shadowText->setZValue(1.5);
-				rects[idx] = ritem;
-			}
-			++idx;
-		}
-	}
-
-	// draw edges based on node child links (put lines under rects and proxies)
-	QPen linePen(QColor("#3b2b1b")); linePen.setWidth(3);
-	for (size_t i =0; i < nodes.size(); ++i) {
-		if (!nodes[i]) continue;
-		auto child1 = nodes[i]->getChild1();
-		auto child2 = nodes[i]->getChild2();
-		QPointF fromCenter = positions[i] + QPointF(cardW /2.0, cardH /2.0);
-		if (child1) {
-			auto it = ptrToIndex.find(child1.get());
-			if (it != ptrToIndex.end()) {
-				int ci = it->second;
-				QPointF toCenter = positions[ci] + QPointF(cardW /2.0, cardH /2.0);
-				QGraphicsLineItem* line = m_ageScene->addLine(QLineF(fromCenter, toCenter), linePen);
-				line->setZValue(0);
-			}
-		}
-		if (child2) {
-			auto it = ptrToIndex.find(child2.get());
-			if (it != ptrToIndex.end()) {
-				int ci = it->second;
-				QPointF toCenter = positions[ci] + QPointF(cardW /2.0, cardH /2.0);
-				QGraphicsLineItem* line = m_ageScene->addLine(QLineF(fromCenter, toCenter), linePen);
-				line->setZValue(0);
-			}
-		}
-	}
-
-	// add view and scale to fit after layout pass
-	layout->addWidget(m_ageView);
-
-	// Initial fit after layout
-	QTimer::singleShot(0, this, [this]() { this->fitAgeTree(); });
-
-	// Refitting on viewport resize to keep tree fully visible
-	m_ageView->viewport()->installEventFilter(this);
-}
-
-void UserInterface::fitAgeTree()
-{
-	if (!m_ageView || !m_ageScene) return;
-	QRectF sb = m_ageScene->itemsBoundingRect();
-	if (sb.isEmpty()) {
-		m_ageView->fitInView(m_ageScene->sceneRect(), Qt::KeepAspectRatio);
-		return;
-	}
-	m_ageView->resetTransform();
-	m_ageView->fitInView(sb, Qt::KeepAspectRatio);
-	m_ageView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	m_ageView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	// create and add AgeTreeWidget (it will build the scene)
+	m_ageTreeWidget = new AgeTreeWidget(m_centerMiddle);
+	m_ageTreeWidget->onLeafClicked = [this](int nodeIndex, int age) { this->handleLeafClicked(nodeIndex, age); };
+	if (!m_centerMiddle->layout()) m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+	m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
+	m_ageTreeWidget->showAgeTree(age);
 }
 
 void UserInterface::handleLeafClicked(int nodeIndex, int age)

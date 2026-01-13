@@ -9,6 +9,7 @@
 class QGraphicsView;
 class QGraphicsScene;
 class BoardWidget;
+class AgeTreeWidget; // forward declaration for AgeTreeWidget
 
 namespace Core { class Player; }
 namespace Models { class Wonder; }
@@ -45,10 +46,13 @@ private:
     // Phase banner label in top area
     QLabel* m_phaseBanner { nullptr };
 
-    // Graphics items for current age tree view
+    // Graphics items for current age tree view (restored original members)
     QGraphicsView* m_ageView { nullptr };
     QGraphicsScene* m_ageScene { nullptr };
     void fitAgeTree();
+
+    // AgeTree widget pointer (for new widget signal-based integration)
+    AgeTreeWidget* m_ageTreeWidget{ nullptr };
 
     // Board widget for bottom panel
     BoardWidget* m_boardWidget { nullptr };

@@ -116,6 +116,7 @@
     <ClCompile Include="..\Core\Source\PlayerDecisionMaker.cpp" />
     <ClCompile Include="..\Core\Source\TrainingLogger.cpp" />
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
+    <ClCompile Include="AgeTreeWidget.cpp" />
     <ClCompile Include="BoardWidget.cpp" />
     <ClCompile Include="WonderSelectionWidget.cpp" />
     <QtRcc Include="UserInterface.qrc" />
@@ -158,6 +159,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="BoardWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AgeTreeWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
