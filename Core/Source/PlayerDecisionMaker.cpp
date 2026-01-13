@@ -4,6 +4,7 @@ import <iostream>;
 import <memory>;
 import <random>;
 import <algorithm>;
+import <iomanip>;
 import Core.MCTS;
 import Core.Player;
 import Core.Board;
@@ -130,14 +131,77 @@ Playstyle HumanAssistedDecisionMaker::getSuggestionStyle() const {
 }
 void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& options, const std::string& context) {
     if (options.empty()) return;
+    
     std::cout << "\n[" << playstyleToString(m_suggestionStyle) << "]: AI Suggestions for " << context << ":\n";
-    size_t topPicks = std::min(size_t(3), options.size());
+    
+    // Evaluate each option using simple heuristics
+    std::vector<std::pair<size_t, double>> rankedOptions; // {position_in_available, score}
+    
+    auto& board = Board::getInstance();
+    
+    for (size_t pos = 0; pos < options.size(); ++pos) {
+        size_t nodeIdx = options[pos];  // Internal node index (14, 15, etc)
+        
+        // Get the actual card at this node - check all possible age phases
+        Models::Card* card = nullptr;
+        const auto& nodes1 = board.getAge1Nodes();
+        const auto& nodes2 = board.getAge2Nodes();
+        const auto& nodes3 = board.getAge3Nodes();
+        
+        if (nodeIdx < nodes1.size() && nodes1[nodeIdx] && nodes1[nodeIdx]->getCard()) {
+            card = const_cast<Models::Card*>(nodes1[nodeIdx]->getCard());
+        } else if (nodeIdx < nodes2.size() && nodes2[nodeIdx] && nodes2[nodeIdx]->getCard()) {
+            card = const_cast<Models::Card*>(nodes2[nodeIdx]->getCard());
+        } else if (nodeIdx < nodes3.size() && nodes3[nodeIdx] && nodes3[nodeIdx]->getCard()) {
+            card = const_cast<Models::Card*>(nodes3[nodeIdx]->getCard());
+        }
+        
+        double score = 0.0;
+        
+        if (card) {
+            // Evaluate card based on playstyle
+            if (m_suggestionStyle == Playstyle::BRITNEY) {
+                // Britney: Victory Points > Military
+                score += card->getVictoryPoints() * 2.0;
+                if (auto* ageCard = dynamic_cast<Models::AgeCard*>(card)) {
+                    score += ageCard->getShieldPoints() * 0.5;
+                    if (ageCard->getScientificSymbols().has_value()) {
+                        score += 3.0;
+                    }
+                }
+            } else {
+                // Spears: Military > Victory Points
+                if (auto* ageCard = dynamic_cast<Models::AgeCard*>(card)) {
+                    score += ageCard->getShieldPoints() * 3.0;
+                    score += card->getVictoryPoints() * 0.5;
+                }
+            }
+            
+            // Add small randomness
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_real_distribution<> noise(0.0, 0.1);
+            score += noise(gen);
+        } else {
+            score = 0.1; // Fallback for missing cards
+        }
+        
+        rankedOptions.push_back({pos, score});  // Store position (0-5), not nodeIdx
+    }
+    
+    // Sort by score (descending)
+    std::sort(rankedOptions.begin(), rankedOptions.end(),
+              [](const auto& a, const auto& b) { return a.second > b.second; });
+    
+    // Display ranked suggestions
+    size_t topPicks = std::min(size_t(3), rankedOptions.size());
     for (size_t i = 0; i < topPicks; ++i) {
         std::cout << "  [" << playstyleToString(m_suggestionStyle) << "]: ";
         if (i == 0) std::cout << "BEST CHOICE -> ";
         else if (i == 1) std::cout << "Good alternative -> ";
         else std::cout << "Consider -> ";
-        std::cout << "Option " << i << "\n";
+        std::cout << "Option " << rankedOptions[i].first 
+                  << " (score: " << std::fixed << std::setprecision(2) << rankedOptions[i].second << ")\n";
     }
     std::cout << "\n";
 }
