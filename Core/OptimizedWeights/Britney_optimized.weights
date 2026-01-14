@@ -1,14 +1,14 @@
 # Optimized weights for Britney
-# Generated: 2026-01-12 18:10:14
-# Based on 12312 games with 72.1% win rate
+# Generated: 2026-01-13 22:26:11
+# Based on 22322 games with 75% win rate
 
-victoryPointValue=1.3577
+victoryPointValue=1.4264
 militaryPriority=0.8000
 sciencePriority=1.2000
 economyPriority=1.3000
 resourceValue=1.1000
 coinValue=1.2000
-wonderVPBonus=1.4005
+wonderVPBonus=1.4428
 wonderMilitaryBonus=1.0000
 wonderEconomyBonus=1.2000
 opponentDenial=0.9000

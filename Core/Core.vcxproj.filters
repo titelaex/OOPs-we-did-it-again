@@ -39,9 +39,6 @@
     <ClCompile Include="Header/Board.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source/main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Header/CardCsvParser.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -88,6 +85,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\WeightOptimizer.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GameMetadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayerNameValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\GameMetadata.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\PlayerNameValidator.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
