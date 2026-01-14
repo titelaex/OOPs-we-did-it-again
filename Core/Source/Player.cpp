@@ -112,7 +112,7 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
 	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
 	if (moved)
 	{
-		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Core::Board::getInstance().getDiscardedCards());
+		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
 		discarded.push_back(std::move(moved));
 	}
 }
@@ -528,18 +528,31 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 	const auto& ownTrading = m_player->getOwnedTradingResources();
 	const auto& opponentPermanent = opponent->getOwnedPermanentResources();
 	uint8_t totalCoinsToPay = 0;
+	
+	// First, add any mandatory coin costs from the card
+	if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
+		uint8_t cardCoinCost = ageCard->getCoinCost();
+		if (cardCoinCost > 0) {
+			totalCoinsToPay += cardCoinCost;
+			std::cout << "  Card maintenance cost: " << static_cast<int>(cardCoinCost) << " coins\n";
+		}
+	}
+	
+	// Handle resource costs
 	for (const auto& kv : cost)
 	{
 		auto resource = kv.first;
 		auto requiredAmount = kv.second;
 		uint8_t produced = 0;
-		if (ownPermanent.find(resource) != ownPermanent.end()) produced += ownPermanent.at(resource);
-		if (ownTrading.find(resource) != ownTrading.end()) produced += ownTrading.at(resource);
+		if (ownPermanent.find(resource) != ownPermanent.end())
+			produced += ownPermanent.at(resource);
+		if (ownTrading.find(resource) != ownTrading.end())
+			produced += ownTrading.at(resource);
 		if (produced >= requiredAmount)
 			continue;
 		uint8_t missing = requiredAmount - produced;
-		uint8_t opponentProduction = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
-		uint8_t costPerUnit = 2 + opponentProduction;
+		uint8_t opponentAmount = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
+		uint8_t costPerUnit = 2 + opponentAmount;
 		totalCoinsToPay += costPerUnit * missing;
 		std::cout << "  Buying " << static_cast<int>(missing) << "x " << Models::ResourceTypeToString(resource) 
 		          << " for " << static_cast<int>(costPerUnit) << " coins each (total: " << static_cast<int>(costPerUnit * missing) << " coins)\n";
@@ -664,7 +677,7 @@ namespace Core {
 				std::string out; out.reserve(s.size() + 2);
 				out.push_back('"');
 				for (char ch : s) {
-					if (ch == '"') out += "\"\""; else out.push_back(ch);
+					if (ch == '"') out += "`\""; else out.push_back(ch);
 				}
 				out.push_back('"');
 				return out;

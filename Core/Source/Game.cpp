@@ -32,6 +32,8 @@ import Core.Player;
 import Core.AgeTree; 
 import Core.Node;
 import Core.GameState;
+import Core.PlayerNameValidator;
+import <unordered_map>;
 namespace Core {
 namespace {
     std::unique_ptr<std::vector<std::unique_ptr<Models::Token>>> setupUnusedProgressTokens;
@@ -285,6 +287,15 @@ namespace {
             }
         }
         std::cout << "\n";
+        
+        // Display coin cost if present
+        if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+            uint8_t coinCost = ageCard->getCoinCost();
+            if (coinCost > 0) {
+                std::cout << "Coin Cost: " << static_cast<int>(coinCost) << "\n";
+            }
+        }
+        
         if (card->getVictoryPoints() > 0) {
             std::cout << "Victory Points: " << static_cast<int>(card->getVictoryPoints()) << "\n";
         }
@@ -650,19 +661,7 @@ void Game::wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Co
     std::vector<std::unique_ptr<Models::Wonder>> availableWonders;
     auto& wondersPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getUnusedWonders());
     debugWonders(wondersPool);
-    for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
-        size_t idx = 0; 
-        bool found = false;
-        for (; idx < wondersPool.size(); ++idx) {
-            if (!wondersPool[idx]) continue;
-            if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
-        }
-        if (!found) break;
-        std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
-        wondersPool.erase(wondersPool.begin() + idx);
-        Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
-        availableWonders.emplace_back(raw);
-    }
+
     auto displayAvailableWonders = [](const std::vector<std::unique_ptr<Models::Wonder>>& wonders) {
         std::cout << "\n=== AVAILABLE WONDERS ===\n";
         for (size_t i = 0; i < wonders.size(); ++i) {
@@ -671,61 +670,8 @@ void Game::wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Co
         }
         std::cout << "=========================\n";
     };
-    std::cout << "\n+-----------------------------------+\n";
-    std::cout << "|   WONDER SELECTION - ROUND 1     |\n";
-    std::cout << "+-----------------------------------+\n";
-    displayAvailableWonders(availableWonders);
-    if (player1Starts) {
-        std::cout << "\n> Player 1, choose your first wonder (0-" << (availableWonders.size() - 1) << "): ";
-        std::vector<size_t> wonderIndices;
-        for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-        size_t choice = p1Decisions->selectCard(wonderIndices);
-        p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 2, choose your first wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p2Decisions->selectCard(wonderIndices);
-            p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 2, choose your second wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p2Decisions->selectCard(wonderIndices);
-            p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            p1->chooseWonder(availableWonders, 0);
-        }
-    } else {
-        std::cout << "\n> Player 2, choose your first wonder (0-" << (availableWonders.size() - 1) << "): ";
-        std::vector<size_t> wonderIndices;
-        for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-        size_t choice = p2Decisions->selectCard(wonderIndices);
-        p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 1, choose your first wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p1Decisions->selectCard(wonderIndices);
-            p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 1, choose your second wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p1Decisions->selectCard(wonderIndices);
-            p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            p2->chooseWonder(availableWonders, 0);
-        }
-    }
+
+    // Load 4 wonders for Round 1
     for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
         size_t idx = 0; 
         bool found = false;
@@ -739,64 +685,80 @@ void Game::wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Co
         Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
         availableWonders.emplace_back(raw);
     }
+
+    std::cout << "\n+-----------------------------------+\n";
+    std::cout << "|   WONDER SELECTION - ROUND 1     |\n";
+    std::cout << "+-----------------------------------+\n";
+    displayAvailableWonders(availableWonders);
+
+    // Round 1: Draft 4 wonders - alternating: P1/P2, P2/P1 pattern
+    auto draftWonders = [&](bool startWithP1) {
+        std::vector<bool> playerOrder;
+        if (startWithP1) {
+            playerOrder = {true, false, false, true};  // P1, P2, P2, P1
+        } else {
+            playerOrder = {false, true, true, false};  // P2, P1, P1, P2
+        }
+
+        for (size_t i = 0; i < playerOrder.size(); ++i) {
+            if (availableWonders.empty()) break;
+
+            bool isPlayer1 = playerOrder[i];
+            IPlayerDecisionMaker* decisionMaker = isPlayer1 ? p1Decisions : p2Decisions;
+            std::shared_ptr<Core::Player> currentPlayer = isPlayer1 ? p1 : p2;
+            
+            // If only one card left, auto-assign it
+            if (availableWonders.size() == 1) {
+                std::cout << "\n> " << (isPlayer1 ? "Player 1" : "Player 2") 
+                          << " automatically receives the final wonder: " << availableWonders[0]->getName() << "\n";
+                currentPlayer->chooseWonder(availableWonders, 0);
+                break;
+            }
+            
+            std::cout << "\n> " << (isPlayer1 ? "Player 1" : "Player 2") 
+                      << ", choose your wonder (0-" << (availableWonders.size() - 1) << "): ";
+            
+            std::vector<size_t> wonderIndices;
+            for (size_t j = 0, end = availableWonders.size(); j < end; ++j) wonderIndices.push_back(j);
+            size_t choice = decisionMaker->selectCard(wonderIndices);
+            
+            currentPlayer->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
+            
+            if (!availableWonders.empty()) {
+                displayAvailableWonders(availableWonders);
+            }
+        }
+    };
+
+    draftWonders(player1Starts);
+
+    // Load 4 wonders for Round 2
+    for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
+        size_t idx = 0; 
+        bool found = false;
+        for (; idx < wondersPool.size(); ++idx) {
+            if (!wondersPool[idx]) continue;
+            if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
+        }
+        if (!found) break;
+        std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+        wondersPool.erase(wondersPool.begin() + idx);
+        Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
+        availableWonders.emplace_back(raw);
+    }
+
     std::cout << "\n+-----------------------------------+\n";
     std::cout << "|   WONDER SELECTION - ROUND 2     |\n";
     std::cout << "+-----------------------------------+\n";
     displayAvailableWonders(availableWonders);
-    if (!player1Starts) {
-        std::cout << "\n> Player 1, choose your third wonder (0-" << (availableWonders.size() - 1) << "): ";
-        std::vector<size_t> wonderIndices;
-        for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-        size_t choice = p1Decisions->selectCard(wonderIndices);
-        p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 2, choose your third wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p2Decisions->selectCard(wonderIndices);
-            p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 2, choose your fourth wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p2Decisions->selectCard(wonderIndices);
-            p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            p1->chooseWonder(availableWonders, 0);
-        }
-    } else {
-        std::cout << "\n> Player 2, choose your third wonder (0-" << (availableWonders.size() - 1) << "): ";
-        std::vector<size_t> wonderIndices;
-        for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-        size_t choice = p2Decisions->selectCard(wonderIndices);
-        p2->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 1, choose your third wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p1Decisions->selectCard(wonderIndices);
-            p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            displayAvailableWonders(availableWonders);
-            std::cout << "\n> Player 1, choose your fourth wonder (0-" << (availableWonders.size() - 1) << "): ";
-            wonderIndices.clear();
-            for (size_t i = 0; i < availableWonders.size(); ++i) wonderIndices.push_back(i);
-            choice = p1Decisions->selectCard(wonderIndices);
-            p1->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
-        }
-        if (!availableWonders.empty()) {
-            p2->chooseWonder(availableWonders, 0);
-        }
-    }
+
+    // Round 2: Draft 4 more wonders - REVERSE order from Round 1
+    draftWonders(!player1Starts);
+
     std::cout << "\n+-----------------------------------+\n";
     std::cout << "|   WONDER SELECTION COMPLETE!     |\n";
     std::cout << "+-----------------------------------+\n\n";
+
     if (deleteP1) delete p1Decisions;
     if (deleteP2) delete p2Decisions;
 }
@@ -968,7 +930,7 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
             continue; 
         }
         
-        // After a card is successfully taken, mark newly exposed parent cards as available
+        // After a card is successfully taken, mark newly exposed parent cards as available and visible
         auto& takenNode = nodes[chosenNodeIndex];
         if (takenNode) {
             auto parent1 = takenNode->getParent1();
@@ -982,6 +944,7 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
                 if (p1_c1_empty && p1_c2_empty) {
                     if (auto* p1_card = parent1->getCard()) {
                         p1_card->setIsAvailable(true);
+                        p1_card->setIsVisible(true);
                     }
                 }
             }
@@ -994,6 +957,7 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
                 if (p2_c1_empty && p2_c2_empty) {
                     if (auto* p2_card = parent2->getCard()) {
                         p2_card->setIsAvailable(true);
+                        p2_card->setIsVisible(true);
                     }
                 }
             }
@@ -1009,6 +973,11 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
             TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
             logger->logTurn(turn);
         }
+        
+        // Save game state after each card is taken
+        GameState::getInstance().saveGameState("gamestate.csv");
+        std::cout << "[AUTO-SAVE] Game state saved after " << cardName << ".\n\n";
+
         if (shields > 0) {
             Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
@@ -1135,7 +1104,7 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
             continue; 
         }
         
-        // After a card is successfully taken, mark newly exposed parent cards as available
+        // After a card is successfully taken, mark newly exposed parent cards as available and visible
         auto& takenNode = nodes[chosenNodeIndex];
         if (takenNode) {
             auto parent1 = takenNode->getParent1();
@@ -1149,6 +1118,7 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
                 if (p1_c1_empty && p1_c2_empty) {
                     if (auto* p1_card = parent1->getCard()) {
                         p1_card->setIsAvailable(true);
+                        p1_card->setIsVisible(true);
                     }
                 }
             }
@@ -1161,6 +1131,7 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
                 if (p2_c1_empty && p2_c2_empty) {
                     if (auto* p2_card = parent2->getCard()) {
                         p2_card->setIsAvailable(true);
+                        p2_card->setIsVisible(true);
                     }
                 }
             }
@@ -1176,6 +1147,11 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
             TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
             logger->logTurn(turn);
         }
+        
+        // Save game state after each card is taken
+        GameState::getInstance().saveGameState("gamestate.csv");
+        std::cout << "[AUTO-SAVE] Game state saved after " << cardName << ".\n\n";
+
         if (shields > 0) {
             Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
@@ -1302,7 +1278,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
             continue; 
         }
         
-        // After a card is successfully taken, mark newly exposed parent cards as available
+        // After a card is successfully taken, mark newly exposed parent cards as available and visible
         auto& takenNode = nodes[chosenNodeIndex];
         if (takenNode) {
             auto parent1 = takenNode->getParent1();
@@ -1316,6 +1292,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
                 if (p1_c1_empty && p1_c2_empty) {
                     if (auto* p1_card = parent1->getCard()) {
                         p1_card->setIsAvailable(true);
+                        p1_card->setIsVisible(true);
                     }
                 }
             }
@@ -1328,6 +1305,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
                 if (p2_c1_empty && p2_c2_empty) {
                     if (auto* p2_card = parent2->getCard()) {
                         p2_card->setIsAvailable(true);
+                        p2_card->setIsVisible(true);
                     }
                 }
             }
@@ -1343,6 +1321,11 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
             TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
             logger->logTurn(turn);
         }
+        
+        // Save game state after each card is taken
+        GameState::getInstance().saveGameState("gamestate.csv");
+        std::cout << "[AUTO-SAVE] Game state saved after " << cardName << ".\n\n";
+
         if (shields > 0) {
             Game::movePawn(playerOneTurn ? static_cast<int>(shields) : -static_cast<int>(shields));
             awardMilitaryTokenIfPresent(*cur);
@@ -1562,5 +1545,141 @@ void Game::announceVictory(int winner, const std::string& victoryType, const Pla
     std::cout << std::string(55 - winnerName.length(), ' ') << "║\n";
     std::cout << "╚════════════════════════════════════════════════════════════════╝\n\n";
     displayTurnStatus(p1, p2);
+}
+
+// Game initialization function
+void Game::initGame(bool& continueGame, bool& trainingMode,
+                   std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2,
+                   IPlayerDecisionMaker*& p1Decisions, IPlayerDecisionMaker*& p2Decisions,
+                   Playstyle& p1Playstyle, Playstyle& p2Playstyle) {
+    
+    // Load or continue game
+    std::string saveFile = "gamestate.csv";
+    GameState& gameState = GameState::getInstance();
+    
+    int continueChoice = 0;
+    std::cout << "=== NEW GAME OR CONTINUE? ===\n";
+    std::cout << "[0] New Game\n";
+    std::cout << "[1] Continue Previous Game\n";
+    std::cout << "Choice: ";
+    std::cin >> continueChoice;
+    std::cin.ignore();
+    continueGame = (continueChoice == 1);
+    
+    if (continueGame) {
+        std::cout << "\nLoading saved game state...\n";
+        gameState.loadGameState(saveFile);
+        std::cout << "Game state restored from save file.\n";
+        std::cout << "Trees will be reconstructed from saved card data.\n";
+    } else {
+        // New game - show game mode selection
+        std::cout << "Choose game mode:\n";
+        std::cout << "[1] Human vs Human\n";
+        std::cout << "[2] Human vs AI\n";
+        std::cout << "[3] AI vs AI (Training Mode)\n";
+        std::cout << "[4] Human with AI Suggestions\n";
+        std::cout << "Choice: ";
+        int mode = 1;
+        std::cin >> mode;
+        std::cin.ignore();
+        
+        std::string username;
+        
+        if (mode == 2) {
+            std::cout << "\n=== HUMAN VS AI MODE ===\n";
+            std::string username = PlayerNameValidator::getValidatedName("Enter your username: ");
+            gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+            gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_Opponent");
+            
+            std::cout << "\nChoose AI playstyle:\n";
+            std::cout << "[1] Britney (Peaceful/Long-game)\n";
+            std::cout << "[2] Spears (Aggressive/Military)\n";
+            std::cout << "Choice: ";
+            int aiStyle = 1;
+            std::cin >> aiStyle;
+            std::cin.ignore();
+            p2Playstyle = (aiStyle == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+            p1Decisions = new Core::HumanDecisionMaker();
+            p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+            std::cout << "\n>> You are Player 1\n";
+            std::cout << ">> AI is Player 2 playing as: " << Core::playstyleToString(p2Playstyle) << "\n\n";
+        }
+        else if (mode == 3) {
+            std::cout << "\n=== AI VS AI TRAINING MODE ===\n";
+            trainingMode = true;
+            std::cout << "Select playstyle for AI Player 1:\n";
+            std::cout << "[1] Britney (Peaceful/Long-game)\n";
+            std::cout << "[2] Spears (Aggressive/Military)\n";
+            std::cout << "Choice: ";
+            int p1Style = 1;
+            std::cin >> p1Style;
+            std::cout << "Select playstyle for AI Player 2:\n";
+            std::cout << "[1] Britney (Peaceful/Long-game)\n";
+            std::cout << "[2] Spears (Aggressive/Military)\n";
+            std::cout << "Choice: ";
+            int p2Style = 1;
+            std::cin >> p2Style;
+            std::cin.ignore();
+            p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+            p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+            gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, "AI_P1");
+            gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_P2");
+            p1Decisions = new Core::MCTSDecisionMaker(p1Playstyle, 1000, 1.414, 20);
+            p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+            std::cout << "\n>> AI Player 1 is playing as: " << Core::playstyleToString(p1Playstyle) << "\n";
+            std::cout << ">> AI Player 2 is playing as: " << Core::playstyleToString(p2Playstyle) << "\n";
+            std::cout << ">> Training data will be saved after the game.\n\n";
+        }
+        else if (mode == 4) {
+            std::cout << "\n=== HUMAN WITH AI SUGGESTIONS ===\n";
+            std::string username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
+            gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+            
+            username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
+            gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
+            
+            std::cout << "\nChoose suggestion style for Player 1:\n";
+            std::cout << "[1] Britney (Peaceful/VP-focused suggestions)\n";
+            std::cout << "[2] Spears (Aggressive/Military suggestions)\n";
+            std::cout << "Choice: ";
+            int p1Style = 1;
+            std::cin >> p1Style;
+            std::cout << "\nChoose suggestion style for Player 2:\n";
+            std::cout << "[1] Britney (Peaceful/VP-focused suggestions)\n";
+            std::cout << "[2] Spears (Aggressive/Military suggestions)\n";
+            std::cout << "Choice: ";
+            int p2Style = 1;
+            std::cin >> p2Style;
+            std::cin.ignore();
+            p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+            p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+            p1Decisions = new Core::HumanAssistedDecisionMaker(p1Playstyle, 500);
+            p2Decisions = new Core::HumanAssistedDecisionMaker(p2Playstyle, 500);
+            std::cout << "\n>> Player 1 gets " << Core::playstyleToString(p1Playstyle) << " suggestions\n";
+            std::cout << ">> Player 2 gets " << Core::playstyleToString(p2Playstyle) << " suggestions\n\n";
+        }
+        else {
+            std::cout << "\n=== HUMAN VS HUMAN MODE ===\n";
+            std::string username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
+            gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+            
+            username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
+            gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
+            p1Decisions = new Core::HumanDecisionMaker();
+            p2Decisions = new Core::HumanDecisionMaker();
+        }
+        
+        std::cout << "\nStarting preparation...\n";
+        Game::preparation();
+        std::cout << "\n=== Wonder Selection ===\n";
+        auto p1Ptr = gameState.GetPlayer1();
+        auto p2Ptr = gameState.GetPlayer2();
+        Game::wonderSelection(p1Ptr, p2Ptr, p1Decisions, p2Decisions);
+        std::cout << "Preparation finished.\n";
+        Board::getInstance().displayEntireBoard();
+        std::cout << "\nSaving game state to gamestate.csv...\n";
+        gameState.saveGameState(saveFile);
+        std::cout << "[SAVE] Initial game state saved to " << saveFile << ".\n";
+    }
 }
 }
