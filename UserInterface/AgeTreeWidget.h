@@ -9,23 +9,39 @@
 #include <unordered_map>
 
 class QGraphicsProxyWidget;
+class PlayerPanelWidget;
 
 class AgeTreeWidget : public QWidget
 {
-    // No Q_OBJECT here to avoid requiring moc; use callback instead
 public:
     explicit AgeTreeWidget(QWidget* parent = nullptr);
     void showAgeTree(int age);
     void fitAgeTree();
 
-    // callback invoked when a leaf is clicked
-    std::function<void(int,int)> onLeafClicked;
+    // Set player panels for refreshing after actions
+    void setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right);
+
+    // Set current player index (0 or 1)
+    void setCurrentPlayerIndex(int index);
+    int getCurrentPlayerIndex() const { return m_currentPlayerIndex; }
+
+    // Callbacks for UI coordination
+    std::function<void(int nodeIndex, int age)> onLeafClicked; // Called when user clicks a card
+    std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; // Called after successful action
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
+    void handleLeafClicked(int nodeIndex, int age);
+    void refreshPanels();
+
     QGraphicsView* m_view{ nullptr };
     QGraphicsScene* m_scene{ nullptr };
     std::unordered_map<QWidget*, QGraphicsProxyWidget*> m_proxyMap;
+
+    PlayerPanelWidget* m_leftPanel{ nullptr };
+    PlayerPanelWidget* m_rightPanel{ nullptr };
+    int m_currentPlayerIndex{ 0 };
+    int m_currentAge{ 1 };
 };

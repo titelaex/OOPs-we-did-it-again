@@ -118,6 +118,8 @@
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
     <ClCompile Include="AgeTreeWidget.cpp" />
     <ClCompile Include="BoardWidget.cpp" />
+    <ClCompile Include="CardSpineDelegate.cpp" />
+    <ClCompile Include="WonderSelectionController.cpp" />
     <ClCompile Include="WonderSelectionWidget.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
@@ -162,6 +164,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AgeTreeWidget.h" />
+    <ClInclude Include="CardSpineDelegate.h" />
+    <QtMoc Include="WonderSelectionController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,4 +1,6 @@
 ﻿#include "PlayerPanelWidget.h"
+#include "CardSpineDelegate.h"
+
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -7,6 +9,35 @@
 #include <QScrollArea>
 #include <QPalette>
 #include <QMap>
+#include <QResizeEvent>
+
+class SpineList : public QListWidget {
+public:
+	explicit SpineList(QWidget* parent = nullptr, int spineWidth = 24)
+		: QListWidget(parent), m_spineWidth(spineWidth)
+	{
+		setViewMode(QListView::IconMode);
+		setResizeMode(QListView::Adjust);
+		setUniformItemSizes(false);
+	}
+protected:
+	void resizeEvent(QResizeEvent* event) override {
+		QListWidget::resizeEvent(event);
+		updateItemSizes();
+	}
+private:
+	void updateItemSizes() {
+		int h = viewport()->height();
+		if (h <= 0) return;
+		int vpad = 8;
+		int itemH = std::max(24, h - vpad);
+		QSize sz(m_spineWidth, itemH);
+		for (int i = 0; i < count(); ++i) {
+			if (auto it = item(i)) it->setSizeHint(sz);
+		}
+	}
+	int m_spineWidth;
+};
 
 
 QString PlayerPanelWidget::QStringBuilder(const std::string& s) const {
@@ -26,6 +57,20 @@ QString PlayerPanelWidget::ColorToCss(Models::ColorType c) const {
 	}
 }
 
+QListWidget* PlayerPanelWidget::listForColor(Models::ColorType col) const
+{
+	switch (col) {
+	case Models::ColorType::BROWN: return m_cardsBrown;
+	case Models::ColorType::GREY: return m_cardsGrey;
+	case Models::ColorType::RED: return m_cardsRed;
+	case Models::ColorType::YELLOW: return m_cardsYellow;
+	case Models::ColorType::GREEN: return m_cardsGreen;
+	case Models::ColorType::BLUE: return m_cardsBlue;
+	case Models::ColorType::PURPLE: return m_cardsPurple;
+	default: return nullptr;
+	}
+}
+
 void PlayerPanelWidget::refreshWonders()
 {
 	if (!m_wondersGrid) return;
@@ -33,9 +78,9 @@ void PlayerPanelWidget::refreshWonders()
 	QLayoutItem* item;
 	while ((item = m_wondersGrid->takeAt(0)) != nullptr) {
 		if (item->widget()) {
-			delete item->widget(); 
+			delete item->widget();
 		}
-		delete item; 
+		delete item;
 	}
 
 	auto title = new QLabel("Wonders:", this);
@@ -48,7 +93,7 @@ void PlayerPanelWidget::refreshWonders()
 	for (int i = 0; i < 4; ++i) {
 		auto slot = new QLabel(this);
 		slot->setAlignment(Qt::AlignCenter);
-		slot->setFixedSize(150, 70); 
+		slot->setFixedSize(150, 70);
 
 		int row = (i / 2) + 1;
 		int col = i % 2;
@@ -159,7 +204,7 @@ void PlayerPanelWidget::addProgressTokensSection()
 			tokenLbl->setAlignment(Qt::AlignCenter);
 			tokenLbl->setStyleSheet(circleStyleFilled);
 			tokenLbl->setToolTip(QStringBuilder(t->getName()));
-		
+
 			QString name = QStringBuilder(t->getName());
 			if (!name.isEmpty()) {
 				QString initials = name.section(' ', 0, 0).left(2).toUpper();
@@ -179,64 +224,90 @@ void PlayerPanelWidget::addProgressTokensSection()
 	m_layout->addWidget(tokensSection);
 }
 
+void PlayerPanelWidget::refreshStats()
+{
+	if (!m_player || !m_player->m_player) return;
+
+	auto coinsTuple = m_player->m_player->getRemainingCoins();
+	uint32_t coinsVal = static_cast<uint32_t>(m_player->m_player->totalCoins(coinsTuple));
+	int vpVal = static_cast<int>(m_player->m_player->getTotalVictoryPoints());
+
+	if (m_coinsLabel) m_coinsLabel->setText(QString::number(coinsVal));
+	if (m_vpLabel) m_vpLabel->setText(QString::number(vpVal));
+}
+
 void PlayerPanelWidget::addStatsRow()
 {
-	uint8_t coinsVal = 0;
+	uint32_t coinsVal = 0;
 	int vpVal = 0;
 	if (m_player && m_player->m_player) {
 		auto coinsTuple = m_player->m_player->getRemainingCoins();
-		coinsVal = m_player->m_player->totalCoins(coinsTuple);
+		coinsVal = static_cast<uint32_t>(m_player->m_player->totalCoins(coinsTuple));
 		vpVal = static_cast<int>(m_player->m_player->getTotalVictoryPoints());
 	}
 
 	auto statsRow = new QHBoxLayout();
 	statsRow->setSpacing(12);
 
-	auto coinsLbl = new QLabel(QString::number(coinsVal), this);
-	coinsLbl->setAlignment(Qt::AlignCenter);
-	coinsLbl->setFixedSize(40, 40);
-	coinsLbl->setStyleSheet("background-color: #FFD700; color: #333; "
+	m_coinsLabel = new QLabel(QString::number(coinsVal), this);
+	m_coinsLabel->setAlignment(Qt::AlignCenter);
+	m_coinsLabel->setFixedSize(40, 40);
+	m_coinsLabel->setStyleSheet("background-color: #FFD700; color: #333; "
 		"border:2px solid #B8860B; border-radius:20px; font-weight: bold;");
 
-	auto vpLbl = new QLabel(QString::number(vpVal), this);
-	vpLbl->setAlignment(Qt::AlignCenter);
-	vpLbl->setFixedSize(40, 40);
-	vpLbl->setStyleSheet("background-color: #6EE7B7; color: #1F2937; "
+	m_vpLabel = new QLabel(QString::number(vpVal), this);
+	m_vpLabel->setAlignment(Qt::AlignCenter);
+	m_vpLabel->setFixedSize(40, 40);
+	m_vpLabel->setStyleSheet("background-color: #6EE7B7; color: #1F2937; "
 		"border:2px solid #10B981; border-radius:20px; font-weight: bold;");
 
 	if (m_isLeftPanel) {
 		statsRow->addStretch(1);
 		statsRow->addWidget(new QLabel("VP:", this));
-		statsRow->addWidget(vpLbl);
+		statsRow->addWidget(m_vpLabel);
 		statsRow->addSpacing(8);
-		statsRow->addWidget(new QLabel("Coins:", this));	
-		statsRow->addWidget(coinsLbl);
+		statsRow->addWidget(new QLabel("Coins:", this));
+		statsRow->addWidget(m_coinsLabel);
 	}
 	else {
 		statsRow->addWidget(new QLabel("Coins:", this));
-		statsRow->addWidget(coinsLbl);
+		statsRow->addWidget(m_coinsLabel);
 		statsRow->addSpacing(8);
 		statsRow->addWidget(new QLabel("VP:", this));
-		statsRow->addWidget(vpLbl);
+		statsRow->addWidget(m_vpLabel);
 		statsRow->addStretch(1);
 	}
 
 	m_layout->addLayout(statsRow);
 }
 
-void PlayerPanelWidget::addCardSections()
+void PlayerPanelWidget::refreshCards()
 {
-	QMap<int, QStringList> groups;
-	if (m_player && m_player->m_player) {
-		const auto& owned = m_player->m_player->getOwnedCards();
-		for (const auto& uptr : owned) {
-			if (!uptr) continue;
-			Models::ColorType col = uptr->getColor();
-			groups[static_cast<int>(col)].push_back(QStringBuilder(uptr->getName()));
-		}
+	if (!m_player || !m_player->m_player) return;
+
+	QListWidget* lists[] = { m_cardsBrown, m_cardsGrey, m_cardsRed, m_cardsYellow, m_cardsGreen, m_cardsBlue, m_cardsPurple };
+	for (auto* l : lists) {
+		if (l) l->clear();
 	}
 
-	auto addSection = [&](Models::ColorType col) {
+	const auto& owned = m_player->m_player->getOwnedCards();
+	for (const auto& uptr : owned) {
+		if (!uptr) continue;
+		auto* list = listForColor(uptr->getColor());
+		if (!list) continue;
+
+		QString name = QStringBuilder(uptr->getName());
+		auto* item = new QListWidgetItem(name);
+		item->setToolTip(name);
+		item->setSizeHint(QSize(24, 120));
+		item->setData(Qt::BackgroundRole, QColor(ColorToCss(uptr->getColor())));
+		list->addItem(item);
+	}
+}
+
+void PlayerPanelWidget::addCardSections()
+{
+	auto makeSection = [&](Models::ColorType col, QListWidget*& outList) {
 		QWidget* section = new QWidget(this);
 		auto sectionLayout = new QVBoxLayout(section);
 		sectionLayout->setContentsMargins(8, 8, 8, 8);
@@ -249,26 +320,35 @@ void PlayerPanelWidget::addCardSections()
 		).arg(ColorToCss(col)).arg(bg).arg(m_isLeftPanel ? 1 : 0).arg(m_isLeftPanel ? 0 : 1);
 		section->setStyleSheet(sectionStyle);
 
-		auto list = new QListWidget(section);
-		QString itemStyle = QString(
-			"QListWidget::item { color: white; padding:4px; margin-bottom:2px; }"
-			"QListWidget::item:selected { background-color: rgba(255,255,255,0.1); }"
+		outList = new SpineList(section);
+		outList->setFlow(QListView::LeftToRight);
+		outList->setWrapping(true);
+		outList->setResizeMode(QListView::Adjust);
+		outList->setSpacing(4);
+		outList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		outList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		outList->setSelectionMode(QAbstractItemView::SingleSelection);
+
+		outList->setLayoutDirection(m_isLeftPanel ? Qt::RightToLeft : Qt::LeftToRight);
+
+		outList->setStyleSheet(
+			"QListWidget { background: transparent; border: none; }"
+			"QListWidget::item { padding:0px; margin:0px; }"
+			"QListWidget::item:selected { background: transparent; }"
 		);
-		list->setStyleSheet(itemStyle);
-		list->setLayoutDirection(m_isLeftPanel ? Qt::RightToLeft : Qt::LeftToRight);
+		outList->setItemDelegate(new CardSpineDelegate(outList));
 
-		for (const auto& name : groups.value(static_cast<int>(col)))
-			list->addItem(name);
-
-		sectionLayout->addWidget(list);
+		sectionLayout->addWidget(outList);
 		m_layout->addWidget(section);
 		};
 
-	addSection(Models::ColorType::BROWN);
-	addSection(Models::ColorType::GREY);
-	addSection(Models::ColorType::RED);
-	addSection(Models::ColorType::YELLOW);
-	addSection(Models::ColorType::GREEN);
-	addSection(Models::ColorType::BLUE);
-	addSection(Models::ColorType::PURPLE);
+	makeSection(Models::ColorType::BROWN, m_cardsBrown);
+	makeSection(Models::ColorType::GREY, m_cardsGrey);
+	makeSection(Models::ColorType::RED, m_cardsRed);
+	makeSection(Models::ColorType::YELLOW, m_cardsYellow);
+	makeSection(Models::ColorType::GREEN, m_cardsGreen);
+	makeSection(Models::ColorType::BLUE, m_cardsBlue);
+	makeSection(Models::ColorType::PURPLE, m_cardsPurple);
+
+	refreshCards();
 }

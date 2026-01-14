@@ -121,6 +121,12 @@
     <ClCompile Include="AgeTreeWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CardSpineDelegate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WonderSelectionController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PlayerPanelWidget.h">
@@ -135,9 +141,15 @@
     <QtMoc Include="BoardWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="WonderSelectionController.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AgeTreeWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CardSpineDelegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
