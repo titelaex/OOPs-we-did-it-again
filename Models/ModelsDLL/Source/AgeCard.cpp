@@ -20,6 +20,7 @@ using namespace Models;
 
 const std::unordered_map<ResourceType, uint8_t>& AgeCard::getResourcesProduction() const { return m_resourceProduction; }
 const uint8_t& AgeCard::getShieldPoints() const { return m_shieldPoints; }
+uint8_t AgeCard::getCoinCost() const { return m_coinCost; }
 const std::optional<ScientificSymbolType>& AgeCard::getScientificSymbols() const { return m_scientificSymbols; }
 const std::optional<LinkingSymbolType>& AgeCard::getHasLinkingSymbol() const { return m_hasLinkingSymbol; }
 const std::optional<LinkingSymbolType>& AgeCard::getRequiresLinkingSymbol() const { return m_requiresLinkingSymbol; }
@@ -35,6 +36,7 @@ bool AgeCard::IsConstructed() const { return false; }
 // Setters
 void AgeCard::setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_resourceProduction = resourceProduction; }
 void AgeCard::setShieldPoints(const uint8_t& shieldPoints) { m_shieldPoints = shieldPoints; }
+void AgeCard::setCoinCost(uint8_t coinCost) { m_coinCost = coinCost; }
 void AgeCard::setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols) { m_scientificSymbols = scientificSymbols; }
 void AgeCard::setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol) { m_hasLinkingSymbol = hasLinkingSymbol; }
 void AgeCard::setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol) { m_requiresLinkingSymbol = requiresLinkingSymbol; }
@@ -175,7 +177,7 @@ __declspec(dllexport) std::ostream& Models::operator<<(std::ostream& out, const 
 	writeEscapedField(out, resourceMapToString(card.getResourcesProduction()));
 	writeNumericField(out, card.getVictoryPoints());
 	writeNumericField(out, card.getShieldPoints());
-	writeEscapedField(out, {}); // coinCost placeholder
+	writeNumericField(out, card.getCoinCost()); // write coin cost
 
 	std::string scientificSymbol = card.getScientificSymbols().has_value() ? ScientificSymbolTypeToString(card.getScientificSymbols().value()) : std::string{};
 	writeEscapedField(out, scientificSymbol);
@@ -201,6 +203,7 @@ AgeCardBuilder& AgeCardBuilder::setResourceCost(const std::unordered_map<Resourc
 AgeCardBuilder& AgeCardBuilder::setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_card.setResourceProduction(resourceProduction); return *this; }
 AgeCardBuilder& AgeCardBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card.setVictoryPoints(victoryPoints); return *this; }
 AgeCardBuilder& AgeCardBuilder::setShieldPoints(const uint8_t& shieldPoints) { m_card.setShieldPoints(shieldPoints); return *this; }
+AgeCardBuilder& AgeCardBuilder::setCoinCost(uint8_t coinCost) { m_card.setCoinCost(coinCost); return *this; }
 AgeCardBuilder& AgeCardBuilder::setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols) { m_card.setScientificSymbols(scientificSymbols); return *this; }
 AgeCardBuilder& AgeCardBuilder::setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol) { m_card.setHasLinkingSymbol(hasLinkingSymbol); return *this; }
 AgeCardBuilder& AgeCardBuilder::setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol) { m_card.setRequiresLinkingSymbol(requiresLinkingSymbol); return *this; }

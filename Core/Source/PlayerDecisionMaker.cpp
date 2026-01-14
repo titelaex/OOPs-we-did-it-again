@@ -17,28 +17,58 @@ import Models.Wonder;
 namespace Core {
 size_t HumanDecisionMaker::selectCard(const std::vector<size_t>& available) {
     size_t choice = 0;
-    std::cin >> choice;
-    if (choice >= available.size()) {
-        std::cout << "Invalid choice, defaulting to 0\n";
-        choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (available.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= available.size()) {
+            std::cout << "ERROR: Invalid choice! Please enter a number between 0 and " << (available.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
     }
     return choice;
 }
 int HumanDecisionMaker::selectCardAction() {
     int action = 0;
-    std::cin >> action;
-    if (action < 0 || action > 2) {
-        std::cout << "Invalid action, defaulting to 0 (build)\n";
-        action = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> action;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter 0, 1, or 2: ";
+            continue;
+        }
+        if (action < 0 || action > 2) {
+            std::cout << "ERROR: Invalid action! Please enter 0 (build), 1 (sell), or 2 (wonder): ";
+            continue;
+        }
+        validInput = true;
     }
     return action;
 }
 size_t HumanDecisionMaker::selectWonder(const std::vector<size_t>& candidates) {
     size_t choice = 0;
-    std::cin >> choice;
-    if (choice >= candidates.size()) {
-        std::cout << "Invalid wonder choice, defaulting to 0\n";
-        choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (candidates.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= candidates.size()) {
+            std::cout << "ERROR: Invalid wonder choice! Please enter a number between 0 and " << (candidates.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
     }
     return choice;
 }
@@ -209,10 +239,20 @@ size_t HumanAssistedDecisionMaker::selectCard(const std::vector<size_t>& availab
     showSuggestions(available, "card selection");
     std::cout << "Your choice (0-" << (available.size() - 1) << "): ";
     size_t choice = 0;
-    std::cin >> choice;
-    if (choice >= available.size()) {
-        std::cout << "Invalid choice, defaulting to 0\n";
-        choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (available.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= available.size()) {
+            std::cout << "ERROR: Invalid choice! Please enter a number between 0 and " << (available.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
     }
     return choice;
 }
@@ -226,10 +266,20 @@ int HumanAssistedDecisionMaker::selectCardAction() {
     }
     std::cout << "\nYour choice [0]=build, [1]=sell, [2]=wonder: ";
     int action = 0;
-    std::cin >> action;
-    if (action < 0 || action > 2) {
-        std::cout << "Invalid action, defaulting to 0 (build)\n";
-        action = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> action;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter 0, 1, or 2: ";
+            continue;
+        }
+        if (action < 0 || action > 2) {
+            std::cout << "ERROR: Invalid action! Please enter 0 (build), 1 (sell), or 2 (wonder): ";
+            continue;
+        }
+        validInput = true;
     }
     return action;
 }
@@ -237,10 +287,20 @@ size_t HumanAssistedDecisionMaker::selectWonder(const std::vector<size_t>& candi
     showSuggestions(candidates, "wonder selection");
     std::cout << "Your choice (0-" << (candidates.size() - 1) << "): ";
     size_t choice = 0;
-    std::cin >> choice;
-    if (choice >= candidates.size()) {
-        std::cout << "Invalid wonder choice, defaulting to 0\n";
-        choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (candidates.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= candidates.size()) {
+            std::cout << "ERROR: Invalid wonder choice! Please enter a number between 0 and " << (candidates.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
     }
     return choice;
 }

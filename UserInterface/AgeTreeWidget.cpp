@@ -1,5 +1,9 @@
 #include "AgeTreeWidget.h"
+<<<<<<< HEAD
 #include <QtCore/QDebug>
+=======
+#include "PlayerPanelWidget.h"
+>>>>>>> 615931ae86c80e982d01255dc960b97da9e52d78
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsRectItem>
@@ -8,6 +12,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLayout>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QPen>
 #include <QtGui/QBrush>
 #include <QtCore/QTimer>
@@ -15,6 +20,7 @@
 #include <QtCore/QPropertyAnimation>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtCore/QVariantAnimation>
+#include <QtCore/QDebug>
 
 #include <algorithm>
 #include <vector>
@@ -22,6 +28,8 @@
 
 import Core.Board;
 import Core.Node;
+import Core.Player;
+import Core.GameState;
 import Models.Card;
 
 // Styled ClickableRect: draws a rounded rect with gradient, border, shadow and text handled separately
@@ -88,13 +96,136 @@ AgeTreeWidget::~AgeTreeWidget()
     qDebug() << "AgeTreeWidget::dtor this=" << static_cast<const void*>(this);
 }
 
+void AgeTreeWidget::setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right)
+{
+    m_leftPanel = left;
+    m_rightPanel = right;
+}
+
+void AgeTreeWidget::setCurrentPlayerIndex(int index)
+{
+    m_currentPlayerIndex = index;
+}
+
+void AgeTreeWidget::refreshPanels()
+{
+if (m_leftPanel) {
+        m_leftPanel->refreshStats();
+        m_leftPanel->refreshCards();
+        m_leftPanel->refreshWonders();
+    }
+    if (m_rightPanel) {
+   m_rightPanel->refreshStats();
+        m_rightPanel->refreshCards();
+        m_rightPanel->refreshWonders();
+    }
+}
+
+void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
+{
+    qDebug() << "AgeTreeWidget::handleLeafClicked called. currentPlayerIndex=" << m_currentPlayerIndex;
+
+    auto& board = Core::Board::getInstance();
+    const auto& nodes = (age ==1) ? board.getAge1Nodes() : (age ==2) ? board.getAge2Nodes() : board.getAge3Nodes();
+    if (nodeIndex <0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
+    auto node = nodes[static_cast<size_t>(nodeIndex)];
+if (!node) return;
+    auto* card = node->getCard();
+    if (!card) return;
+
+ // show choices: Build, Sell, Use as Wonder
+    QMessageBox msg(this);
+    msg.setWindowTitle("Choose action");
+    msg.setText(QString::fromStdString(card->getName()));
+    QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
+    QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
+    QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
+    msg.addButton(QMessageBox::Cancel);
+
+    msg.exec();
+
+    QPushButton* clicked = qobject_cast<QPushButton*>(msg.clickedButton());
+  if (!clicked) return;
+
+ int action = -1;
+    if (clicked == buildBtn) action =0;
+    else if (clicked == sellBtn) action =1;
+    else if (clicked == wonderBtn) action =2;
+    else return;
+
+    auto& gs = Core::GameState::getInstance();
+    Core::Player* cur = (m_currentPlayerIndex ==0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+    Core::Player* opp = (m_currentPlayerIndex ==0) ? gs.GetPlayer2().get() : gs.GetPlayer1().get();
+    if (!cur || !opp) return;
+
+    Core::setCurrentPlayer(cur);
+
+    std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
+    if (!cardPtr) {
+     qDebug() << "releaseCard returned null";
+        return;
+    }
+    qDebug() << "Card released:" << QString::fromStdString(cardPtr->getName());
+
+    // Execute chosen action
+    if (action ==0) {
+        qDebug() << "Attempting to build card";
+        cur->playCardBuilding(cardPtr, opp->m_player);
+     qDebug() << "playCardBuilding returned";
+  }
+    else if (action ==1) {
+        qDebug() << "Selling card";
+        auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+        cur->sellCard(cardPtr, discarded);
+        qDebug() << "sellCard returned";
+    }
+    else if (action ==2) {
+        qDebug() << "Use as wonder selected - not implemented";
+    QMessageBox::information(this, "Use as Wonder", "Selectia de minune trebuie implementata. Actiunea este ignorata momentan.");
+    }
+
+    // If the action failed (cardPtr still holds), return card to node and do not advance turn
+    if (cardPtr) {
+  node->setCard(std::move(cardPtr));
+        refreshPanels();
+        qDebug() << "Action failed; card returned to tree; panels refreshed";
+      QTimer::singleShot(0, this, [this, age]() {
+          this->showAgeTree(age);
+        });
+        return;
+    }
+
+    // Action succeeded: refresh UI and advance current player
+    refreshPanels();
+
+    m_currentPlayerIndex = (m_currentPlayerIndex ==0) ?1 :0;
+    auto newCur = (m_currentPlayerIndex ==0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+    Core::setCurrentPlayer(newCur);
+
+  // Notify parent UI about player turn change
+    if (onPlayerTurnChanged) {
+ auto p1 = gs.GetPlayer1();
+        auto p2 = gs.GetPlayer2();
+        QString curName = (m_currentPlayerIndex ==0 && p1 && p1->m_player)
+     ? QString::fromStdString(p1->m_player->getPlayerUsername())
+          : (p2 && p2->m_player) ? QString::fromStdString(p2->m_player->getPlayerUsername()) : QString("<unknown>");
+        onPlayerTurnChanged(m_currentPlayerIndex, curName);
+    }
+
+    qDebug() << "Action succeeded; refreshed panels and advanced turn. newIndex=" << m_currentPlayerIndex;
+    QTimer::singleShot(0, this, [this, age]() {
+   this->showAgeTree(age);
+    });
+}
+
 void AgeTreeWidget::showAgeTree(int age)
 {
     qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
              << " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
+    m_currentAge = age;
     auto& board = Core::Board::getInstance();
     const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
-    const auto& nodes = *nodesPtr;
+ const auto& nodes = *nodesPtr;
 
     std::vector<int> rows;
     if (age == 1) rows = {2,3,4,5,6};
@@ -124,32 +255,18 @@ void AgeTreeWidget::showAgeTree(int age)
 
     // clear previous layout
     if (auto oldLayout = this->layout()) {
-        while (auto item = oldLayout->takeAt(0)) {
-            if (auto w = item->widget()) {
+  while (auto item = oldLayout->takeAt(0)) {
+   if (auto w = item->widget()) {
                 w->removeEventFilter(this);
-            }
-            delete item;
+    }
+ delete item;
         }
-        delete oldLayout;
+      delete oldLayout;
     }
 
-    // Dispose of previous scene/view if any - schedule deletion to be safe with Qt internals
-    if (m_view) { 
-        // detach scene first to avoid operations on a scene that is being cleared elsewhere
-        m_view->setScene(nullptr);
-        m_view->deleteLater(); 
-        m_view = nullptr; 
-    }
-    if (m_scene) {
-        // avoid calling clear() here (can crash when called during event processing)
-        qDebug() << "AgeTreeWidget: scheduling deleteLater on old scene";
-        m_scene->deleteLater(); 
-        m_scene = nullptr;
-    }
-    // clear any stored proxy mappings
-    m_proxyMap.clear();
+    if (m_view) { m_view->deleteLater(); m_view = nullptr; }
+ if (m_scene) { m_scene->clear(); m_scene->deleteLater(); m_scene = nullptr; }
 
-    // create scene/view
     m_scene = new QGraphicsScene(this);
     m_view = new QGraphicsView(m_scene, this);
     qDebug() << "AgeTreeWidget: created scene=" << static_cast<const void*>(m_scene) << " view=" << static_cast<const void*>(m_view);
@@ -169,9 +286,9 @@ void AgeTreeWidget::showAgeTree(int age)
     int totalRows = static_cast<int>(rows.size());
     int idx = 0;
     int sceneWidth = 0;
-    for (int r = 0; r < totalRows; ++r) {
+ for (int r = 0; r < totalRows; ++r) {
         int cols = rows[r];
-        int rowWidth = cols * cardW + (cols - 1) * hgap;
+    int rowWidth = cols * cardW + (cols - 1) * hgap;
         sceneWidth = std::max(sceneWidth, rowWidth);
     }
 
@@ -182,11 +299,11 @@ void AgeTreeWidget::showAgeTree(int age)
         int x0 = (sceneWidth - rowWidth) / 2;
         for (int c = 0; c < cols; ++c) {
             if (idx >= static_cast<int>(nodes.size())) break;
-            int x = x0 + c * (cardW + hgap);
-            positions[idx] = QPointF(x, y);
+       int x = x0 + c * (cardW + hgap);
+        positions[idx] = QPointF(x, y);
             ++idx;
         }
-        y += cardH + vgap;
+  y += cardH + vgap;
     }
 
     m_scene->setSceneRect(0,0, std::max(sceneWidth, 800), std::max(y, 400));
@@ -199,98 +316,89 @@ void AgeTreeWidget::showAgeTree(int age)
     for (int r = 0; r < totalRows; ++r) {
         int cols = rows[r];
         for (int c = 0; c < cols; ++c) {
-            if (idx >= static_cast<int>(nodes.size())) break;
-            QPointF pos = positions[idx];
+  if (idx >= static_cast<int>(nodes.size())) break;
+QPointF pos = positions[idx];
+         bool isAvailable = (nodes[idx] && nodes[idx]->isAvailable());
+   if (isAvailable) {
+  QRectF rrect(pos, QSizeF(cardW, cardH));
+ ClickableRect* item = new ClickableRect(rrect);
+           item->setZValue(1);
+m_scene->addItem(item);
+           rects[idx] = item;
 
-            // if node has no card, skip drawing anything (disappear from tree)
-            if (!nodes[idx] || !nodes[idx]->getCard()) { ++idx; continue; }
+         bool isVisible = false;
+        if (nodes[idx] && nodes[idx]->getCard()) isVisible = nodes[idx]->getCard()->isVisible();
+if (isVisible) {
+         item->setGradientColors(QColor("#B58860"), QColor("#7C4A1C"));
+    item->setBorderColor(QColor("#7C4A1C"));
+    } else {
+              item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
+                item->setBorderColor(QColor("#7C4A1C"));
+  }
 
-            bool isAvailable = nodes[idx]->isAvailable();
-            Models::Card* cardPtr = nodes[idx]->getCard();
+           QString name = "<empty>";
+   if (nodes[idx]) {
+           auto* card = nodes[idx]->getCard();
+           if (card) name = QString::fromStdString(card->getName());
+    }
+   QGraphicsTextItem* t = m_scene->addText(name);
+              QFont f = t->font(); f.setBold(true); f.setPointSize(15);
+        t->setFont(f);
+        t->setDefaultTextColor(isVisible ? Qt::white : Qt::black);
+        QRectF tb = t->boundingRect();
+        t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+                t->setZValue(2);
 
-            if (isAvailable) {
-                QRectF rrect(pos, QSizeF(cardW, cardH));
-                ClickableRect* item = new ClickableRect(rrect);
-                item->setZValue(1);
-                m_scene->addItem(item);
-                rects[idx] = item;
-
-                // Style based on card visibility: colored gradient if visible, otherwise white
-                bool isVisible = cardPtr->isVisible();
-                if (isVisible) {
-                    item->setGradientColors(visibleTopColor, visibleBottomColor);
-                    item->setBorderColor(sectionBorderColor);
-                } else {
-                    item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
-                    item->setBorderColor(invisibleBorderColor);
-                }
-
-                // Only show text when a card exists AND it is visible
-                if (isVisible) {
-                    QString name = QString::fromStdString(cardPtr->getName());
-                    QGraphicsTextItem* t = m_scene->addText(name);
-                    QFont f = t->font(); f.setBold(true); f.setPointSize(15);
-                    t->setFont(f);
-                    t->setDefaultTextColor(visibleTextColor);
-                    QRectF tb = t->boundingRect();
-                    t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
-                    t->setZValue(2);
-                }
-
-                int nodeIndex = idx;
-                item->onClicked = [this, nodeIndex, age]() {
-                    if (this->onLeafClicked) this->onLeafClicked(nodeIndex, age);
-                };
+     int nodeIndex = idx;
+     item->onClicked = [this, nodeIndex]() {
+    this->handleLeafClicked(nodeIndex, m_currentAge);
+    };
             } else {
-                QRectF rect(pos, QSizeF(cardW, cardH));
-                QColor bg = QColor("#EDE7E0");
-                QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(sectionBorderColor, 3), QBrush(bg));
-                ritem->setZValue(1);
-
-                // For non-available slots only show text when a visible card exists; otherwise show nothing
-                if (cardPtr && cardPtr->isVisible()) {
-                    QString name = QString::fromStdString(cardPtr->getName());
-                    QGraphicsTextItem* t = m_scene->addText(name);
-                    t->setDefaultTextColor(Qt::black);
-                    QRectF tb = t->boundingRect();
-                    t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
-                    t->setZValue(2);
-                }
-
-                rects[idx] = ritem;
-            }
+   QRectF rect(pos, QSizeF(cardW, cardH));
+     QColor bg = QColor("#EDE7E0");
+        QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(QColor("#7C4A1C"), 3), QBrush(bg));
+      ritem->setZValue(1);
+     QString name = "<empty>";
+          if (nodes[idx] && nodes[idx]->getCard()) name = QString::fromStdString(nodes[idx]->getCard()->getName());
+             QGraphicsTextItem* t = m_scene->addText(name);
+        t->setDefaultTextColor(Qt::black);
+      QRectF tb = t->boundingRect();
+       t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+          t->setZValue(2);
+     rects[idx] = ritem;
+          }
             ++idx;
         }
     }
 
-    QPen linePen(lineColor); linePen.setWidth(3);
+ QPen linePen(QColor("#3b2b1b")); linePen.setWidth(3);
     for (size_t i = 0; i < nodes.size(); ++i) {
         if (!nodes[i]) continue;
         auto child1 = nodes[i]->getChild1();
         auto child2 = nodes[i]->getChild2();
-        QPointF fromCenter = positions[i] + QPointF(cardW/2.0, cardH/2.0);
-        if (child1) {
+      QPointF fromCenter = positions[i] + QPointF(cardW/2.0, cardH/2.0);
+     if (child1) {
             auto it = ptrToIndex.find(child1.get());
-            if (it != ptrToIndex.end()) {
-                int ci = it->second;
-                QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
-                QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-                line->setZValue(0);
+if (it != ptrToIndex.end()) {
+         int ci = it->second;
+          QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
+ QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
+            line->setZValue(0);
             }
-        }
+    }
         if (child2) {
             auto it = ptrToIndex.find(child2.get());
-            if (it != ptrToIndex.end()) {
-                int ci = it->second;
-                QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
-                QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-                line->setZValue(0);
-            }
+       if (it != ptrToIndex.end()) {
+        int ci = it->second;
+        QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
+         QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
+    line->setZValue(0);
+          }
         }
     }
 
     auto* vlayout = new QVBoxLayout(this);
-    vlayout->setContentsMargins(8,8,8,8);
+ vlayout->setContentsMargins(8,8,8,8);
     vlayout->setSpacing(0);
     vlayout->addWidget(m_view);
     setLayout(vlayout);
