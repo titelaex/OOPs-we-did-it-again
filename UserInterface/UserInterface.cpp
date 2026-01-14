@@ -316,27 +316,65 @@ void UserInterface::handleLeafClicked(int nodeIndex, int age)
 
 	// release card from node into unique_ptr
 	std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
-	if (!cardPtr) return;
+	if (!cardPtr) {
+		qDebug() << "releaseCard returned null";
+		return;
+	}
+	qDebug() << "Card released:" << QString::fromStdString(cardPtr->getName());
+
+	// Determine affected parent nodes so we can check if they became available
+	auto& nodesVec = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
+	std::vector<size_t> affectedParents;
+	auto parent1 = node->getParent1();
+	if (parent1) {
+		for (size_t i = 0; i < nodesVec.size(); ++i) {
+			if (nodesVec[i].get() == parent1.get()) { affectedParents.push_back(i); break; }
+		}
+	}
+	auto parent2 = node->getParent2();
+	if (parent2) {
+		for (size_t i = 0; i < nodesVec.size(); ++i) {
+			if (nodesVec[i].get() == parent2.get()) { affectedParents.push_back(i); break; }
+		}
+	}
 
 	if (action == 0) {
-		// build -> call playCardBuilding
+		qDebug() << "Attempting to build card";
 		cur->playCardBuilding(cardPtr, opp->m_player);
+		qDebug() << "playCardBuilding returned";
 	}
 	else if (action == 1) {
-		// sell
+		qDebug() << "Selling card";
 		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
 		cur->sellCard(cardPtr, discarded);
+		qDebug() << "sellCard returned";
 	}
 	else if (action == 2) {
-		// use as wonder: would require selecting a specific owned wonder.
-		// Skipping actual wonder play here to avoid invalid placeholder cast.
+		qDebug() << "Use as wonder selected - not implemented";
 		QMessageBox::information(this, "Use as Wonder", "Selectia de minune trebuie implementata. Actiunea este ignorata momentan.");
 	}
 
+	// After action, check if any parent became available
+	bool parentBecameAvailable = false;
+	for (size_t pi : affectedParents) {
+		if (pi < nodesVec.size()) {
+			auto pnode = nodesVec[pi];
+			if (pnode && pnode->isAvailable()) { parentBecameAvailable = true; break; }
+		}
+	}
+
 	// refresh UI: update left/right panels and redraw tree
-	m_leftPanel->refreshWonders();
-	m_rightPanel->refreshWonders();
-	showAgeTree(age);
+    m_leftPanel->refreshWonders();
+    m_rightPanel->refreshWonders();
+    qDebug() << "Refreshed panels";
+    if (m_ageTreeWidget) {
+        qDebug() << "Redrawing age tree; parentAvailable=" << parentBecameAvailable;
+        // Schedule redraw after event processing completes to avoid modifying the scene while
+        // a QGraphicsItem event (mouse press) is being handled. This prevents access violations.
+        QTimer::singleShot(0, this, [this, age]() {
+            if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(age);
+        });
+    }
 }
 
 void UserInterface::onWonderSelected(int index)

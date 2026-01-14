@@ -13,6 +13,7 @@
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
 #include <QtWidgets/QGraphicsDropShadowEffect>
+#include <QtCore/QVariantAnimation>
 
 #include <algorithm>
 #include <vector>
@@ -21,6 +22,59 @@
 import Core.Board;
 import Core.Node;
 import Models.Card;
+
+// Styled ClickableRect: draws a rounded rect with gradient, border, shadow and text handled separately
+class ClickableRect : public QGraphicsRectItem {
+public:
+    ClickableRect(const QRectF& r)
+        : QGraphicsRectItem(r)
+    {
+        // no hover handling per user's request
+        setAcceptHoverEvents(false);
+        setAcceptedMouseButtons(Qt::LeftButton);
+        m_radius = 8.0;
+        m_pen = QPen(QColor("#7C4A1C"), 2); // default border (brown)
+        m_topColor = QColor("#4B5563");
+        m_bottomColor = QColor("#1F2937");
+
+        // subtle shadow as child behind
+        m_shadow = new QGraphicsRectItem(r, this);
+        m_shadow->setBrush(QBrush(QColor(0,0,0,40)));
+        m_shadow->setPen(Qt::NoPen);
+        m_shadow->setZValue(-1);
+        m_shadow->setPos(4,4);
+    }
+
+    void setGradientColors(const QColor& top, const QColor& bottom) { m_topColor = top; m_bottomColor = bottom; update(); }
+    void setBorderColor(const QColor& c) { m_pen.setColor(c); update(); }
+
+    std::function<void()> onClicked;
+
+protected:
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {
+        Q_UNUSED(option);
+        Q_UNUSED(widget);
+        QRectF r = rect();
+        QLinearGradient grad(r.topLeft(), r.bottomLeft());
+        grad.setColorAt(0.0, m_topColor);
+        grad.setColorAt(1.0, m_bottomColor);
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        painter->setBrush(QBrush(grad));
+        painter->setPen(m_pen);
+        painter->drawRoundedRect(r, m_radius, m_radius);
+    }
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override {
+        QTimer::singleShot(0, [cb = onClicked]() { if (cb) cb(); });
+    }
+
+private:
+    QGraphicsRectItem* m_shadow{ nullptr };
+    qreal m_radius{8.0};
+    QPen m_pen;
+    QColor m_topColor;
+    QColor m_bottomColor;
+};
 
 AgeTreeWidget::AgeTreeWidget(QWidget* parent)
     : QWidget(parent), m_view(nullptr), m_scene(nullptr)
@@ -43,16 +97,15 @@ void AgeTreeWidget::showAgeTree(int age)
         while (auto item = oldLayout->takeAt(0)) {
             if (auto w = item->widget()) {
                 w->removeEventFilter(this);
-                delete w;
             }
             delete item;
         }
         delete oldLayout;
     }
 
-    // Dispose previous scene/view if any
+    // Dispose of previous scene/view if any - schedule deletion to be safe with Qt internals
     if (m_view) { m_view->deleteLater(); m_view = nullptr; }
-    if (m_scene) { m_scene->deleteLater(); m_scene = nullptr; }
+    if (m_scene) { m_scene->clear(); m_scene->deleteLater(); m_scene = nullptr; }
 
     // create scene/view
     m_scene = new QGraphicsScene(this);
@@ -105,41 +158,52 @@ void AgeTreeWidget::showAgeTree(int age)
         for (int c = 0; c < cols; ++c) {
             if (idx >= static_cast<int>(nodes.size())) break;
             QPointF pos = positions[idx];
-            bool isLeafRow = (r == totalRows - 1);
-            if (isLeafRow) {
+            bool isAvailable = (nodes[idx] && nodes[idx]->isAvailable());
+            if (isAvailable) {
                 QRectF rrect(pos, QSizeF(cardW, cardH));
-                QGraphicsRectItem* bg = m_scene->addRect(rrect, QPen(QColor("#7C4A1C"), 2), QBrush(Qt::white));
-                bg->setZValue(0);
-                rects[idx] = bg;
+                ClickableRect* item = new ClickableRect(rrect);
+                item->setZValue(1);
+                m_scene->addItem(item);
+                rects[idx] = item;
+
+                // Style based on card visibility: brown gradient if visible, otherwise white
+                bool isVisible = false;
+                if (nodes[idx] && nodes[idx]->getCard()) isVisible = nodes[idx]->getCard()->isVisible();
+                if (isVisible) {
+                    item->setGradientColors(QColor("#B58860"), QColor("#7C4A1C"));
+                    item->setBorderColor(QColor("#7C4A1C"));
+                } else {
+                    item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
+                    item->setBorderColor(QColor("#7C4A1C"));
+                }
 
                 QString name = "<empty>";
-                bool avail = false;
                 if (nodes[idx]) {
                     auto* card = nodes[idx]->getCard();
                     if (card) name = QString::fromStdString(card->getName());
-                    avail = nodes[idx]->isAvailable();
                 }
-                QPushButton* btn = new QPushButton(name);
-                btn->setFixedSize(cardW - 8, cardH - 8);
-                btn->setEnabled(avail);
-                btn->setStyleSheet("QPushButton { background: white; border:2px solid #7C4A1C; border-radius:6px; font-weight:bold; } QPushButton:disabled { background:#e5e7eb; color:#9ca3af; }");
-                QGraphicsProxyWidget* proxy = m_scene->addWidget(btn);
-                proxy->setPos(pos + QPointF(4,4));
-                proxy->setZValue(2);
-                proxy->setAcceptedMouseButtons(Qt::LeftButton);
-                // install event filter on the button so hover enter/leave are received
-                btn->installEventFilter(this);
-                m_proxyMap[btn] = proxy;
-                connect(btn, &QPushButton::clicked, this, [this, idx, age]() { if (onLeafClicked) onLeafClicked(idx, age); });
+                QGraphicsTextItem* t = m_scene->addText(name);
+                QFont f = t->font(); f.setBold(true); f.setPointSize(15);
+                t->setFont(f);
+                // text color: white when brown, black when white
+                t->setDefaultTextColor(isVisible ? Qt::white : Qt::black);
+                QRectF tb = t->boundingRect();
+                t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+                t->setZValue(2);
+
+                int nodeIndex = idx;
+                item->onClicked = [this, nodeIndex, age]() {
+                    if (this->onLeafClicked) this->onLeafClicked(nodeIndex, age);
+                };
             } else {
                 QRectF rect(pos, QSizeF(cardW, cardH));
-                QColor bg = nodes[idx] && nodes[idx]->isAvailable() ? QColor("#B58860") : QColor("#EDE7E0");
+                QColor bg = QColor("#EDE7E0");
                 QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(QColor("#7C4A1C"), 3), QBrush(bg));
                 ritem->setZValue(1);
                 QString name = "<empty>";
                 if (nodes[idx] && nodes[idx]->getCard()) name = QString::fromStdString(nodes[idx]->getCard()->getName());
                 QGraphicsTextItem* t = m_scene->addText(name);
-                t->setDefaultTextColor(nodes[idx] && nodes[idx]->isAvailable() ? Qt::white : Qt::black);
+                t->setDefaultTextColor(Qt::black);
                 QRectF tb = t->boundingRect();
                 t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
                 t->setZValue(2);
@@ -183,7 +247,6 @@ void AgeTreeWidget::showAgeTree(int age)
 
     QTimer::singleShot(0, this, [this]() { this->fitAgeTree(); });
 
-    // install event filter for proxies/widgets (hover animations) - keep map updated
     if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
 }
 
