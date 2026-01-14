@@ -1,14 +1,14 @@
 # Optimized weights for Spears
-# Generated: 2026-01-12 18:10:17
-# Based on 12306 games with 74.9% win rate
+# Generated: 2026-01-13 22:26:23
+# Based on 22316 games with 77.9% win rate
 
-victoryPointValue=1.0182
+victoryPointValue=1.0698
 militaryPriority=1.5000
 sciencePriority=0.9000
 economyPriority=1.0000
 resourceValue=1.0000
 coinValue=1.0000
-wonderVPBonus=1.1850
+wonderVPBonus=1.2208
 wonderMilitaryBonus=1.4000
 wonderEconomyBonus=1.0000
 opponentDenial=1.3000

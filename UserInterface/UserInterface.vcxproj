@@ -108,12 +108,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Core\Header\AIConfig.ixx" />
+    <ClCompile Include="..\Core\Header\GameMetadata.ixx" />
     <ClCompile Include="..\Core\Header\MCTS.ixx" />
     <ClCompile Include="..\Core\Header\PlayerDecisionMaker.ixx" />
+    <ClCompile Include="..\Core\Header\PlayerNameValidator.ixx" />
     <ClCompile Include="..\Core\Header\TrainingLogger.ixx" />
     <ClCompile Include="..\Core\Header\WeightOptimizer.ixx" />
+    <ClCompile Include="..\Core\Source\GameMetadata.cpp" />
     <ClCompile Include="..\Core\Source\MCTS.cpp" />
     <ClCompile Include="..\Core\Source\PlayerDecisionMaker.cpp" />
+    <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp" />
     <ClCompile Include="..\Core\Source\TrainingLogger.cpp" />
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
     <ClCompile Include="WonderSelectionWidget.cpp" />

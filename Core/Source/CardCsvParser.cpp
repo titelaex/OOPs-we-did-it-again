@@ -364,7 +364,7 @@ AgeCard ageCardFactory(const std::vector<std::string>& columns) {
     if (auto opt = stringToAge(trimCopy(get(12))); opt.has_value()) age = opt.value();
     AgeCardBuilder b;
     b.setName(get(0)).setResourceCost(resourceCost).setResourceProduction(resourceProduction)
-        .setVictoryPoints(victoryPoints).setShieldPoints(shieldPoints).setCaption(caption);
+        .setVictoryPoints(victoryPoints).setShieldPoints(shieldPoints).setCoinCost(coinCost).setCaption(caption);
     if (color.has_value()) b.setColor(color.value());
     b.setAge(age);
     if (scientificSymbols.has_value()) b.setScientificSymbols(scientificSymbols);

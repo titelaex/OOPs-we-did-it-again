@@ -115,6 +115,18 @@
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Core\Header\GameMetadata.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Header\PlayerNameValidator.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Source\GameMetadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PlayerPanelWidget.h">

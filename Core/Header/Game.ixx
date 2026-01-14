@@ -8,11 +8,16 @@ import Core.Player;
 import Models.Card;
 import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
+import Core.AIConfig;
 export namespace Core {
     class Game {
     public:
         static void preparation();
         static void PrepareBoardCardPools();
+        static void initGame(bool& continueGame, bool& trainingMode, 
+                            std::shared_ptr<Player>& p1, std::shared_ptr<Player>& p2,
+                            IPlayerDecisionMaker*& p1Decisions, IPlayerDecisionMaker*& p2Decisions,
+                            Playstyle& p1Playstyle, Playstyle& p2Playstyle);
         static void phaseI(Player& p1, Player& p2, 
                           IPlayerDecisionMaker* p1Decisions = nullptr, 
                           IPlayerDecisionMaker* p2Decisions = nullptr,

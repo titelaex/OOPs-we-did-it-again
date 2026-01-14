@@ -22,6 +22,7 @@ namespace Models
 	private: 
 		std::unordered_map<ResourceType, uint8_t> m_resourceProduction{};
 		uint8_t m_shieldPoints{};
+		uint8_t m_coinCost{0};
 		std::optional<ScientificSymbolType> m_scientificSymbols{};
 		std::optional<LinkingSymbolType> m_hasLinkingSymbol{};
 		std::optional<LinkingSymbolType> m_requiresLinkingSymbol{};
@@ -38,6 +39,7 @@ namespace Models
 
 		virtual const std::unordered_map<ResourceType, uint8_t>& getResourcesProduction() const;
 		virtual const uint8_t& getShieldPoints() const;
+		virtual uint8_t getCoinCost() const;
 		virtual const std::optional<ScientificSymbolType>& getScientificSymbols() const;
 		virtual const std::optional<LinkingSymbolType>& getHasLinkingSymbol() const;
 		virtual const std::optional<LinkingSymbolType>& getRequiresLinkingSymbol() const;
@@ -48,6 +50,7 @@ namespace Models
 		virtual bool IsConstructed() const;
 
 		void setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
+		void setCoinCost(uint8_t coinCost);
 		void setShieldPoints(const uint8_t& shieldPoints);
 		void setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols);
 		void setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol);
@@ -69,6 +72,7 @@ namespace Models
 		AgeCardBuilder& setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction);
 		AgeCardBuilder& setVictoryPoints(const uint8_t& victoryPoints);
 		AgeCardBuilder& setShieldPoints(const uint8_t& shieldPoints);
+		AgeCardBuilder& setCoinCost(uint8_t coinCost);
 		AgeCardBuilder& setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols);
 		AgeCardBuilder& setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol);
 		AgeCardBuilder& setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol);
