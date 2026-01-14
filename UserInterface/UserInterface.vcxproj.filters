@@ -115,12 +115,6 @@
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-<<<<<<< HEAD
-    <ClCompile Include="BoardWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AgeTreeWidget.cpp">
-=======
     <ClCompile Include="..\Core\Header\GameMetadata.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -131,7 +125,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp">
->>>>>>> GameLogic
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CardSpineDelegate.cpp">
