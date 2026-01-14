@@ -75,8 +75,12 @@ private:
     void updateTurnLabel();
 
     // Show visual representation of age tree inside the center middle panel
-    void showAgeTree(int age);
+    Q_INVOKABLE void showAgeTree(int age);
 
     // Handle click on a leaf node button
     void handleLeafClicked(int nodeIndex, int age);
+
+private Q_SLOTS:
+    // queued slot to finish UI updates after actions (runs in event loop)
+    void finishAction(int age, bool parentBecameAvailable);
 };

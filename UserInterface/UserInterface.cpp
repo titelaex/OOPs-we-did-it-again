@@ -27,6 +27,9 @@
 #include <algorithm> 
 #include <vector> 
 #include <memory> 
+#include <QtCore/QPointer>
+#include <QtCore/QMetaObject>
+#include <QtCore/QDebug>
 
 
 
@@ -255,11 +258,13 @@ void UserInterface::loadNextBatch()
 
 void UserInterface::showAgeTree(int age)
 {
-	// remove existing AgeTreeWidget
+	// If an AgeTreeWidget already exists, reuse it to avoid deleting widgets
 	if (m_ageTreeWidget) {
-		m_centerMiddle->layout()->removeWidget(m_ageTreeWidget);
-		m_ageTreeWidget->deleteLater();
-		m_ageTreeWidget = nullptr;
+		m_ageTreeWidget->showAgeTree(age);
+		// ensure top/bottom visibility
+		if (m_centerTop) m_centerTop->setVisible(false);
+		if (m_centerBottom) m_centerBottom->setVisible(true);
+		return;
 	}
 
 	// hide top and show bottom
@@ -340,7 +345,21 @@ void UserInterface::handleLeafClicked(int nodeIndex, int age)
 
 	if (action == 0) {
 		qDebug() << "Attempting to build card";
+		// capture name and color so we can show it in player's panel if build succeeds
+		QString playedName = QString::fromStdString(cardPtr->getName());
+		Models::ColorType playedColor = cardPtr->getColor();
 		cur->playCardBuilding(cardPtr, opp->m_player);
+		qDebug() << "Before playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get()) << " cur=" << static_cast<const void*>(cur);
+		cur->playCardBuilding(cardPtr, opp->m_player);
+		qDebug() << "After playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get());
+		// if cardPtr was moved into the player (build succeeded), cardPtr will be null
+		if (!cardPtr) {
+			if (m_currentPlayerIndex == 0) {
+				if (m_leftPanel) m_leftPanel->showPlayedCard(playedName, playedColor);
+			} else {
+				if (m_rightPanel) m_rightPanel->showPlayedCard(playedName, playedColor);
+			}
+		}
 		qDebug() << "playCardBuilding returned";
 	}
 	else if (action == 1) {
@@ -366,15 +385,9 @@ void UserInterface::handleLeafClicked(int nodeIndex, int age)
 	// refresh UI: update left/right panels and redraw tree
     m_leftPanel->refreshWonders();
     m_rightPanel->refreshWonders();
-    qDebug() << "Refreshed panels";
-    if (m_ageTreeWidget) {
-        qDebug() << "Redrawing age tree; parentAvailable=" << parentBecameAvailable;
-        // Schedule redraw after event processing completes to avoid modifying the scene while
-        // a QGraphicsItem event (mouse press) is being handled. This prevents access violations.
-        QTimer::singleShot(0, this, [this, age]() {
-            if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(age);
-        });
-    }
+    qDebug() << "Refreshed panels (queued finishAction)";
+    QMetaObject::invokeMethod(this, "finishAction", Qt::QueuedConnection,
+                              Q_ARG(int, age), Q_ARG(bool, parentBecameAvailable));
 }
 
 void UserInterface::onWonderSelected(int index)
@@ -534,4 +547,40 @@ void UserInterface::updateTurnLabel()
 	}
 
 	m_centerWidget->setTurnMessage("Este randul lui: " + currentPlayerName);
+}
+
+void UserInterface::finishAction(int age, bool parentBecameAvailable)
+{
+	m_leftPanel->refreshWonders();
+	m_rightPanel->refreshWonders();
+	qDebug() << "finishAction: refreshing panels and age tree";
+	if (m_ageTreeWidget) {
+		m_ageTreeWidget->showAgeTree(age);
+	}
+	// if age1 finished, schedule phase2 transition
+	if (age == 1) {
+		auto& board = Core::Board::getInstance();
+		const auto& nodes = board.getAge1Nodes();
+		bool anyAvailable = false;
+		for (const auto& n : nodes) {
+			if (!n) continue;
+			if (n->isAvailable() && n->getCard()) { anyAvailable = true; break; }
+		}
+		if (!anyAvailable) {
+			// show transition
+			if (m_centerMiddle) {
+				if (auto* existing = m_centerMiddle->layout()) clearLayout(existing);
+				else m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
+				msgLayout->setContentsMargins(8,8,8,8);
+				msgLayout->setSpacing(0);
+				QLabel* phaseMsg = new QLabel("Phase 2 incepe", m_centerMiddle);
+				phaseMsg->setAlignment(Qt::AlignCenter);
+				QFont f = phaseMsg->font(); f.setPointSize(24); f.setBold(true);
+				phaseMsg->setFont(f);
+				msgLayout->addWidget(phaseMsg);
+				QTimer::singleShot(1800, this, [this]() { this->showAgeTree(2); });
+			}
+		}
+	}
 }

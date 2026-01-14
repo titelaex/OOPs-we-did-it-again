@@ -15,6 +15,7 @@ class AgeTreeWidget : public QWidget
     // No Q_OBJECT here to avoid requiring moc; use callback instead
 public:
     explicit AgeTreeWidget(QWidget* parent = nullptr);
+    ~AgeTreeWidget();
     void showAgeTree(int age);
     void fitAgeTree();
 
