@@ -2,7 +2,12 @@
 
 #include <QWidget>
 #include <memory>
-import Core.Player;
+#include <unordered_map>
+#include <QString>
+#include <QLabel>
+#include <QTimer>
+#include <QVBoxLayout>
+import Core.Player; 
 import Models.ColorType;
 
 class QGridLayout;
@@ -47,4 +52,30 @@ private:
 
 	QString QStringBuilder(const std::string& s) const;
 	QString ColorToCss(Models::ColorType c) const;
+
+	// store color section widgets so we can add temporary played-card labels
+	std::unordered_map<Models::ColorType, QWidget*> m_colorSections;
+
+public:
+	void refresh();
+	void showPlayedCard(const QString& name, Models::ColorType color);
 };
+
+inline void PlayerPanelWidget::showPlayedCard(const QString& name, Models::ColorType color)
+{
+	auto it = m_colorSections.find(color);
+	if (it == m_colorSections.end()) return;
+	QWidget* section = it->second;
+	if (!section) return;
+
+	QLabel* label = new QLabel(name, section);
+	label->setStyleSheet("color: #111; background-color: rgba(255,255,255,0.9); border-radius:4px; padding:4px; font-weight:bold;");
+	label->setAlignment(Qt::AlignCenter);
+	if (section->layout()) {
+		section->layout()->addWidget(label);
+	} else {
+		label->setParent(section);
+	}
+
+	QTimer::singleShot(2500, label, [label]() { label->deleteLater(); });
+}

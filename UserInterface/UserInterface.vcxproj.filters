@@ -127,6 +127,12 @@
     <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BoardWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AgeTreeWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CardSpineDelegate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

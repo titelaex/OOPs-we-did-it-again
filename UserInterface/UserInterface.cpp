@@ -10,6 +10,17 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtCore/QTimer>
+#include <QtCore/QEvent>
+#include <QtCore/QPropertyAnimation>
+#include <QtGui/QTransform>
+#include <algorithm> 
+#include <vector> 
+#include <memory> 
+#include <QtCore/QPointer>
+#include <QtCore/QMetaObject>
+#include <QtCore/QDebug>
+
+
 
 import Core.Board;
 import Core.Game;

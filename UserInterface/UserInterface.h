@@ -2,9 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_UserInterface.h"
-#include <unordered_map>
 
-class QGraphicsProxyWidget;
 class QSplitter;
 class QLabel;
 class PlayerPanelWidget;
@@ -44,7 +42,7 @@ private:
     QWidget* m_centerBottom{ nullptr };
 
     // Widgets
-    QLabel* m_phaseBanner{ nullptr };
+  QLabel* m_phaseBanner{ nullptr };
     BoardWidget* m_boardWidget{ nullptr };
     AgeTreeWidget* m_ageTreeWidget{ nullptr };
 
