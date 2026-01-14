@@ -10,6 +10,17 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtCore/QTimer>
+#include <QtCore/QEvent>
+#include <QtCore/QPropertyAnimation>
+#include <QtGui/QTransform>
+#include <algorithm> 
+#include <vector> 
+#include <memory> 
+#include <QtCore/QPointer>
+#include <QtCore/QMetaObject>
+#include <QtCore/QDebug>
+
+
 
 import Core.Board;
 import Core.Game;
@@ -198,14 +209,13 @@ void UserInterface::showPhaseTransitionMessage()
 
 void UserInterface::showAgeTree(int age)
 {
-	// Clear middle panel
-	if (m_centerMiddle && m_centerMiddle->layout()) {
-		QLayoutItem* item;
-		while ((item = m_centerMiddle->layout()->takeAt(0)) != nullptr) {
-			if (item->widget()) item->widget()->deleteLater();
-			delete item;
-		}
-		delete m_centerMiddle->layout();
+	// If an AgeTreeWidget already exists, reuse it to avoid deleting widgets
+	if (m_ageTreeWidget) {
+		m_ageTreeWidget->showAgeTree(age);
+		// ensure top/bottom visibility
+		if (m_centerTop) m_centerTop->setVisible(false);
+		if (m_centerBottom) m_centerBottom->setVisible(true);
+		return;
 	}
 
 	// Show panels
@@ -255,6 +265,244 @@ void UserInterface::showAgeTree(int age)
 		m_phaseBanner->show();
 	}
 
-	layout->addWidget(m_ageTreeWidget);
-	m_ageTreeWidget->showAgeTree(age);
+	if (action == 0) {
+		qDebug() << "Attempting to build card";
+		// capture name and color so we can show it in player's panel if build succeeds
+		QString playedName = QString::fromStdString(cardPtr->getName());
+		Models::ColorType playedColor = cardPtr->getColor();
+		cur->playCardBuilding(cardPtr, opp->m_player);
+		qDebug() << "Before playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get()) << " cur=" << static_cast<const void*>(cur);
+		cur->playCardBuilding(cardPtr, opp->m_player);
+		qDebug() << "After playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get());
+		// if cardPtr was moved into the player (build succeeded), cardPtr will be null
+		if (!cardPtr) {
+			if (m_currentPlayerIndex == 0) {
+				if (m_leftPanel) m_leftPanel->showPlayedCard(playedName, playedColor);
+			} else {
+				if (m_rightPanel) m_rightPanel->showPlayedCard(playedName, playedColor);
+			}
+		}
+		qDebug() << "playCardBuilding returned";
+	}
+	else if (action == 1) {
+		qDebug() << "Selling card";
+		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+		cur->sellCard(cardPtr, discarded);
+		qDebug() << "sellCard returned";
+	}
+	else if (action == 2) {
+		qDebug() << "Use as wonder selected - not implemented";
+		QMessageBox::information(this, "Use as Wonder", "Selectia de minune trebuie implementata. Actiunea este ignorata momentan.");
+	}
+
+	// After action, check if any parent became available
+	bool parentBecameAvailable = false;
+	for (size_t pi : affectedParents) {
+		if (pi < nodesVec.size()) {
+			auto pnode = nodesVec[pi];
+			if (pnode && pnode->isAvailable()) { parentBecameAvailable = true; break; }
+		}
+	}
+
+	// refresh UI: update left/right panels and redraw tree
+    m_leftPanel->refreshWonders();
+    m_rightPanel->refreshWonders();
+    qDebug() << "Refreshed panels (queued finishAction)";
+    QMetaObject::invokeMethod(this, "finishAction", Qt::QueuedConnection,
+                              Q_ARG(int, age), Q_ARG(bool, parentBecameAvailable));
+}
+
+void UserInterface::onWonderSelected(int index)
+{
+	if (index < 0 || static_cast<size_t>(index) >= m_currentBatch.size()) return;
+
+	auto& gameState = Core::GameState::getInstance();
+	auto p1 = gameState.GetPlayer1();
+	auto p2 = gameState.GetPlayer2();
+	auto& board = Core::Board::getInstance();
+
+	std::shared_ptr<Core::Player> currentPlayer;
+
+	if (m_selectionPhase == 0) {
+		if (m_cardsPickedInPhase == 0) currentPlayer = p1;
+		else if (m_cardsPickedInPhase == 1) currentPlayer = p2;
+		else if (m_cardsPickedInPhase == 2) currentPlayer = p2;
+		else currentPlayer = p1;
+	}
+	else {
+		if (m_cardsPickedInPhase == 0) currentPlayer = p2;
+		else if (m_cardsPickedInPhase == 1) currentPlayer = p1;
+		else if (m_cardsPickedInPhase == 2) currentPlayer = p1;
+		else currentPlayer = p2;
+	}
+
+	Models::Wonder* selectedRawPtr = m_currentBatch[index];
+
+	auto& unusedPool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedWonders());
+
+	for (auto it = unusedPool.begin(); it != unusedPool.end(); ++it) {
+		if (it->get() == selectedRawPtr) {
+			std::unique_ptr<Models::Card> cardPtr = std::move(*it);
+
+			unusedPool.erase(it);
+
+			Models::Wonder* rawW = static_cast<Models::Wonder*>(cardPtr.release());
+			std::unique_ptr<Models::Wonder> wonderPtr(rawW);
+
+			currentPlayer->m_player->addWonder(std::move(wonderPtr));
+			break;
+		}
+	}
+
+	m_cardsPickedInPhase++;
+
+	m_currentBatch.erase(m_currentBatch.begin() + index);
+	m_centerWidget->loadWonders(m_currentBatch);
+
+	m_leftPanel->refreshWonders();
+	m_rightPanel->refreshWonders();
+
+	if (m_currentBatch.size() == 1) {
+		if (m_selectionPhase == 0) currentPlayer = p1;
+		else currentPlayer = p2;
+
+		Models::Wonder* lastRawPtr = m_currentBatch[0];
+
+		for (auto it = unusedPool.begin(); it != unusedPool.end(); ++it) {
+			if (it->get() == lastRawPtr) {
+				std::unique_ptr<Models::Card> cardPtr = std::move(*it);
+				unusedPool.erase(it);
+				Models::Wonder* rawW = static_cast<Models::Wonder*>(cardPtr.release());
+				std::unique_ptr<Models::Wonder> wonderPtr(rawW);
+				currentPlayer->m_player->addWonder(std::move(wonderPtr));
+
+				m_leftPanel->refreshWonders();
+				m_rightPanel->refreshWonders();
+
+				break;
+			}
+		}
+
+		m_currentBatch.clear();
+		m_centerWidget->loadWonders(m_currentBatch);
+
+		m_selectionPhase++;
+		m_cardsPickedInPhase = 0;
+
+		if (m_selectionPhase < 2) {
+			loadNextBatch();
+		}
+		else {
+			m_centerWidget->setTurnMessage("");
+			// lock middle panel height so it remains fixed after selection finished
+			// hide selection widget
+			if (m_centerWidget) m_centerWidget->hide();
+
+			// Show a simple large text message in the same panel before the age tree
+			if (m_centerMiddle) {
+				// Clear current middle layout contents
+				if (auto* existing = m_centerMiddle->layout()) {
+					// remove all items
+					QLayoutItem* item;
+					while ((item = existing->takeAt(0)) != nullptr) {
+						if (item->widget()) delete item->widget();
+						delete item;
+					}
+				}
+				else {
+					m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+				}
+				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
+				msgLayout->setContentsMargins(8, 8, 8, 8);
+				msgLayout->setSpacing(0);
+
+				QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
+				phaseMsg->setAlignment(Qt::AlignCenter);
+				phaseMsg->setStyleSheet(""); // no formatting, just default
+				QFont f = phaseMsg->font();
+				f.setPointSize(24); // large text
+				f.setBold(true);
+				phaseMsg->setFont(f);
+				msgLayout->addWidget(phaseMsg);
+
+				// After a short delay, replace message with the age tree
+				QTimer::singleShot(1800, this, [this]() {
+					showAgeTree(1);
+					});
+			}
+
+			// Optionally start phase I automatically (console version) in background - not starting here to keep UI responsive
+		}
+	}
+	if (m_currentBatch.size() > 1)
+	{
+		updateTurnLabel();
+	}
+}
+
+UserInterface::~UserInterface()
+{
+}
+
+void UserInterface::updateTurnLabel()
+{
+	auto& gameState = Core::GameState::getInstance();
+	auto p1 = gameState.GetPlayer1();
+	auto p2 = gameState.GetPlayer2();
+
+	QString p1Name = QString::fromStdString(p1->m_player->getPlayerUsername());
+	QString p2Name = QString::fromStdString(p2->m_player->getPlayerUsername());
+
+	QString currentPlayerName;
+
+	if (m_selectionPhase == 0) {
+		if (m_cardsPickedInPhase == 0) currentPlayerName = p1Name;
+		else if (m_cardsPickedInPhase == 1) currentPlayerName = p2Name;
+		else if (m_cardsPickedInPhase == 2) currentPlayerName = p2Name;
+		else currentPlayerName = p1Name;
+	}
+	else {
+		if (m_cardsPickedInPhase == 0) currentPlayerName = p2Name;
+		else if (m_cardsPickedInPhase == 1) currentPlayerName = p1Name;
+		else if (m_cardsPickedInPhase == 2) currentPlayerName = p1Name;
+		else currentPlayerName = p2Name;
+	}
+
+	m_centerWidget->setTurnMessage("Este randul lui: " + currentPlayerName);
+}
+
+void UserInterface::finishAction(int age, bool parentBecameAvailable)
+{
+	m_leftPanel->refreshWonders();
+	m_rightPanel->refreshWonders();
+	qDebug() << "finishAction: refreshing panels and age tree";
+	if (m_ageTreeWidget) {
+		m_ageTreeWidget->showAgeTree(age);
+	}
+	// if age1 finished, schedule phase2 transition
+	if (age == 1) {
+		auto& board = Core::Board::getInstance();
+		const auto& nodes = board.getAge1Nodes();
+		bool anyAvailable = false;
+		for (const auto& n : nodes) {
+			if (!n) continue;
+			if (n->isAvailable() && n->getCard()) { anyAvailable = true; break; }
+		}
+		if (!anyAvailable) {
+			// show transition
+			if (m_centerMiddle) {
+				if (auto* existing = m_centerMiddle->layout()) clearLayout(existing);
+				else m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
+				msgLayout->setContentsMargins(8,8,8,8);
+				msgLayout->setSpacing(0);
+				QLabel* phaseMsg = new QLabel("Phase 2 incepe", m_centerMiddle);
+				phaseMsg->setAlignment(Qt::AlignCenter);
+				QFont f = phaseMsg->font(); f.setPointSize(24); f.setBold(true);
+				phaseMsg->setFont(f);
+				msgLayout->addWidget(phaseMsg);
+				QTimer::singleShot(1800, this, [this]() { this->showAgeTree(2); });
+			}
+		}
+	}
 }

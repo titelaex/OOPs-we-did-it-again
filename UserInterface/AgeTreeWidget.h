@@ -15,6 +15,7 @@ class AgeTreeWidget : public QWidget
 {
 public:
     explicit AgeTreeWidget(QWidget* parent = nullptr);
+    ~AgeTreeWidget();
     void showAgeTree(int age);
     void fitAgeTree();
 
