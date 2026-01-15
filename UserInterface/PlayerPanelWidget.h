@@ -11,6 +11,9 @@ import Core.Player;
 import Models.ColorType;
 
 class QGridLayout;
+class QLabel;
+class QVBoxLayout;
+class QListWidget;
 
 class PlayerPanelWidget : public QWidget
 {
@@ -54,14 +57,10 @@ private:
 	std::unordered_map<Models::ColorType, QWidget*> m_colorSections;
 
 public:
-	void refreshWonders(); 
-	// Rebuild entire panel UI
 	void refresh();
-	// Visually show a played card name in the section that matches the color
 	void showPlayedCard(const QString& name, Models::ColorType color);
 };
 
-// Inline implementation to ensure symbol is available even if .cpp isn't linked
 inline void PlayerPanelWidget::showPlayedCard(const QString& name, Models::ColorType color)
 {
 	auto it = m_colorSections.find(color);

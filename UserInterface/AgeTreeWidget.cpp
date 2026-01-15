@@ -1,5 +1,6 @@
 #include "AgeTreeWidget.h"
 #include <QtCore/QDebug>
+#include "PlayerPanelWidget.h"
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsRectItem>
@@ -9,14 +10,17 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QApplication>
 #include <QtGui/QPen>
 #include <QtGui/QBrush>
+#include <QtGui/QPainter>
 #include <QtCore/QTimer>
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtCore/QVariantAnimation>
 #include <QtCore/QDebug>
+#include <QtCore/QPointer>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 
 #include <algorithm>
 #include <vector>
@@ -218,45 +222,41 @@ void AgeTreeWidget::showAgeTree(int age)
 {
     qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
              << " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
+    m_currentAge = age;
     auto& board = Core::Board::getInstance();
     const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
- const auto& nodes = *nodesPtr;
+    const auto& nodes = *nodesPtr;
 
     std::vector<int> rows;
     if (age == 1) rows = {2,3,4,5,6};
-    else if (age == 2) rows = {6,5,4,3,2};
+ else if (age == 2) rows = {6,5,4,3,2};
     else rows = {2,3,4,2,4,3,2};
 
-    // choose palette depending on age
+    // Choose palette depending on age
     QColor visibleTopColor;
     QColor visibleBottomColor;
-    QColor sectionBorderColor;
-    QColor lineColor;
-    QColor visibleTextColor = Qt::white;
-    QColor invisibleBorderColor = Qt::white;
+    QColor borderColor;
     if (age == 2) {
-        // blue palette for Age II
-        visibleTopColor = QColor("#60A5FA"); // light blue
-        visibleBottomColor = QColor("#1E3A8A"); // indigo/dark blue
-        sectionBorderColor = QColor("#0369A1");
-        lineColor = QColor("#0461A8");
+      // Blue palette for Age II
+        visibleTopColor = QColor("#60A5FA");
+        visibleBottomColor = QColor("#1E3A8A");
+        borderColor = QColor("#0369A1");
     } else {
-        // default brown palette for Age I and others
+      // Brown palette for Age I and III
         visibleTopColor = QColor("#B58860");
-        visibleBottomColor = QColor("#7C4A1C");
-        sectionBorderColor = QColor("#7C4A1C");
-        lineColor = QColor("#3b2b1b");
+     visibleBottomColor = QColor("#7C4A1C");
+        borderColor = QColor("#7C4A1C");
     }
 
     // clear previous layout
     if (auto oldLayout = this->layout()) {
-  while (auto item = oldLayout->takeAt(0)) {
-   if (auto w = item->widget()) {
-                w->removeEventFilter(this);
-    }
- delete item;
+        while (auto item = oldLayout->takeAt(0)) {
+            if (auto w = item->widget()) {
+ w->removeEventFilter(this);
+}
+            delete item;
         }
-      delete oldLayout;
+        delete oldLayout;
     }
 
     // Dispose of previous scene/view if any - schedule deletion to be safe with Qt internals
@@ -294,9 +294,9 @@ void AgeTreeWidget::showAgeTree(int age)
     int totalRows = static_cast<int>(rows.size());
     int idx = 0;
     int sceneWidth = 0;
- for (int r = 0; r < totalRows; ++r) {
+    for (int r = 0; r < totalRows; ++r) {
         int cols = rows[r];
-    int rowWidth = cols * cardW + (cols - 1) * hgap;
+        int rowWidth = cols * cardW + (cols - 1) * hgap;
         sceneWidth = std::max(sceneWidth, rowWidth);
     }
 
@@ -304,25 +304,25 @@ void AgeTreeWidget::showAgeTree(int age)
     for (int r = 0; r < totalRows; ++r) {
         int cols = rows[r];
         int rowWidth = cols * cardW + (cols - 1) * hgap;
-        int x0 = (sceneWidth - rowWidth) / 2;
-        for (int c = 0; c < cols; ++c) {
+   int x0 = (sceneWidth - rowWidth) / 2;
+ for (int c = 0; c < cols; ++c) {
             if (idx >= static_cast<int>(nodes.size())) break;
-       int x = x0 + c * (cardW + hgap);
-        positions[idx] = QPointF(x, y);
+            int x = x0 + c * (cardW + hgap);
+   positions[idx] = QPointF(x, y);
             ++idx;
         }
-  y += cardH + vgap;
+        y += cardH + vgap;
     }
 
-    m_scene->setSceneRect(0,0, std::max(sceneWidth, 800), std::max(y, 400));
+    m_scene->setSceneRect(0, 0, std::max(sceneWidth, 800), std::max(y, 400));
 
-    std::unordered_map<Core::Node*, int> ptrToIndex;
+ std::unordered_map<Core::Node*, int> ptrToIndex;
     for (size_t i = 0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
 
     std::vector<QGraphicsRectItem*> rects(nodes.size(), nullptr);
-    idx = 0;
+  idx = 0;
     for (int r = 0; r < totalRows; ++r) {
-        int cols = rows[r];
+    int cols = rows[r];
         for (int c = 0; c < cols; ++c) {
             if (idx >= static_cast<int>(nodes.size())) break;
             QPointF pos = positions[idx];
@@ -393,36 +393,37 @@ void AgeTreeWidget::showAgeTree(int age)
         if (!nodes[i]) continue;
         auto child1 = nodes[i]->getChild1();
         auto child2 = nodes[i]->getChild2();
-      QPointF fromCenter = positions[i] + QPointF(cardW/2.0, cardH/2.0);
-     if (child1) {
-            auto it = ptrToIndex.find(child1.get());
-if (it != ptrToIndex.end()) {
-         int ci = it->second;
-          QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
- QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-            line->setZValue(0);
-            }
+        QPointF fromCenter = positions[i] + QPointF(cardW / 2.0, cardH / 2.0);
+        
+        if (child1) {
+ auto it = ptrToIndex.find(child1.get());
+     if (it != ptrToIndex.end()) {
+  int ci = it->second;
+         QPointF toCenter = positions[ci] + QPointF(cardW / 2.0, cardH / 2.0);
+       QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
+line->setZValue(0);
     }
+        }
+        
         if (child2) {
-            auto it = ptrToIndex.find(child2.get());
-       if (it != ptrToIndex.end()) {
-        int ci = it->second;
-        QPointF toCenter = positions[ci] + QPointF(cardW/2.0, cardH/2.0);
-         QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-    line->setZValue(0);
-          }
+  auto it = ptrToIndex.find(child2.get());
+            if (it != ptrToIndex.end()) {
+      int ci = it->second;
+          QPointF toCenter = positions[ci] + QPointF(cardW / 2.0, cardH / 2.0);
+     QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
+  line->setZValue(0);
+            }
         }
     }
 
     auto* vlayout = new QVBoxLayout(this);
- vlayout->setContentsMargins(8,8,8,8);
+    vlayout->setContentsMargins(8, 8, 8, 8);
     vlayout->setSpacing(0);
     vlayout->addWidget(m_view);
     setLayout(vlayout);
 
-    // Queue fitAgeTree but guard with QPointer to avoid calling on deleted widget
     QPointer<AgeTreeWidget> guard(this);
-    QTimer::singleShot(0, [guard]() mutable {
+    QTimer::singleShot(0, [guard]() {
         if (guard) guard->fitAgeTree();
     });
 
