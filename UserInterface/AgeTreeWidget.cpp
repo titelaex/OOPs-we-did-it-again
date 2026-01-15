@@ -1,5 +1,5 @@
 #include "AgeTreeWidget.h"
-#include "PlayerPanelWidget.h"
+#include <QtCore/QDebug>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsRectItem>
@@ -84,6 +84,12 @@ private:
 AgeTreeWidget::AgeTreeWidget(QWidget* parent)
     : QWidget(parent), m_view(nullptr), m_scene(nullptr)
 {
+    qDebug() << "AgeTreeWidget::ctor this=" << static_cast<const void*>(this);
+}
+
+AgeTreeWidget::~AgeTreeWidget()
+{
+    qDebug() << "AgeTreeWidget::dtor this=" << static_cast<const void*>(this);
 }
 
 void AgeTreeWidget::setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right)
@@ -210,7 +216,8 @@ if (!node) return;
 
 void AgeTreeWidget::showAgeTree(int age)
 {
-    m_currentAge = age;
+    qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
+             << " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
     auto& board = Core::Board::getInstance();
     const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
  const auto& nodes = *nodesPtr;
@@ -219,6 +226,27 @@ void AgeTreeWidget::showAgeTree(int age)
     if (age == 1) rows = {2,3,4,5,6};
     else if (age == 2) rows = {6,5,4,3,2};
     else rows = {2,3,4,2,4,3,2};
+
+    // choose palette depending on age
+    QColor visibleTopColor;
+    QColor visibleBottomColor;
+    QColor sectionBorderColor;
+    QColor lineColor;
+    QColor visibleTextColor = Qt::white;
+    QColor invisibleBorderColor = Qt::white;
+    if (age == 2) {
+        // blue palette for Age II
+        visibleTopColor = QColor("#60A5FA"); // light blue
+        visibleBottomColor = QColor("#1E3A8A"); // indigo/dark blue
+        sectionBorderColor = QColor("#0369A1");
+        lineColor = QColor("#0461A8");
+    } else {
+        // default brown palette for Age I and others
+        visibleTopColor = QColor("#B58860");
+        visibleBottomColor = QColor("#7C4A1C");
+        sectionBorderColor = QColor("#7C4A1C");
+        lineColor = QColor("#3b2b1b");
+    }
 
     // clear previous layout
     if (auto oldLayout = this->layout()) {
@@ -231,11 +259,25 @@ void AgeTreeWidget::showAgeTree(int age)
       delete oldLayout;
     }
 
-    if (m_view) { m_view->deleteLater(); m_view = nullptr; }
- if (m_scene) { m_scene->clear(); m_scene->deleteLater(); m_scene = nullptr; }
+    // Dispose of previous scene/view if any - schedule deletion to be safe with Qt internals
+    if (m_view) { 
+        // detach scene first to avoid operations on a scene that is being cleared elsewhere
+        m_view->setScene(nullptr);
+        m_view->deleteLater(); 
+        m_view = nullptr; 
+    }
+    if (m_scene) {
+        // avoid calling clear() here (can crash when called during event processing)
+        qDebug() << "AgeTreeWidget: scheduling deleteLater on old scene";
+        m_scene->deleteLater(); 
+        m_scene = nullptr;
+    }
+    // clear any stored proxy mappings
+    m_proxyMap.clear();
 
     m_scene = new QGraphicsScene(this);
     m_view = new QGraphicsView(m_scene, this);
+    qDebug() << "AgeTreeWidget: created scene=" << static_cast<const void*>(m_scene) << " view=" << static_cast<const void*>(m_view);
     m_view->setRenderHint(QPainter::Antialiasing);
     m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -282,62 +324,71 @@ void AgeTreeWidget::showAgeTree(int age)
     for (int r = 0; r < totalRows; ++r) {
         int cols = rows[r];
         for (int c = 0; c < cols; ++c) {
-  if (idx >= static_cast<int>(nodes.size())) break;
-QPointF pos = positions[idx];
-         bool isAvailable = (nodes[idx] && nodes[idx]->isAvailable());
-   if (isAvailable) {
-  QRectF rrect(pos, QSizeF(cardW, cardH));
- ClickableRect* item = new ClickableRect(rrect);
-           item->setZValue(1);
-m_scene->addItem(item);
-           rects[idx] = item;
+            if (idx >= static_cast<int>(nodes.size())) break;
+            QPointF pos = positions[idx];
 
-         bool isVisible = false;
-        if (nodes[idx] && nodes[idx]->getCard()) isVisible = nodes[idx]->getCard()->isVisible();
-if (isVisible) {
-         item->setGradientColors(QColor("#B58860"), QColor("#7C4A1C"));
-    item->setBorderColor(QColor("#7C4A1C"));
-    } else {
-              item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
-                item->setBorderColor(QColor("#7C4A1C"));
-  }
+            // if node has no card, skip drawing anything (disappear from tree)
+            if (!nodes[idx] || !nodes[idx]->getCard()) { ++idx; continue; }
 
-           QString name = "<empty>";
-   if (nodes[idx]) {
-           auto* card = nodes[idx]->getCard();
-           if (card) name = QString::fromStdString(card->getName());
-    }
-   QGraphicsTextItem* t = m_scene->addText(name);
-              QFont f = t->font(); f.setBold(true); f.setPointSize(15);
-        t->setFont(f);
-        t->setDefaultTextColor(isVisible ? Qt::white : Qt::black);
-        QRectF tb = t->boundingRect();
-        t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
-                t->setZValue(2);
+            bool isAvailable = nodes[idx]->isAvailable();
+            Models::Card* cardPtr = nodes[idx]->getCard();
+
+            if (isAvailable) {
+                QRectF rrect(pos, QSizeF(cardW, cardH));
+                ClickableRect* item = new ClickableRect(rrect);
+                item->setZValue(1);
+                m_scene->addItem(item);
+                rects[idx] = item;
+
+                // Style based on card visibility: colored gradient if visible, otherwise white
+                bool isVisible = cardPtr->isVisible();
+                if (isVisible) {
+                    item->setGradientColors(visibleTopColor, visibleBottomColor);
+                    item->setBorderColor(sectionBorderColor);
+                } else {
+                    item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
+                    item->setBorderColor(invisibleBorderColor);
+                }
+
+                // Only show text when a card exists AND it is visible
+                if (isVisible) {
+                    QString name = QString::fromStdString(cardPtr->getName());
+                    QGraphicsTextItem* t = m_scene->addText(name);
+                    QFont f = t->font(); f.setBold(true); f.setPointSize(15);
+                    t->setFont(f);
+                    t->setDefaultTextColor(visibleTextColor);
+                    QRectF tb = t->boundingRect();
+                    t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+                    t->setZValue(2);
+                }
 
      int nodeIndex = idx;
      item->onClicked = [this, nodeIndex]() {
     this->handleLeafClicked(nodeIndex, m_currentAge);
     };
             } else {
-   QRectF rect(pos, QSizeF(cardW, cardH));
-     QColor bg = QColor("#EDE7E0");
-        QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(QColor("#7C4A1C"), 3), QBrush(bg));
-      ritem->setZValue(1);
-     QString name = "<empty>";
-          if (nodes[idx] && nodes[idx]->getCard()) name = QString::fromStdString(nodes[idx]->getCard()->getName());
-             QGraphicsTextItem* t = m_scene->addText(name);
-        t->setDefaultTextColor(Qt::black);
-      QRectF tb = t->boundingRect();
-       t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
-          t->setZValue(2);
-     rects[idx] = ritem;
-          }
+                QRectF rect(pos, QSizeF(cardW, cardH));
+                QColor bg = QColor("#EDE7E0");
+                QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(sectionBorderColor, 3), QBrush(bg));
+                ritem->setZValue(1);
+
+                // For non-available slots only show text when a visible card exists; otherwise show nothing
+                if (cardPtr && cardPtr->isVisible()) {
+                    QString name = QString::fromStdString(cardPtr->getName());
+                    QGraphicsTextItem* t = m_scene->addText(name);
+                    t->setDefaultTextColor(Qt::black);
+                    QRectF tb = t->boundingRect();
+                    t->setPos(pos.x() + (cardW - tb.width())/2, pos.y() + (cardH - tb.height())/2);
+                    t->setZValue(2);
+                }
+
+                rects[idx] = ritem;
+            }
             ++idx;
         }
     }
 
- QPen linePen(QColor("#3b2b1b")); linePen.setWidth(3);
+    QPen linePen(lineColor); linePen.setWidth(3);
     for (size_t i = 0; i < nodes.size(); ++i) {
         if (!nodes[i]) continue;
         auto child1 = nodes[i]->getChild1();
@@ -369,7 +420,11 @@ if (it != ptrToIndex.end()) {
     vlayout->addWidget(m_view);
     setLayout(vlayout);
 
-    QTimer::singleShot(0, this, [this]() { this->fitAgeTree(); });
+    // Queue fitAgeTree but guard with QPointer to avoid calling on deleted widget
+    QPointer<AgeTreeWidget> guard(this);
+    QTimer::singleShot(0, [guard]() mutable {
+        if (guard) guard->fitAgeTree();
+    });
 
     if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
 }
