@@ -221,14 +221,27 @@ void UserInterface::showAgeTree(int age)
 	// Show panels
 	if (m_centerTop) m_centerTop->setVisible(true);
 	if (m_centerBottom) m_centerBottom->setVisible(true);
-
-	// Create age tree widget
-	auto* layout = new QVBoxLayout(m_centerMiddle);
-	layout->setContentsMargins(8, 8, 8, 8);
 	
+	// Clear the middle container before inserting the age tree
+	if (m_centerMiddle) {
+		if (auto* existing = m_centerMiddle->layout()) {
+			QLayoutItem* it;
+			while ((it = existing->takeAt(0)) != nullptr) {
+				if (it->widget()) it->widget()->deleteLater();
+				delete it;
+			}
+			delete existing;
+		}
+		m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+	}
+
+	// Create age tree widget and insert it into the middle panel
 	m_ageTreeWidget = new AgeTreeWidget(m_centerMiddle);
 	m_ageTreeWidget->setPlayerPanels(m_leftPanel, m_rightPanel);
-	
+	if (m_centerMiddle && m_centerMiddle->layout()) {
+		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
+	}
+
 	// Sync current player
 	Core::Player* coreCur = Core::getCurrentPlayer();
 	auto& gs = Core::GameState::getInstance();
@@ -265,51 +278,7 @@ void UserInterface::showAgeTree(int age)
 		m_phaseBanner->show();
 	}
 
-	if (action == 0) {
-		qDebug() << "Attempting to build card";
-		// capture name and color so we can show it in player's panel if build succeeds
-		QString playedName = QString::fromStdString(cardPtr->getName());
-		Models::ColorType playedColor = cardPtr->getColor();
-		cur->playCardBuilding(cardPtr, opp->m_player);
-		qDebug() << "Before playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get()) << " cur=" << static_cast<const void*>(cur);
-		cur->playCardBuilding(cardPtr, opp->m_player);
-		qDebug() << "After playCardBuilding: cardPtr=" << static_cast<const void*>(cardPtr.get());
-		// if cardPtr was moved into the player (build succeeded), cardPtr will be null
-		if (!cardPtr) {
-			if (m_currentPlayerIndex == 0) {
-				if (m_leftPanel) m_leftPanel->showPlayedCard(playedName, playedColor);
-			} else {
-				if (m_rightPanel) m_rightPanel->showPlayedCard(playedName, playedColor);
-			}
-		}
-		qDebug() << "playCardBuilding returned";
-	}
-	else if (action == 1) {
-		qDebug() << "Selling card";
-		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-		cur->sellCard(cardPtr, discarded);
-		qDebug() << "sellCard returned";
-	}
-	else if (action == 2) {
-		qDebug() << "Use as wonder selected - not implemented";
-		QMessageBox::information(this, "Use as Wonder", "Selectia de minune trebuie implementata. Actiunea este ignorata momentan.");
-	}
-
-	// After action, check if any parent became available
-	bool parentBecameAvailable = false;
-	for (size_t pi : affectedParents) {
-		if (pi < nodesVec.size()) {
-			auto pnode = nodesVec[pi];
-			if (pnode && pnode->isAvailable()) { parentBecameAvailable = true; break; }
-		}
-	}
-
-	// refresh UI: update left/right panels and redraw tree
-    m_leftPanel->refreshWonders();
-    m_rightPanel->refreshWonders();
-    qDebug() << "Refreshed panels (queued finishAction)";
-    QMetaObject::invokeMethod(this, "finishAction", Qt::QueuedConnection,
-                              Q_ARG(int, age), Q_ARG(bool, parentBecameAvailable));
+	m_ageTreeWidget->showAgeTree(age);
 }
 
 void UserInterface::onWonderSelected(int index)
@@ -390,8 +359,9 @@ void UserInterface::onWonderSelected(int index)
 		m_cardsPickedInPhase = 0;
 
 		if (m_selectionPhase < 2) {
-			loadNextBatch();
-		}
+			// next batch is handled by the controller
+			if (m_wonderController) m_wonderController->loadNextBatch();
+		} 
 		else {
 			m_centerWidget->setTurnMessage("");
 			// lock middle panel height so it remains fixed after selection finished
@@ -438,10 +408,6 @@ void UserInterface::onWonderSelected(int index)
 	{
 		updateTurnLabel();
 	}
-}
-
-UserInterface::~UserInterface()
-{
 }
 
 void UserInterface::updateTurnLabel()
@@ -491,8 +457,16 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 		if (!anyAvailable) {
 			// show transition
 			if (m_centerMiddle) {
-				if (auto* existing = m_centerMiddle->layout()) clearLayout(existing);
-				else m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+				if (auto* existing = m_centerMiddle->layout()) {
+					QLayoutItem* it;
+					while ((it = existing->takeAt(0)) != nullptr) {
+						if (it->widget()) delete it->widget();
+						delete it;
+					}
+					delete existing;
+				} else {
+					m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
+				}
 				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
 				msgLayout->setContentsMargins(8,8,8,8);
 				msgLayout->setSpacing(0);

@@ -24,8 +24,10 @@ public:
     void start();
     std::function<void()> onSelectionComplete;
 
-private:
+    // allow external callers to request loading next batch
     void loadNextBatch();
+
+private:
     void onWonderSelected(int index);
     void updateTurnLabel();
 

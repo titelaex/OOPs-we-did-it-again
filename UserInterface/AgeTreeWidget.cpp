@@ -236,6 +236,9 @@ void AgeTreeWidget::showAgeTree(int age)
     QColor visibleTopColor;
     QColor visibleBottomColor;
     QColor borderColor;
+    QColor invisibleBorderColor = QColor("#CCCCCC");
+    QColor visibleTextColor = QColor("#FFFFFF");
+    QColor lineColor = QColor("#4B5563");
     if (age == 2) {
       // Blue palette for Age II
         visibleTopColor = QColor("#60A5FA");
@@ -344,7 +347,7 @@ void AgeTreeWidget::showAgeTree(int age)
                 bool isVisible = cardPtr->isVisible();
                 if (isVisible) {
                     item->setGradientColors(visibleTopColor, visibleBottomColor);
-                    item->setBorderColor(sectionBorderColor);
+                    item->setBorderColor(borderColor);
                 } else {
                     item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
                     item->setBorderColor(invisibleBorderColor);
@@ -369,8 +372,8 @@ void AgeTreeWidget::showAgeTree(int age)
             } else {
                 QRectF rect(pos, QSizeF(cardW, cardH));
                 QColor bg = QColor("#EDE7E0");
-                QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(sectionBorderColor, 3), QBrush(bg));
-                ritem->setZValue(1);
+                QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(borderColor, 3), QBrush(bg));
+                 ritem->setZValue(1);
 
                 // For non-available slots only show text when a visible card exists; otherwise show nothing
                 if (cardPtr && cardPtr->isVisible()) {
