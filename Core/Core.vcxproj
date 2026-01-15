@@ -136,6 +136,7 @@
     <ClCompile Include="Header\AIConfig.ixx" />
     <ClCompile Include="Header\GameMetadata.ixx" />
     <ClCompile Include="Header\GameState.ixx" />
+    <ClCompile Include="Header\GameStateSerializer.ixx" />
     <ClCompile Include="Header\MCTS.ixx" />
     <ClCompile Include="Header\PlayerDecisionMaker.ixx" />
     <ClCompile Include="Header\PlayerNameValidator.ixx" />
@@ -155,6 +156,7 @@
     <ClCompile Include="Source/Player.cpp" />
     <ClCompile Include="Header/Player.ixx" />
     <ClCompile Include="Source\GameMetadata.cpp" />
+    <ClCompile Include="Source\GameStateSerializer.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\MCTS.cpp" />
     <ClCompile Include="Source\PlayerDecisionMaker.cpp" />
@@ -172,7 +174,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log" />
-    <Text Include="phaseI_fix.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\ModelsDLL\ModelsDLL.vcxproj">

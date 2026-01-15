@@ -102,6 +102,12 @@
     <ClCompile Include="Header\PlayerNameValidator.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GameStateSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\GameStateSerializer.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
@@ -125,6 +131,5 @@
     <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="phaseI_fix.txt" />
   </ItemGroup>
 </Project>
