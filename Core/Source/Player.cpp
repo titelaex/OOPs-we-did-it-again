@@ -19,6 +19,7 @@ import Core.Game;
 import Models.AgeCard;
 import Models.GuildCard;
 import Core.CardCsvParser;
+import Core.IGameListener;
 namespace Core {
 	namespace {
 		thread_local Player* g_current_player = nullptr;
@@ -112,6 +113,15 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
 	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
 	if (moved)
 	{
+		Core::Game::getNotifier().notifyCardDiscarded({
+			static_cast<int>(cp->m_player->getkPlayerId()),  
+			cp->m_player->getPlayerUsername(),
+			moved->getName(),                               
+			-1,
+			Models::ColorTypeToString(moved->getColor()),    
+			{"Opponent card destroyed"}                      
+			});
+
 		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
 		discarded.push_back(std::move(moved));
 	}
@@ -150,6 +160,16 @@ void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<
 	addCoins(coinsToGain);
 	std::cout << "Player sold \"" << ageCard->getName() << "\" for "
 		<< static_cast<int>(coinsToGain) << " coins.\n";
+
+	Core::Game::getNotifier().notifyCardSold({
+		m_player->getkPlayerId(),                       
+		m_player->getPlayerUsername(),                  
+		ageCard->getName(),                             
+		-1,                                             
+		Models::ColorTypeToString(ageCard->getColor()), 
+		{}                                              
+		});
+
 	discardedCards.push_back(std::move(ageCard));
 }
 uint8_t Core::Player::countYellowCards()

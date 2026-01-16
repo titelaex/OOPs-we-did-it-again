@@ -33,6 +33,7 @@ import Core.AgeTree;
 import Core.Node;
 import Core.GameState;
 import Core.PlayerNameValidator;
+import Core.IGameListener;
 import <unordered_map>;
 namespace Core {
 	namespace {
@@ -238,6 +239,16 @@ namespace Core {
 				if (candidates.empty()) {
 					std::cout << "No available unbuilt wonders. Moving card to discard.\n";
 					auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+					
+					Core::Game::getNotifier().notifyCardDiscarded({
+					static_cast<int>(cur.m_player->getkPlayerId()),
+					cur.m_player->getPlayerUsername(),
+					cardPtr->getName(),
+					-1,
+					Models::ColorTypeToString(cardPtr->getColor()),
+					{"Discarded (No wonders available)"}
+						});
+					
 					discarded.push_back(std::move(cardPtr));
 					break;
 				}
@@ -381,6 +392,13 @@ namespace Core {
 			std::cout << "----------------------------\n\n";
 		}
 	}
+
+	GameEventNotifier& Game::getNotifier()
+	{
+		static GameEventNotifier notifier;
+		return notifier;
+	}
+
 	void Game::preparation() {
 		try {
 			PrepareBoardCardPools();

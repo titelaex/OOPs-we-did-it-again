@@ -9,9 +9,11 @@ import Models.Card;
 import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
 import Core.AIConfig;
+import Core.IGameListener;
 export namespace Core {
     class Game {
     public:
+        static GameEventNotifier& getNotifier();
         static void preparation();
         static void PrepareBoardCardPools();
         static void initGame(bool& continueGame, bool& trainingMode, 

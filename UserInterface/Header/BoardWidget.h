@@ -7,7 +7,8 @@
 
 class QResizeEvent;
 
-namespace Core { class Board; }
+
+namespace  Core { class Board; }
 namespace Models { class Token; }
 
 class BoardWidget : public QWidget {

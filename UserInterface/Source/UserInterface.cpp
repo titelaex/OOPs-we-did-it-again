@@ -5,6 +5,7 @@
 #include "WonderSelectionController.h"
 #include "Preparation.h"
 #include "AgeTreeWidget.h"
+#include "DiscardedCardsWidget.h"
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QVBoxLayout>
@@ -26,6 +27,7 @@ import Core.Board;
 import Core.Game;
 import Core.Player;
 import Core.GameState;
+import Core.IGameListener;
 
 UserInterface::UserInterface(QWidget* parent)
 	: QMainWindow(parent)
@@ -150,6 +152,10 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	bottomLayout->setContentsMargins(8, 8, 8, 8);
 	m_boardWidget = new BoardWidget(m_centerBottom);
 	bottomLayout->addWidget(m_boardWidget);
+
+	auto* discardWidget = new DiscardedCardsWidget(m_centerBottom);
+	bottomLayout->addWidget(discardWidget, 0);
+	Core::Game::getNotifier().addListener(discardWidget->getListener());
 
 	centerLayout->addWidget(m_centerTop, 0);
 	centerLayout->addWidget(m_centerMiddle, 1);

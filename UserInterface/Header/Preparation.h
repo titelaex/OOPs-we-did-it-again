@@ -4,7 +4,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QVBoxLayout>
+#include  <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
 
 class PreparationDialog : public QDialog {

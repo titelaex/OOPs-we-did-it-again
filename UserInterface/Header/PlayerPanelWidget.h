@@ -8,7 +8,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 import Core.Player; 
-import Models.ColorType;
+import  Models.ColorType;
 
 class QGridLayout;
 class QLabel;

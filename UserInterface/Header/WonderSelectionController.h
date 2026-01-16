@@ -6,7 +6,7 @@
 #include <functional>
 
 class PlayerPanelWidget;
-class WonderSelectionWidget;
+class  WonderSelectionWidget;
 namespace Models { class Wonder; }
 namespace Core { class Player; }
 

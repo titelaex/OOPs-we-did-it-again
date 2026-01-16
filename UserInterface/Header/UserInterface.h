@@ -24,7 +24,7 @@ class UserInterface : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit UserInterface(QWidget* parent = nullptr);
+    explicit  UserInterface(QWidget* parent = nullptr);
     ~UserInterface();
 
 private:

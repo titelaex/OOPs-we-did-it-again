@@ -65,7 +65,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Header;$(SolutionDir)Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
       <AdditionalModuleDependencies>..\Models\x64\$(IntDir)</AdditionalModuleDependencies>
@@ -76,6 +76,7 @@
     <ClCompile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <AdditionalIncludeDirectories>$(ProjectDir)Header;</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -122,6 +123,7 @@
     <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp" />
     <ClCompile Include="..\Core\Source\TrainingLogger.cpp" />
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
+    <ClCompile Include="DiscardedCardsWidget.cpp" />
     <ClCompile Include="Source\AgeTreeWidget.cpp" />
     <ClCompile Include="Source\BoardWidget.cpp" />
     <ClCompile Include="Source\CardSpineDelegate.cpp" />
@@ -156,14 +158,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="DiscardedCardsWidget.h" />
     <ClInclude Include="Header\AgeTreeWidget.h" />
-    <ClInclude Include="Header\BoardWidget.h" />
+    <QtMoc Include="Header\BoardWidget.h" />
     <ClInclude Include="Header\CardSpineDelegate.h" />
-    <ClInclude Include="Header\PlayerPanelWidget.h" />
-    <ClInclude Include="Header\Preparation.h" />
-    <ClInclude Include="Header\UserInterface.h" />
-    <ClInclude Include="Header\WonderSelectionController.h" />
-    <ClInclude Include="Header\WonderSelectionWidget.h" />
+    <QtMoc Include="Header\PlayerPanelWidget.h" />
+    <QtMoc Include="Header\Preparation.h" />
+    <QtMoc Include="Header\UserInterface.h" />
+    <QtMoc Include="Header\WonderSelectionController.h" />
+    <QtMoc Include="Header\WonderSelectionWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
