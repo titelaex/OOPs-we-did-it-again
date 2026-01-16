@@ -423,6 +423,12 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		return;
 	}
 	
+	if (!opponent)
+	{
+		std::cout << "ERROR: Opponent is null in playCardBuilding\n";
+		return;
+	}
+	
 	// Check if card is available (must be in the last row of the tree)
 	if (!card->isAvailable())
 	{
@@ -466,7 +472,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		m_player->addCard(std::move(card));
 		return;
 	}
-	if (!canAffordCard(card, opponent))
+	if (!canAffordCard(card.get(), opponent))
 	{
 		std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
 		return;
@@ -484,8 +490,12 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 	}
 	m_player->addCard(std::move(card));
 }
-bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
+
+bool Core::Player::canAffordCard(const Models::Card* card, std::unique_ptr<Models::Player>& opponent)
 {
+    if (!card || !opponent)
+        return false;
+    
     if (card->getResourceCost().empty())
         return true;
     if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
@@ -521,15 +531,20 @@ bool Core::Player::canAffordCard(std::unique_ptr<Models::Card>& card, std::uniqu
     }
     return true;
 }
+
 void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
+	if (!card || !opponent) {
+		std::cout << "ERROR: Card or opponent is null in payForCard\n";
+		return;
+	}
+
 	const auto& cost = card->getResourceCost();
 	const auto& ownPermanent = m_player->getOwnedPermanentResources();
 	const auto& ownTrading = m_player->getOwnedTradingResources();
 	const auto& opponentPermanent = opponent->getOwnedPermanentResources();
 	uint8_t totalCoinsToPay = 0;
 	
-	// First, add any mandatory coin costs from the card
 	if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 		uint8_t cardCoinCost = ageCard->getCoinCost();
 		if (cardCoinCost > 0) {
@@ -538,7 +553,6 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 		}
 	}
 	
-	// Handle resource costs
 	for (const auto& kv : cost)
 	{
 		auto resource = kv.first;
@@ -751,6 +765,7 @@ namespace Core {
 		while (std::getline(in, line)) {
 			if (line.empty()) continue;
 			auto columns = splitCsvLine(line);
+			// std::cout << "CSV Column count: " << columns.size() << "\n";
 			if (columns.size() < 2 || columns[0] != "Player") {
 				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
 				break;
@@ -855,12 +870,12 @@ void Core::Player::chooseProgressTokenFromBoard()
 	auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
 
 	if (availableTokens.empty()) {
-		std::cout << "Nu mai sunt token-uri de progres disponibile pe tabla!\n";
+		std::cout << "Nu mai sunt token-uri de progres disponibile pe tabela!\n";
 		return;
 	}
 
 	std::cout << "\nFELICITARI! Ai format o pereche de simboluri stiintifice!\n";
-	std::cout << "Alege un token de progres de pe tabla:\n";
+	std::cout << "Alege un token de progres de pe tabela:\n";
 
 	for (size_t i = 0; i < availableTokens.size(); ++i) {
 		if (availableTokens[i]) {
@@ -906,19 +921,19 @@ void Core::Player::takeNewCard()
 			std::cout << "[" << i << "] " << discarded[i]->getName() << "\n";
 		}
 	}
-	size_t choice = 0;
-	if (!(std::cin >> choice) || choice >= discarded.size()) {
-		if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-		choice = 0;
-	}
-	if (!discarded[choice]) {
-		std::cout << "Invalid card selection.\n";
-		return;
-	}
-	auto card = std::move(discarded[choice]);
-	discarded.erase(discarded.begin() + choice);
-	if (!card) return;
-	cp->m_player->addCard(std::move(card));
-	std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
-	cp->m_player->getOwnedCards().back()->onPlay();
+ size_t choice = 0;
+ if (!(std::cin >> choice) || choice >= discarded.size()) {
+   if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
+   choice = 0;
+ }
+ if (!discarded[choice]) {
+   std::cout << "Invalid card selection.\n";
+   return;
+ }
+ auto card = std::move(discarded[choice]);
+ discarded.erase(discarded.begin() + choice);
+ if (!card) return;
+ cp->m_player->addCard(std::move(card));
+ cp->m_player->getOwnedCards().back()->onPlay();
+ std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
 }

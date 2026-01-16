@@ -198,22 +198,22 @@ __declspec(dllexport) std::ostream& Models::operator<<(std::ostream& out, const 
 	return out;
 }
 
-AgeCardBuilder& AgeCardBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
-AgeCardBuilder& AgeCardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }
-AgeCardBuilder& AgeCardBuilder::setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_card.setResourceProduction(resourceProduction); return *this; }
-AgeCardBuilder& AgeCardBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card.setVictoryPoints(victoryPoints); return *this; }
-AgeCardBuilder& AgeCardBuilder::setShieldPoints(const uint8_t& shieldPoints) { m_card.setShieldPoints(shieldPoints); return *this; }
-AgeCardBuilder& AgeCardBuilder::setCoinCost(uint8_t coinCost) { m_card.setCoinCost(coinCost); return *this; }
-AgeCardBuilder& AgeCardBuilder::setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols) { m_card.setScientificSymbols(scientificSymbols); return *this; }
-AgeCardBuilder& AgeCardBuilder::setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol) { m_card.setHasLinkingSymbol(hasLinkingSymbol); return *this; }
-AgeCardBuilder& AgeCardBuilder::setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol) { m_card.setRequiresLinkingSymbol(requiresLinkingSymbol); return *this; }
-AgeCardBuilder& AgeCardBuilder::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules) { m_card.setTradeRules(tradeRules); return *this; }
-AgeCardBuilder& AgeCardBuilder::setCaption(const std::string& caption) { m_card.setCaption(caption); return *this; }
-AgeCardBuilder& AgeCardBuilder::setColor(const ColorType& color) { m_card.setColor(color); return *this; }
-AgeCardBuilder& AgeCardBuilder::setAge(const Age& age) { m_card.setAge(age); return *this; }
-AgeCardBuilder& AgeCardBuilder::addOnPlayAction(const std::function<void()>& action, std::string actionString) { m_card.addOnPlayAction(action, std::move(actionString)); return *this; }
-AgeCardBuilder& AgeCardBuilder::addOnDiscardAction(const std::function<void()>& action, std::string actionString) { m_card.addOnDiscardAction(action, std::move(actionString)); return *this; }
-AgeCard AgeCardBuilder::build() { return std::move(m_card); }
+AgeCardBuilder& AgeCardBuilder::setName(const std::string& name) { m_card->setName(name); return *this; }
+AgeCardBuilder& AgeCardBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card->setResourceCost(resourceCost); return *this; }
+AgeCardBuilder& AgeCardBuilder::setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_card->setResourceProduction(resourceProduction); return *this; }
+AgeCardBuilder& AgeCardBuilder::setVictoryPoints(const uint8_t& victoryPoints) { m_card->setVictoryPoints(victoryPoints); return *this; }
+AgeCardBuilder& AgeCardBuilder::setShieldPoints(const uint8_t& shieldPoints) { m_card->setShieldPoints(shieldPoints); return *this; }
+AgeCardBuilder& AgeCardBuilder::setCoinCost(uint8_t coinCost) { m_card->setCoinCost(coinCost); return *this; }
+AgeCardBuilder& AgeCardBuilder::setScientificSymbols(const std::optional<ScientificSymbolType>& scientificSymbols) { m_card->setScientificSymbols(scientificSymbols); return *this; }
+AgeCardBuilder& AgeCardBuilder::setHasLinkingSymbol(const std::optional<LinkingSymbolType>& hasLinkingSymbol) { m_card->setHasLinkingSymbol(hasLinkingSymbol); return *this; }
+AgeCardBuilder& AgeCardBuilder::setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& requiresLinkingSymbol) { m_card->setRequiresLinkingSymbol(requiresLinkingSymbol); return *this; }
+AgeCardBuilder& AgeCardBuilder::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules) { m_card->setTradeRules(tradeRules); return *this; }
+AgeCardBuilder& AgeCardBuilder::setCaption(const std::string& caption) { m_card->setCaption(caption); return *this; }
+AgeCardBuilder& AgeCardBuilder::setColor(const ColorType& color) { m_card->setColor(color); return *this; }
+AgeCardBuilder& AgeCardBuilder::setAge(const Age& age) { m_card->setAge(age); return *this; }
+AgeCardBuilder& AgeCardBuilder::addOnPlayAction(const std::function<void()>& action, std::string actionString) { m_card->addOnPlayAction(action, std::move(actionString)); return *this; }
+AgeCardBuilder& AgeCardBuilder::addOnDiscardAction(const std::function<void()>& action, std::string actionString) { m_card->addOnDiscardAction(action, std::move(actionString)); return *this; }
+AgeCard AgeCardBuilder::build() { return std::move(*m_card); }
 
 void AgeCard::onDiscard() { Card::onDiscard(); }
 

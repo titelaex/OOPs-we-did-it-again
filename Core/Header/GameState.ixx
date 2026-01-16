@@ -25,32 +25,34 @@ export namespace Core {
         GameState(const GameState&) = delete;
         GameState& operator=(const GameState&) = delete;
         
-        std::shared_ptr<Player> GetPlayer1();
-        std::shared_ptr<Player> GetPlayer2();
+        std::shared_ptr<Player> GetPlayer1() const;
+        std::shared_ptr<Player> GetPlayer2() const;
         
-        int getCurrentPhase() const { return m_currentPhase; }
-        void setCurrentPhase(int phase) { m_currentPhase = phase; }
+        int getCurrentPhase() const;
+        void setCurrentPhase(int phase, int round, bool isP1Turn);
         
-        int getCurrentRound() const { return m_currentRound; }
-        void setCurrentRound(int round) { m_currentRound = round; }
+        int getCurrentRound() const;
+        void setCurrentRound(int round);
         
-        bool isPlayer1Turn() const { return m_isPlayer1Turn; }
-        void setIsPlayer1Turn(bool isP1Turn) { m_isPlayer1Turn = isP1Turn; }
+        bool isPlayer1Turn() const;
+        void setIsPlayer1Turn(bool isP1Turn);
         
-        int getGameMode() const { return m_gameMode; }
-        void setGameMode(int mode) { m_gameMode = mode; }
+        int getGameMode() const;
+        void setGameMode(int mode, bool training);
         
-        bool isTrainingMode() const { return m_trainingMode; }
-        void setTrainingMode(bool training) { m_trainingMode = training; }
+        bool isTrainingMode() const;
+        void setTrainingMode(bool training);
         
-        Playstyle getPlayer1Playstyle() const { return m_player1Playstyle; }
-        void setPlayer1Playstyle(Playstyle style) { m_player1Playstyle = style; }
+        Playstyle getPlayer1Playstyle() const;
+        void setPlayer1Playstyle(Playstyle style);
         
-        Playstyle getPlayer2Playstyle() const { return m_player2Playstyle; }
-        void setPlayer2Playstyle(Playstyle style) { m_player2Playstyle = style; }
+        Playstyle getPlayer2Playstyle() const;
+        void setPlayer2Playstyle(Playstyle style);
         
-        const LastAction& getLastAction() const { return m_lastAction; }
-        void setLastAction(const LastAction& action) { m_lastAction = action; }
+        void setPlayerPlaystyles(Playstyle p1Style, Playstyle p2Style);
+        
+        const LastAction& getLastAction() const;
+        void setLastAction(const LastAction& action);
         
         void recordAction(const std::string& playerName, const std::string& actionType,
                          const std::string& cardName, const std::vector<std::string>& effects);
@@ -67,7 +69,11 @@ export namespace Core {
         int getLoserScore() const;
         void resetVictory();
         
-        GameEventNotifier& getEventNotifier() { return m_eventNotifier; }
+        void saveGameState(const std::string& filename);
+        void loadGameState(const std::string& filename);
+        void updatePhaseInfo();
+        
+        GameEventNotifier& getEventNotifier();
         
     private:
         GameState();

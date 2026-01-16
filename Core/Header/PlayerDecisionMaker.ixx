@@ -4,8 +4,8 @@ import <cstdint>;
 import <memory>;
 import <string>;
 import Core.AIConfig;
+import Core.MCTS;
 namespace Core {
-    class MCTS;
     struct MCTSGameState;
     struct MCTSAction;
 }

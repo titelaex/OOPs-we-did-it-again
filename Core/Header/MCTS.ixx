@@ -117,6 +117,7 @@ export namespace Core {
     };
     export class MCTS {
     public:
+        MCTS();
         MCTS(int iterations = 1000, double explorationConstant = 1.414, int maxSimulationDepth = 50, 
              Playstyle playstyle = Playstyle::BRITNEY);
         MCTSAction search(const MCTSGameState& rootState);

@@ -209,6 +209,14 @@ void MCTSNode::backpropagate(double reward) {
         current = current->m_parent;
     }
 }
+MCTS::MCTS()
+    : m_iterations(1000)
+    , m_explorationConstant(1.414)
+    , m_maxSimulationDepth(50)
+    , m_rng(std::random_device{}())
+    , m_playstyle(Playstyle::BRITNEY)
+{
+}
 MCTS::MCTS(int iterations, double explorationConstant, int maxSimulationDepth, Playstyle playstyle)
     : m_iterations(iterations)
     , m_explorationConstant(explorationConstant)
@@ -353,7 +361,7 @@ std::vector<MCTSAction> MCTS::getLegalActions(const MCTSGameState& state, int cu
         const auto& node = (*nodes)[i];
         if (!node) continue;
         if (!node->isAvailable()) continue;
-        const auto* card = node->getCard();
+        const auto card = node->getCard();
         if (!card) continue;
         MCTSAction buildAction;
         buildAction.cardNodeIndex = i;

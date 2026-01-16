@@ -5,6 +5,7 @@ import <fstream>;
 import <sstream>;
 import <filesystem>;
 import Core.AIConfig;
+import Core.GameState;
 
 export namespace Core {
     

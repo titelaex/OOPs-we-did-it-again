@@ -178,12 +178,12 @@ void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& opti
         const auto& nodes2 = board.getAge2Nodes();
         const auto& nodes3 = board.getAge3Nodes();
         
-        if (nodeIdx < nodes1.size() && nodes1[nodeIdx] && nodes1[nodeIdx]->getCard()) {
-            card = const_cast<Models::Card*>(nodes1[nodeIdx]->getCard());
-        } else if (nodeIdx < nodes2.size() && nodes2[nodeIdx] && nodes2[nodeIdx]->getCard()) {
-            card = const_cast<Models::Card*>(nodes2[nodeIdx]->getCard());
-        } else if (nodeIdx < nodes3.size() && nodes3[nodeIdx] && nodes3[nodeIdx]->getCard()) {
-            card = const_cast<Models::Card*>(nodes3[nodeIdx]->getCard());
+        if (nodeIdx < nodes1.size() && nodes1[nodeIdx]) {
+            card = nodes1[nodeIdx]->getCard();
+        } else if (nodeIdx < nodes2.size() && nodes2[nodeIdx]) {
+            card = nodes2[nodeIdx]->getCard();
+        } else if (nodeIdx < nodes3.size() && nodes3[nodeIdx]) {
+            card = nodes3[nodeIdx]->getCard();
         }
         
         double score = 0.0;

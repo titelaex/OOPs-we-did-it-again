@@ -63,7 +63,7 @@ std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
     for (const auto& node : *source)
     {
         if (!node) continue;
-        Models::Card* card = node->getCard();
+        auto card = node->getCard();
         if (!card) continue;
         if (card->isAvailable()) available.push_back(card);
     }
@@ -161,7 +161,7 @@ static void displayAgeCards(const char* title, const std::vector<std::shared_ptr
 	for (size_t i = 0; i < nodes.size(); ++i) {
 		auto& n = nodes[i];
 		if (!n) continue;
-		Models::Card* c = n->getCard();
+		auto c = n->getCard();
 		if (!c) continue;
 		c->displayCardInfo();
 	}
@@ -530,16 +530,19 @@ namespace Core {
 						
 						size_t eqPos = attr.find(':');
 						if (eqPos != std::string::npos) {
-							std::string key = attr.substr(0, eqPos);
-							std::string value = attr.substr(eqPos + 1);
+						 std::string key = attr.substr(0, eqPos);
+						 std::string value = attr.substr(eqPos + 1);
 							
-							if (node && node->getCard()) {
-								if (key == "Available") {
-									node->getCard()->setIsAvailable(value == "1");
-								} else if (key == "Visible") {
-									node->getCard()->setIsVisible(value == "1");
-								}
-							}
+						 if (node) {
+							 auto card = node->getCard();
+							 if (card) {
+								 if (key == "Available") {
+									 card->setIsAvailable(value == "1");
+								 } else if (key == "Visible") {
+									 card->setIsVisible(value == "1");
+								 }
+							 }
+						 }
 						}
 						
 						pos = nextPos + 1;

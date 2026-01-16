@@ -1,7 +1,7 @@
 ﻿module Core.GameState;
 import Core.Board;
 import Core.Player;
-import Core.ConsolePrinter;
+import Core.ConsoleListener;
 import Core.GameStateSerializer;
 
 namespace Core {
@@ -19,11 +19,11 @@ namespace Core {
         m_eventNotifier.addListener(consolePrinter);
     }
     
-    std::shared_ptr<Player> GameState::GetPlayer1() {
+    std::shared_ptr<Player> GameState::GetPlayer1() const {
         return m_player1;
     }
     
-    std::shared_ptr<Player> GameState::GetPlayer2() {
+    std::shared_ptr<Player> GameState::GetPlayer2() const {
         return m_player2;
     }
     
@@ -54,18 +54,6 @@ namespace Core {
         }
     }
     
-    void GameState::setGameMode(int mode, bool trainingMode) {
-        m_gameMode = mode;
-        m_trainingMode = trainingMode;
-        GameStateSerializer::setGameMode(mode, trainingMode);
-    }
-    
-    void GameState::setPlayerPlaystyles(Playstyle p1, Playstyle p2) {
-        m_player1Playstyle = p1;
-        m_player2Playstyle = p2;
-        GameStateSerializer::setPlayerPlaystyles(p1, p2);
-    }
-    
     void GameState::updatePhaseInfo() {
         GameStateSerializer::setCurrentPhase(m_currentPhase, m_currentRound, m_isPlayer1Turn);
     }
@@ -82,38 +70,78 @@ namespace Core {
         }
     }
     
-    int GameState::getGameMode() const {
-        return m_gameMode;
-    }
-    
-    bool GameState::isTrainingMode() const {
-        return m_trainingMode;
-    }
-    
-    Playstyle GameState::getPlayer1Playstyle() const {
-        return m_player1Playstyle;
-    }
-    
-    Playstyle GameState::getPlayer2Playstyle() const {
-        return m_player2Playstyle;
-    }
-    
     int GameState::getCurrentPhase() const {
         return m_currentPhase;
     }
-    
+
+    void GameState::setCurrentPhase(int phase, int round, bool isP1Turn) {
+        m_currentPhase = phase;
+        m_currentRound = round;
+        m_isPlayer1Turn = isP1Turn;
+    }
+
     int GameState::getCurrentRound() const {
         return m_currentRound;
     }
-    
+
+    void GameState::setCurrentRound(int round) {
+        m_currentRound = round;
+    }
+
     bool GameState::isPlayer1Turn() const {
         return m_isPlayer1Turn;
     }
-    
-    const GameState::LastAction& GameState::getLastAction() const {
+
+    void GameState::setIsPlayer1Turn(bool isP1Turn) {
+        m_isPlayer1Turn = isP1Turn;
+    }
+
+    int GameState::getGameMode() const {
+        return m_gameMode;
+    }
+
+    void GameState::setGameMode(int mode, bool training) {
+        m_gameMode = mode;
+        m_trainingMode = training;
+    }
+
+    bool GameState::isTrainingMode() const {
+        return m_trainingMode;
+    }
+
+    void GameState::setTrainingMode(bool training) {
+        m_trainingMode = training;
+    }
+
+    Playstyle GameState::getPlayer1Playstyle() const {
+        return m_player1Playstyle;
+    }
+
+    void GameState::setPlayer1Playstyle(Playstyle style) {
+        m_player1Playstyle = style;
+    }
+
+    Playstyle GameState::getPlayer2Playstyle() const {
+        return m_player2Playstyle;
+    }
+
+    void GameState::setPlayer2Playstyle(Playstyle style) {
+        m_player2Playstyle = style;
+    }
+
+    void GameState::setPlayerPlaystyles(Playstyle p1Style, Playstyle p2Style) {
+        m_player1Playstyle = p1Style;
+        m_player2Playstyle = p2Style;
+    }
+
+    const LastAction& GameState::getLastAction() const {
         return m_lastAction;
     }
-    
+
+    void GameState::setLastAction(const LastAction& action) {
+        m_lastAction = action;
+    }
+
     GameEventNotifier& GameState::getEventNotifier() {
         return m_eventNotifier;
     }

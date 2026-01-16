@@ -372,23 +372,23 @@ namespace Core {
             
             writer.writeInt("index", static_cast<int>(i));
             
-            auto* card = node ? node->getCard() : nullptr;
-            writer.writeString("cardName", card ? card->getName() : "EMPTY");
-            writer.writeBool("isEmpty", !card);
-            writer.writeBool("isAvailable", card && card->isAvailable());
-            writer.writeBool("isVisible", card && card->isVisible());
+            auto card = node ? node->getCard() : nullptr;
+            writer.writeString("cardName", card ? card->getName() : "EMPTY", true);
+            writer.writeBool("isEmpty", !card, true);
+            writer.writeBool("isAvailable", card && card->isAvailable(), true);
+            writer.writeBool("isVisible", card && card->isVisible(), true);
             
             writer.writeKey("parents");
             writer.buffer << "[";
             if (node) {
-                auto p1 = node->getParent1().lock();
-                auto p2 = node->getParent2().lock();
+                auto p1 = node->getParent1();
+                auto p2 = node->getParent2();
                 std::vector<int> parentIndices;
                 
                 for (size_t j = 0; j < nodes->size(); ++j) {
                     if ((*nodes)[j]) {
-                        if ((*nodes)[j].get() == p1.get()) parentIndices.push_back(static_cast<int>(j));
-                        if ((*nodes)[j].get() == p2.get()) parentIndices.push_back(static_cast<int>(j));
+                        if (p1 && (*nodes)[j].get() == p1.get()) parentIndices.push_back(static_cast<int>(j));
+                        if (p2 && (*nodes)[j].get() == p2.get()) parentIndices.push_back(static_cast<int>(j));
                     }
                 }
                 
@@ -417,8 +417,8 @@ namespace Core {
             if (player && player->m_player) {
                 auto* p = player->m_player.get();
                 
-                writer.writeInt("id", p->getkPlayerId());
-                writer.writeString("username", p->getPlayerUsername());
+                writer.writeInt("id", p->getkPlayerId(), true);
+                writer.writeString("username", p->getPlayerUsername(), true);
                 
                 const auto& coins = p->getRemainingCoins();
                 writer.writeKey("remainingCoins");
@@ -427,7 +427,7 @@ namespace Core {
                 writer.buffer << "\"silver\": " << static_cast<int>(std::get<1>(coins)) << ", ";
                 writer.buffer << "\"bronze\": " << static_cast<int>(std::get<2>(coins));
                 writer.buffer << "},\n";
-                writer.writeInt("totalCoins", p->totalCoins(coins));
+                writer.writeInt("totalCoins", p->totalCoins(coins), true);
                 
                 writer.startArray("permanentResources");
                 const auto& permResources = p->getOwnedPermanentResources();
@@ -481,7 +481,7 @@ namespace Core {
                     if (isActive) {
                         if (!firstRule) writer.buffer << ",\n";
                         writer.writeIndent();
-                        writer.buffer << "\"" << Models::TradeRuleTypeToString(ruleType) << "\"";
+                        writer.buffer << "\"" << Models::tradeRuleTypeToString(ruleType) << "\"";
                         firstRule = false;
                     }
                 }
@@ -489,7 +489,7 @@ namespace Core {
                 writer.endArray(true);
                 
                 const auto& tokensOwned = p->getTokensOwned();
-                writer.writeString("tokensOwnedBitset", tokensOwned.to_string());
+                writer.writeString("tokensOwnedBitset", tokensOwned.to_string(), true);
                 
                 writer.startArray("builtCards");
                 const auto& builtCards = p->getOwnedCards();
@@ -515,10 +515,10 @@ namespace Core {
                 const auto& points = p->getPoints();
                 writer.writeKey("points");
                 writer.startObject();
-                writer.writeInt("military", points.m_militaryVictoryPoints);
-                writer.writeInt("building", points.m_buildingVictoryPoints);
-                writer.writeInt("wonder", points.m_wonderVictoryPoints);
-                writer.writeInt("progress", points.m_progressVictoryPoints);
+                writer.writeInt("military", points.m_militaryVictoryPoints, true);
+                writer.writeInt("building", points.m_buildingVictoryPoints, true);
+                writer.writeInt("wonder", points.m_wonderVictoryPoints, true);
+                writer.writeInt("progress", points.m_progressVictoryPoints, true);
                 writer.writeInt("total", points.totalVictoryPoints(), false);
                 writer.endObject(false);
             }
@@ -526,8 +526,11 @@ namespace Core {
             writer.endObject(isLast);
         };
         
-        serializePlayer(gameState.GetPlayer1(), "player1", false);
-        serializePlayer(gameState.GetPlayer2(), "player2", false);
+        auto p1 = gameState.GetPlayer1();
+        auto p2 = gameState.GetPlayer2();
+        
+        serializePlayer(p1, "player1", false);
+        serializePlayer(p2, "player2", false);
     }
     
     void GameStateSerializer::serializeUnusedCards(JsonWriter& writer) {
@@ -537,7 +540,8 @@ namespace Core {
         
         bool hasContent = false;
         
-        for (const auto& card : board.getUnusedAgeOneCards()) {
+        const auto& age1Cards = board.getUnusedAgeOneCards();
+        for (const auto& card : age1Cards) {
             if (card) {
                 if (hasContent) writer.buffer << ",\n";
                 writer.writeIndent();
@@ -546,7 +550,8 @@ namespace Core {
             }
         }
         
-        for (const auto& card : board.getUnusedAgeTwoCards()) {
+        const auto& age2Cards = board.getUnusedAgeTwoCards();
+        for (const auto& card : age2Cards) {
             if (card) {
                 if (hasContent) writer.buffer << ",\n";
                 writer.writeIndent();
@@ -555,7 +560,8 @@ namespace Core {
             }
         }
         
-        for (const auto& card : board.getUnusedAgeThreeCards()) {
+        const auto& age3Cards = board.getUnusedAgeThreeCards();
+        for (const auto& card : age3Cards) {
             if (card) {
                 if (hasContent) writer.buffer << ",\n";
                 writer.writeIndent();
@@ -564,7 +570,8 @@ namespace Core {
             }
         }
         
-        for (const auto& card : board.getUnusedGuildCards()) {
+        const auto& guildCards = board.getUnusedGuildCards();
+        for (const auto& card : guildCards) {
             if (card) {
                 if (hasContent) writer.buffer << ",\n";
                 writer.writeIndent();
@@ -573,12 +580,12 @@ namespace Core {
             }
         }
         
-        const auto& wonders = board.getUnusedWonders();
-        for (size_t i = 0; i < wonders.size(); ++i) {
-            if (wonders[i]) {
+        const auto& wonderCards = board.getUnusedWonders();
+        for (size_t i = 0; i < wonderCards.size(); ++i) {
+            if (wonderCards[i]) {
                 if (hasContent) writer.buffer << ",\n";
                 writer.writeIndent();
-                writer.buffer << "{\"age\": \"WONDER\", \"name\": \"" << writer.escapeString(wonders[i]->getName()) << "\"}";
+                writer.buffer << "{\"age\": \"WONDER\", \"name\": \"" << writer.escapeString(wonderCards[i]->getName()) << "\"}";
                 hasContent = true;
             }
         }

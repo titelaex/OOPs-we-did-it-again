@@ -6,7 +6,7 @@ import Core.Node;
 
 namespace Core {
 
-Node::Node(std::shared_ptr<Models::Card> card)
+Node::Node(std::unique_ptr<Models::Card> card)
     : m_card(std::move(card))
 {
 }
@@ -41,17 +41,27 @@ void Node::setChild2(const std::shared_ptr<Node>& child)
     }
 }
 
-std::shared_ptr<const Models::Card> Node::getCard() const
+Models::Card* Node::getCard()
 {
-    return m_card;
+	return m_card.get();
 }
 
-void Node::setCard(std::shared_ptr<Models::Card> card)
+const Models::Card* Node::getCard() const
+{
+    return m_card.get();
+}
+
+Models::Card* Node::getCardRaw() const
+{
+    return m_card.get();
+}
+
+void Node::setCard(std::unique_ptr<Models::Card> card)
 {
     m_card = std::move(card);
 }
 
-std::shared_ptr<Models::Card> Node::releaseCard()
+std::unique_ptr<Models::Card> Node::releaseCard()
 {
     return std::move(m_card);
 }
@@ -66,24 +76,28 @@ bool Node::isAvailable() const
     return c1Empty && c2Empty;
 }
 
-std::shared_ptr<Node> Node::getParent1() const
-{
-    return m_parent1.lock();
-}
+std::shared_ptr<Node> Node::getParent1() const {
+		return m_parent1.lock();
+	}
 
-std::shared_ptr<Node> Node::getParent2() const
-{
-    return m_parent2.lock();
-}
+std::shared_ptr<Node> Node::getParent2() const {
+		return m_parent2.lock();
+	}
 
-std::shared_ptr<Node> Node::getChild1() const
-{
-    return m_child1;
-}
+void Node::setParent1(const std::shared_ptr<Node>& p) {
+		m_parent1 = p;
+	}
 
-std::shared_ptr<Node> Node::getChild2() const
-{
-    return m_child2;
-}
+void Node::setParent2(const std::shared_ptr<Node>& p) {
+		m_parent2 = p;
+	}
+
+std::shared_ptr<Node> Node::getChild1() const {
+		return m_child1.lock();
+	}
+
+std::shared_ptr<Node> Node::getChild2() const {
+		return m_child2.lock();
+	}
 
 }

@@ -14,10 +14,7 @@ export namespace Core {
     public:
         static void preparation();
         static void PrepareBoardCardPools();
-        static void initGame(bool& continueGame, bool& trainingMode, 
-                            std::shared_ptr<Player>& p1, std::shared_ptr<Player>& p2,
-                            IPlayerDecisionMaker*& p1Decisions, IPlayerDecisionMaker*& p2Decisions,
-                            Playstyle& p1Playstyle, Playstyle& p2Playstyle);
+        static void initGame();
         
         static void playAllPhases(Player& p1, Player& p2,
                                  IPlayerDecisionMaker& p1Decisions,
@@ -32,6 +29,5 @@ export namespace Core {
         static void displayPlayerHands(const Player& p1, const Player& p2);
         static void displayTurnStatus(const Player& p1, const Player& p2);
         static void announceVictory(int winner, const std::string& victoryType, const Player& p1, const Player& p2);
-        
     };
 }
