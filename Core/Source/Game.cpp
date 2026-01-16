@@ -655,7 +655,7 @@ namespace Core {
 				const Node* ch2 = n->getChild2().get();
 				std::cout << "  Parents: (" << idxOf(p1) << ") " << nameOf(p1)
 					<< ", (" << idxOf(p2) << ") " << nameOf(p2) << "\n";
-				std::cout << "  Children: (" << idxOf(ch1) << ") " << nameOf(ch1)
+				std::cout << "  Children: (" << idxOf(ch1) << ")" << nameOf(ch1)
 					<< ", (" << idxOf(ch2) << ") " << nameOf(ch2) << "\n";
 			}
 			std::cout << std::flush;
@@ -845,48 +845,78 @@ namespace Core {
 			}
 		}
 	}
-	void Game::runAgePhase(const std::vector<std::shared_ptr<Node>>& nodes, const std::string& phaseName, Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions, TrainingLogger* logger)
+	void Game::playAllPhases(Player& p1, Player& p2, 
+	                         IPlayerDecisionMaker& p1Decisions, 
+	                         IPlayerDecisionMaker& p2Decisions, 
+	                         TrainingLogger* logger)
 	{
-		if (!p1Decisions) p1Decisions = new HumanDecisionMaker();
-		if (!p2Decisions) p2Decisions = new HumanDecisionMaker();
-
-		int nrOfRounds =1;
+		GameState& gameState = GameState::getInstance();
+		auto& notifier = gameState.getEventNotifier();
 		auto& board = Board::getInstance();
 
+		int currentPhase = 1;
+		int nrOfRounds = 1;
+		
 		std::random_device rd;
 		std::mt19937 gen(rd());
+		bool playerOneTurn = std::uniform_int_distribution<>(0, 1)(gen) == 0;
 
-		bool playerOneTurn = std::uniform_int_distribution<>(0,1)(gen) ==0;
+		while (currentPhase <= 3) {
+			
+			const std::vector<std::shared_ptr<Node>>* nodes = nullptr;
+			std::string phaseName;
+			
+			if (currentPhase == 1) {
+				nodes = &board.getAge1Nodes();
+				phaseName = "PHASE I";
+			} else if (currentPhase == 2) {
+				nodes = &board.getAge2Nodes();
+				phaseName = "PHASE II";
+			} else {
+				nodes = &board.getAge3Nodes();
+				phaseName = "PHASE III";
+			}
 
-		const int kNrOfRounds =20; // Un număr suficient de mare (se va opri când nu mai sunt cărți)
-
-		while (nrOfRounds <= kNrOfRounds) {
+			DisplayRequestEvent phaseEvent;
+			phaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			phaseEvent.context = "=== Starting " + phaseName + " ===";
+			notifier.notifyDisplayRequested(phaseEvent);
 
 			std::vector<size_t> availableIndex;
-			availableIndex.reserve(nodes.size());
+			availableIndex.reserve(nodes->size());
 
-			for (size_t i =0; i < nodes.size(); ++i) {
-				if (!nodes[i]) continue;
-				auto* c = nodes[i]->getCard();
-				if (c && nodes[i]->isAvailable() && c->isAvailable()) {
+			for (size_t i = 0; i < nodes->size(); ++i) {
+				const auto& node = (*nodes)[i];
+				if (!node) continue;
+				auto card = node->getCard();
+				if (card && node->isAvailable() && card->isAvailable()) {
 					availableIndex.push_back(i);
 				}
 			}
 
 			if (availableIndex.empty()) {
-				std::cout << phaseName << " completed (No more cards).\n";
-				break;
+				DisplayRequestEvent completeEvent;
+				completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				completeEvent.context = phaseName + " completed.";
+				notifier.notifyDisplayRequested(completeEvent);
+				currentPhase++;
+				nrOfRounds = 1;
+				continue;
 			}
 
-			std::cout << phaseName << ": " << availableIndex.size() << " cards available\n";
+			DisplayRequestEvent availEvent;
+			availEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			availEvent.context = phaseName + ": " + std::to_string(availableIndex.size()) + " cards available";
+			notifier.notifyDisplayRequested(availEvent);
 
-			for (size_t k =0; k < availableIndex.size(); ++k) {
+			for (size_t k = 0; k < availableIndex.size(); ++k) {
 				size_t index = availableIndex[k];
-				auto* card = nodes[index]->getCard();
+				const auto& node = (*nodes)[index];
+				auto card = node->getCard();
 				std::cout << "\n[" << k << "] ";
 				if (card) {
 					card->displayCardInfo();
-					if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+					if (auto ageCard = std::dynamic_pointer_cast<const Models::AgeCard>(card)) {
 						if (ageCard->getScientificSymbols().has_value()) {
 							std::cout << " Science: " << Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value()) << "\n";
 						}
@@ -894,23 +924,26 @@ namespace Core {
 				}
 			}
 
-			Player* cur = playerOneTurn ? &p1 : &p2;
-			Player* opp = playerOneTurn ? &p2 : &p1;
+			Player& cur = playerOneTurn ? p1 : p2;
+			Player& opp = playerOneTurn ? p2 : p1;
 
-			Core::setCurrentPlayer(cur);
+			Core::setCurrentPlayer(&cur);
 
-			IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
+			IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
 
-			displayPlayerResources(*cur, playerOneTurn ? "Player1" : "Player2");
-			std::cout << (playerOneTurn ? "Player1" : "Player2") << " choose index (0-" << (availableIndex.size() -1) << "): ";
+			displayPlayerResources(cur, playerOneTurn ? "Player1" : "Player2");
+			std::cout << (playerOneTurn ? "Player1" : "Player2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
 
-			size_t choice = curDecisionMaker->selectCard(availableIndex);
-			if (choice >= availableIndex.size()) choice =0;
+			size_t choice = curDecisionMaker.selectCard(availableIndex);
+			if (choice >= availableIndex.size()) choice = 0;
 			size_t chosenNodeIndex = availableIndex[choice];
 
-			std::unique_ptr<Models::Card> cardPtr = nodes[chosenNodeIndex]->releaseCard();
+			std::shared_ptr<Models::Card> cardPtr = (*nodes)[chosenNodeIndex]->releaseCard();
 			if (!cardPtr) {
-				std::cout << "Error: Node releaseCard failed.\n";
+				DisplayRequestEvent errEvent;
+				errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+				errEvent.context = "Node releaseCard failed.";
+				notifier.notifyDisplayRequested(errEvent);
 				continue;
 			}
 
@@ -920,50 +953,62 @@ namespace Core {
 
 			std::optional<Models::ScientificSymbolType> symbolToCheck;
 			bool potentialPair = false;
-			if (auto* ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+			if (auto ageCard = std::dynamic_pointer_cast<Models::AgeCard>(cardPtr)) {
 				symbolToCheck = ageCard->getScientificSymbols();
 				if (symbolToCheck.has_value()) potentialPair = true;
 			}
 
 			std::cout << " You chose " << cardPtr->getName() << " . Action: [0]=build, [1]=sell, [2]=wonder\n";
-			int action = curDecisionMaker->selectCardAction();
+			int action = curDecisionMaker.selectCardAction();
 
-			int attemptCount =0;
-			const int maxAttempts =3;
+			int attemptCount = 0;
+			const int maxAttempts = 3;
 			bool cancelled = false;
 
 			while (attemptCount < maxAttempts && cardPtr) {
-				performCardAction(action, *cur, *opp, cardPtr, board, curDecisionMaker);
+				performCardAction(action, cur, opp, cardPtr, board, &curDecisionMaker);
 
 				if (cardPtr) {
 					attemptCount++;
-					bool isAI = (dynamic_cast<HumanDecisionMaker*>(curDecisionMaker) == nullptr);
+					bool isAI = (dynamic_cast<HumanDecisionMaker*>(&curDecisionMaker) == nullptr);
 
 					if (isAI) {
-						std::cout << "\n[AI] Action " << action << " failed. Retrying...\n";
-						if (attemptCount >=2) {
-							std::cout << "Forcing discard.\n";
+						DisplayRequestEvent retryEvent;
+						retryEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						retryEvent.context = "[AI] Action " + std::to_string(action) + " failed. Retrying...";
+						notifier.notifyDisplayRequested(retryEvent);
+
+						if (attemptCount >= 2) {
+							DisplayRequestEvent discardEvent;
+							discardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							discardEvent.context = "Forcing discard.";
+							notifier.notifyDisplayRequested(discardEvent);
+
 							auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
 							discarded.push_back(std::move(cardPtr));
 							break;
 						}
-						action =1;
+						action = 1;
 					}
 					else {
-						std::cout << "*** ACTION CANCELLED ***\n";
-						nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
+						DisplayRequestEvent cancelEvent;
+						cancelEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						cancelEvent.context = "*** ACTION CANCELLED ***";
+						notifier.notifyDisplayRequested(cancelEvent);
+
+						(*nodes)[chosenNodeIndex]->setCard(std::move(cardPtr));
 						cancelled = true;
 						break;
 					}
 				}
 
-				if (!cardPtr && action ==0 && potentialPair) {
-					int realCount =0;
+				if (!cardPtr && action == 0 && potentialPair) {
+					int realCount = 0;
 					auto targetSymbol = symbolToCheck.value();
-					const auto& inventory = cur->m_player->getOwnedCards();
+					const auto& inventory = cur.m_player->getOwnedCards();
 
 					for (const auto& ownedCardPtr : inventory) {
-						if (auto* ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+						if (auto ageCard = std::dynamic_pointer_cast<Models::AgeCard>(ownedCardPtr)) {
 							auto sym = ageCard->getScientificSymbols();
 							if (sym.has_value() && sym.value() == targetSymbol) {
 								realCount++;
@@ -971,9 +1016,13 @@ namespace Core {
 						}
 					}
 
-					if (realCount ==2) {
-						std::cout << ">>> PAIR FOUND! Choose a token! <<<\n";
-						cur->chooseProgressTokenFromBoard();
+					if (realCount == 2) {
+						DisplayRequestEvent pairEvent;
+						pairEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
+						notifier.notifyDisplayRequested(pairEvent);
+
+						cur.chooseProgressTokenFromBoard();
 					}
 				}
 			}
@@ -982,11 +1031,11 @@ namespace Core {
 				continue;
 			}
 
-			if (nodes[chosenNodeIndex]->getCard() != nullptr) {
+			if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
 				continue;
 			}
 
-			if (auto takenNode = nodes[chosenNodeIndex]) {
+			if (auto takenNode = (*nodes)[chosenNodeIndex]) {
 				auto checkParent = [](const std::shared_ptr<Node>& p) {
 					if (p) {
 						auto c1 = p->getChild1();
@@ -1009,18 +1058,25 @@ namespace Core {
 				mctsAction.cardNodeIndex = chosenNodeIndex;
 				mctsAction.actionType = action;
 				mctsAction.cardName = cardName;
-				TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds,0.5,0.5);
+				TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
 				logger->logTurn(turn);
 			}
 
-			GameState::getInstance().saveGameState("gamestate.csv");
-			std::cout << "[AUTO-SAVE] Saved.\n";
+			gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
+			gameState.saveGameState("");
 
-			if (shields >0) {
+			DisplayRequestEvent saveEvent;
+			saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
+			notifier.notifyDisplayRequested(saveEvent);
+
+			if (shields > 0) {
 				Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
-				awardMilitaryTokenIfPresent(*cur);
+				awardMilitaryTokenIfPresent(cur);
 				int win = checkImmediateMilitaryVictory();
 				if (win != -1) {
+					gameState.setVictory(win, "Military Supremacy", 0, 0);
+					gameState.saveGameState("");
 					announceVictory(win, "Military Supremacy", p1, p2);
 					g_last_active_was_player_one = !playerOneTurn;
 					return;
@@ -1029,6 +1085,8 @@ namespace Core {
 
 			int sv = checkImmediateScientificVictory(p1, p2);
 			if (sv != -1) {
+				gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
+				gameState.saveGameState("");
 				announceVictory(sv, "Scientific Supremacy", p1, p2);
 				g_last_active_was_player_one = !playerOneTurn;
 				return;
@@ -1041,23 +1099,11 @@ namespace Core {
 		}
 
 		g_last_active_was_player_one = !playerOneTurn;
-		std::cout << phaseName << " Completed.\n";
-	}
 
-
-	void Core::Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions, TrainingLogger* logger)
-	{
-		runAgePhase(Board::getInstance().getAge1Nodes(), "PHASE I", p1, p2, p1Decisions, p2Decisions, logger);
-	}
-
-	void Core::Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions, TrainingLogger* logger)
-	{
-		runAgePhase(Board::getInstance().getAge2Nodes(), "PHASE II", p1, p2, p1Decisions, p2Decisions, logger);
-	}
-
-	void Core::Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions, TrainingLogger* logger)
-	{
-		runAgePhase(Board::getInstance().getAge3Nodes(), "PHASE III", p1, p2, p1Decisions, p2Decisions, logger);
+		DisplayRequestEvent allPhaseEvent;
+		allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		allPhaseEvent.context = "=== All Phases Completed ===";
+		notifier.notifyDisplayRequested(allPhaseEvent);
 	}
 
 
@@ -1111,14 +1157,14 @@ namespace Core {
 			for (const auto& card : p2.m_player->getOwnedCards()) {
 				if (card) {
 					std::cout << "  - ";
-					card->displayCardInfo();
-					std::cout << "\n";
+				 card->displayCardInfo();
+				 std::cout << "\n";
 				}
 			}
 			std::cout << "\nWonders (" << p2.m_player->getOwnedWonders().size() << "):\n";
 			for (const auto& wonder : p2.m_player->getOwnedWonders()) {
 				if (wonder) {
-					std::cout << "  - " << wonder->getName()
+				 std::cout << "  - " << wonder->getName()
 						<< (wonder->IsConstructed() ? " [CONSTRUCTED]" : " [NOT BUILT]") << "\n";
 				}
 			}
@@ -1237,132 +1283,223 @@ namespace Core {
 		IPlayerDecisionMaker*& p1Decisions, IPlayerDecisionMaker*& p2Decisions,
 		Playstyle& p1Playstyle, Playstyle& p2Playstyle) {
 
-		std::string saveFile = "gamestate.csv";
 		GameState& gameState = GameState::getInstance();
+		auto& notifier = gameState.getEventNotifier();
 
-		int continueChoice = 0;
-		std::cout << "=== NEW GAME OR CONTINUE? ===\n";
-		std::cout << "[0] New Game\n";
-		std::cout << "[1] Continue Previous Game\n";
-		std::cout << "Choice: ";
-		std::cin >> continueChoice;
-		std::cin.ignore();
-		continueGame = (continueChoice == 1);
+		std::vector<int> existingSaves = GameStateSerializer::getAllSaveNumbers();
 
-		if (continueGame) {
-			std::cout << "\nLoading saved game state...\n";
-			gameState.loadGameState(saveFile);
-			std::cout << "Game state restored from save file.\n";
-			std::cout << "Trees will be reconstructed from saved card data.\n";
-		}
-		else {
-			std::cout << "Choose game mode:\n";
-			std::cout << "[1] Human vs Human\n";
-			std::cout << "[2] Human vs AI\n";
-			std::cout << "[3] AI vs AI (Training Mode)\n";
-			std::cout << "[4] Human with AI Suggestions\n";
-			std::cout << "Choice: ";
-			int mode = 1;
-			std::cin >> mode;
+		if (!existingSaves.empty()) {
+			DisplayRequestEvent savesEvent;
+			savesEvent.displayType = DisplayRequestEvent::Type::AVAILABLE_SAVES;
+			savesEvent.saveNumbers = existingSaves;
+			notifier.notifyDisplayRequested(savesEvent);
+
+			int choice = 0;
+			std::cin >> choice;
 			std::cin.ignore();
 
-			std::string username;
+			if (choice > 0 && std::find(existingSaves.begin(), existingSaves.end(), choice) != existingSaves.end()) {
+				continueGame = true;
+				gameState.loadGameState("");
+				GameStateSerializer::setCurrentSaveNumber(choice);
 
-			if (mode == 2) {
-				std::cout << "\n=== HUMAN VS AI MODE ===\n";
-				std::string username = PlayerNameValidator::getValidatedName("Enter your username: ");
-				gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
-				gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_Opponent");
-
-				std::cout << "\nChoose AI playstyle:\n";
-				std::cout << "[1] Britney (Peaceful/Long-game)\n";
-				std::cout << "[2] Spears (Aggressive/Military)\n";
-				std::cout << "Choice: ";
-				int aiStyle = 1;
-				std::cin >> aiStyle;
-				std::cin.ignore();
-				p2Playstyle = (aiStyle == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-				p1Decisions = new Core::HumanDecisionMaker();
-				p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
-				std::cout << "\n>> You are Player 1\n";
-				std::cout << ">> AI is Player 2 playing as: " << Core::playstyleToString(p2Playstyle) << "\n\n";
+				DisplayRequestEvent loadEvent;
+				loadEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				loadEvent.context = "Game state loaded from save #" + std::to_string(choice);
+				notifier.notifyDisplayRequested(loadEvent);
+				return;
 			}
-			else if (mode == 3) {
-				std::cout << "\n=== AI VS AI TRAINING MODE ===\n";
-				trainingMode = true;
-				std::cout << "Select playstyle for AI Player 1:\n";
-				std::cout << "[1] Britney (Peaceful/Long-game)\n";
-				std::cout << "[2] Spears (Aggressive/Military)\n";
-				std::cout << "Choice: ";
-				int p1Style = 1;
-				std::cin >> p1Style;
-				std::cout << "Select playstyle for AI Player 2:\n";
-				std::cout << "[1] Britney (Peaceful/Long-game)\n";
-				std::cout << "[2] Spears (Aggressive/Military)\n";
-				std::cout << "Choice: ";
-				int p2Style = 1;
-				std::cin >> p2Style;
-				std::cin.ignore();
-				p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-				p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-				gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, "AI_P1");
-				gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_P2");
-				p1Decisions = new Core::MCTSDecisionMaker(p1Playstyle, 1000, 1.414, 20);
-				p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
-				std::cout << "\n>> AI Player 1 is playing as: " << Core::playstyleToString(p1Playstyle) << "\n";
-				std::cout << ">> AI Player 2 is playing as: " << Core::playstyleToString(p2Playstyle) << "\n";
-				std::cout << ">> Training data will be saved after the game.\n\n";
-			}
-			else if (mode == 4) {
-				std::cout << "\n=== HUMAN WITH AI SUGGESTIONS ===\n";
-				std::string username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
-				gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
-
-				username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
-				gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
-
-				std::cout << "\nChoose suggestion style for Player 1:\n";
-				std::cout << "[1] Britney (Peaceful/VP-focused suggestions)\n";
-				std::cout << "[2] Spears (Aggressive/Military suggestions)\n";
-				std::cout << "Choice: ";
-				int p1Style = 1;
-				std::cin >> p1Style;
-				std::cout << "\nChoose suggestion style for Player 2:\n";
-				std::cout << "[1] Britney (Peaceful/VP-focused suggestions)\n";
-				std::cout << "[2] Spears (Aggressive/Military suggestions)\n";
-				std::cout << "Choice: ";
-				int p2Style = 1;
-				std::cin >> p2Style;
-				std::cin.ignore();
-				p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-				p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-				p1Decisions = new Core::HumanAssistedDecisionMaker(p1Playstyle, 500);
-				p2Decisions = new Core::HumanAssistedDecisionMaker(p2Playstyle, 500);
-				std::cout << "\n>> Player 1 gets " << Core::playstyleToString(p1Playstyle) << " suggestions\n";
-				std::cout << ">> Player 2 gets " << Core::playstyleToString(p2Playstyle) << " suggestions\n\n";
-			}
-			else {
-				std::cout << "\n=== HUMAN VS HUMAN MODE ===\n";
-				std::string username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
-				gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
-
-				username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
-				gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
-				p1Decisions = new Core::HumanDecisionMaker();
-				p2Decisions = new Core::HumanDecisionMaker();
-			}
-
-			std::cout << "\nStarting preparation...\n";
-			Game::preparation();
-			std::cout << "\n=== Wonder Selection ===\n";
-			auto p1Ptr = gameState.GetPlayer1();
-			auto p2Ptr = gameState.GetPlayer2();
-			Game::wonderSelection(p1Ptr, p2Ptr, p1Decisions, p2Decisions);
-			std::cout << "Preparation finished.\n";
-			Board::getInstance().displayEntireBoard();
-			std::cout << "\nSaving game state to gamestate.csv...\n";
-			gameState.saveGameState(saveFile);
-			std::cout << "[SAVE] Initial game state saved to " << saveFile << ".\n";
 		}
+
+		DisplayRequestEvent gameModeEvent;
+		gameModeEvent.displayType = DisplayRequestEvent::Type::GAME_MODE_MENU;
+		notifier.notifyDisplayRequested(gameModeEvent);
+
+		int mode = 1;
+		std::cin >> mode;
+		std::cin.ignore();
+
+		std::string username;
+
+		if (mode == 2) {
+			DisplayRequestEvent msgEvent;
+			msgEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			msgEvent.context = "=== HUMAN VS AI MODE ===";
+			notifier.notifyDisplayRequested(msgEvent);
+
+			username = PlayerNameValidator::getValidatedName("Enter your username: ");
+			gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_Opponent");
+
+			DisplayRequestEvent playstyleEvent;
+			playstyleEvent.displayType = DisplayRequestEvent::Type::PLAYSTYLE_MENU;
+			playstyleEvent.context = "AI";
+			notifier.notifyDisplayRequested(playstyleEvent);
+
+			int aiStyle = 1;
+			std::cin >> aiStyle;
+			std::cin.ignore();
+
+			p2Playstyle = (aiStyle == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+			p1Decisions = new Core::HumanDecisionMaker();
+			p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+
+			DisplayRequestEvent infoEvent;
+			infoEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			infoEvent.context = "You are Player 1";
+			notifier.notifyDisplayRequested(infoEvent);
+
+			infoEvent.context = "AI is Player 2 playing as: " + Core::playstyleToString(p2Playstyle);
+			notifier.notifyDisplayRequested(infoEvent);
+
+			gameState.setGameMode(mode, false);
+			gameState.setPlayerPlaystyles(p1Playstyle, p2Playstyle);
+		}
+		else if (mode == 3) {
+			DisplayRequestEvent msgEvent;
+			msgEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			msgEvent.context = "=== AI VS AI TRAINING MODE ===";
+			notifier.notifyDisplayRequested(msgEvent);
+
+			trainingMode = true;
+
+			DisplayRequestEvent p1StyleEvent;
+			p1StyleEvent.displayType = DisplayRequestEvent::Type::PLAYSTYLE_MENU;
+			p1StyleEvent.context = "AI Player 1";
+			notifier.notifyDisplayRequested(p1StyleEvent);
+
+			int p1Style = 1;
+			std::cin >> p1Style;
+			std::cin.ignore();
+
+			DisplayRequestEvent p2StyleEvent;
+			p2StyleEvent.displayType = DisplayRequestEvent::Type::PLAYSTYLE_MENU;
+			p2StyleEvent.context = "AI Player 2";
+			notifier.notifyDisplayRequested(p2StyleEvent);
+
+			int p2Style = 1;
+			std::cin >> p2Style;
+			std::cin.ignore();
+
+			p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+			p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+
+			gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, "AI_P1");
+			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_P2");
+
+			p1Decisions = new Core::MCTSDecisionMaker(p1Playstyle, 1000, 1.414, 20);
+			p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+
+			DisplayRequestEvent infoEvent;
+			infoEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			infoEvent.context = "AI Player 1 is playing as: " + Core::playstyleToString(p1Playstyle);
+			notifier.notifyDisplayRequested(infoEvent);
+
+			infoEvent.context = "AI Player 2 is playing as: " + Core::playstyleToString(p2Playstyle);
+			notifier.notifyDisplayRequested(infoEvent);
+
+			infoEvent.context = "Training data will be saved after the game.";
+			notifier.notifyDisplayRequested(infoEvent);
+
+			gameState.setGameMode(mode, true);
+			gameState.setPlayerPlaystyles(p1Playstyle, p2Playstyle);
+		}
+		else if (mode == 4) {
+			DisplayRequestEvent msgEvent;
+			msgEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			msgEvent.context = "=== HUMAN WITH AI SUGGESTIONS ===";
+			notifier.notifyDisplayRequested(msgEvent);
+
+			username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
+			gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+
+			username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
+			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
+
+			DisplayRequestEvent p1StyleEvent;
+			p1StyleEvent.displayType = DisplayRequestEvent::Type::PLAYSTYLE_MENU;
+			p1StyleEvent.context = "Player 1";
+			notifier.notifyDisplayRequested(p1StyleEvent);
+
+			int p1Style = 1;
+			std::cin >> p1Style;
+			std::cin.ignore();
+
+			DisplayRequestEvent p2StyleEvent;
+			p2StyleEvent.displayType = DisplayRequestEvent::Type::PLAYSTYLE_MENU;
+			p2StyleEvent.context = "Player 2";
+			notifier.notifyDisplayRequested(p2StyleEvent);
+
+			int p2Style = 1;
+			std::cin >> p2Style;
+			std::cin.ignore();
+
+			p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+			p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
+
+			p1Decisions = new Core::HumanAssistedDecisionMaker(p1Playstyle, 500);
+			p2Decisions = new Core::HumanAssistedDecisionMaker(p2Playstyle, 500);
+
+			DisplayRequestEvent infoEvent;
+			infoEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			infoEvent.context = "Player 1 gets " + Core::playstyleToString(p1Playstyle) + " suggestions";
+			notifier.notifyDisplayRequested(infoEvent);
+
+			infoEvent.context = "Player 2 gets " + Core::playstyleToString(p2Playstyle) + " suggestions";
+			notifier.notifyDisplayRequested(infoEvent);
+
+			gameState.setGameMode(mode, false);
+			gameState.setPlayerPlaystyles(p1Playstyle, p2Playstyle);
+		}
+		else {
+			DisplayRequestEvent msgEvent;
+			msgEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			msgEvent.context = "=== HUMAN VS HUMAN MODE ===";
+			notifier.notifyDisplayRequested(msgEvent);
+
+			username = PlayerNameValidator::getValidatedName("Enter Player 1 username: ");
+			gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, username);
+
+			username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
+			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
+
+			p1Decisions = new Core::HumanDecisionMaker();
+			p2Decisions = new Core::HumanDecisionMaker();
+
+			gameState.setGameMode(mode, false);
+			gameState.setPlayerPlaystyles(p1Playstyle, p2Playstyle);
+		}
+
+		DisplayRequestEvent prepEvent;
+		prepEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		prepEvent.context = "Starting preparation...";
+		notifier.notifyDisplayRequested(prepEvent);
+
+		Game::preparation();
+
+		DisplayRequestEvent wonderEvent;
+		wonderEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		wonderEvent.context = "=== Wonder Selection ===";
+		notifier.notifyDisplayRequested(wonderEvent);
+
+		auto p1Ptr = gameState.GetPlayer1();
+		auto p2Ptr = gameState.GetPlayer2();
+		Game::wonderSelection(p1Ptr, p2Ptr, p1Decisions, p2Decisions);
+
+		DisplayRequestEvent finishEvent;
+		finishEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		finishEvent.context = "Preparation finished.";
+		notifier.notifyDisplayRequested(finishEvent);
+
+		Board::getInstance().displayEntireBoard();
+
+		gameState.saveGameState("");
+
+		GameStateSerializer::setCurrentSaveNumber(GameStateSerializer::getHighestSaveNumber());
+		
+		DisplayRequestEvent saveEvent;
+		saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		saveEvent.context = "[SAVE] Initial game state saved.";
+		notifier.notifyDisplayRequested(saveEvent);
 	}
 }

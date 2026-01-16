@@ -49,6 +49,9 @@ export namespace Core {
         static void recordLastAction(const std::string& playerName, const std::string& actionType,
                                      const std::string& cardName, const std::vector<std::string>& effects);
         
+        static void saveVictoryToJson(const GameState& state, std::string& json);
+        static void loadVictoryFromJson(GameState& state, const std::string& json);
+        
     private:
         static int s_currentSaveNumber;
         static GameStateMetadata s_gameMetadata;

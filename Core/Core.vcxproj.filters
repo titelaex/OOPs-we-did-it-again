@@ -13,7 +13,7 @@
     <ClCompile Include="Header/CardCsvParser.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header\ConsolePrinter.ixx">
+    <ClCompile Include="Header\ConsoleListener.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Header/Game.ixx">
@@ -58,7 +58,7 @@
     <ClCompile Include="Source/CardCsvParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ConsolePrinter.cpp">
+    <ClCompile Include="Source\ConsoleListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source/Game.cpp">

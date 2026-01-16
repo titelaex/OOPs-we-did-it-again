@@ -109,6 +109,7 @@ export namespace Core {
             ACTION_MENU,
             CARD_SELECTION_PROMPT,
             AVAILABLE_CARDS,
+            AVAILABLE_SAVES,
             WONDER_LIST,
             WONDER_SELECTION_PROMPT,
             PROGRESS_TOKENS,
@@ -130,6 +131,7 @@ export namespace Core {
         std::deque<std::reference_wrapper<Models::Card>> cards;
         std::vector<std::reference_wrapper<Models::Wonder>> wonders;
         std::vector<std::reference_wrapper<const Models::Token>> tokens;
+        std::vector<int> saveNumbers;
         
         std::optional<std::reference_wrapper<const Player>> player1;
         std::optional<std::reference_wrapper<const Player>> player2;
@@ -167,6 +169,18 @@ export namespace Core {
         virtual void onPlayerStateChanged(int playerID) = 0;
         
         virtual void onDisplayRequested(const DisplayRequestEvent& event) = 0;
+        
+        virtual void displayGameModeMenu() = 0;
+        virtual void displayPlaystyleMenu(const std::string& playerName) = 0;
+        virtual void displayAvailableSaves(const std::vector<int>& saveNumbers) = 0;
+        virtual void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) = 0;
+        virtual void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders) = 0;
+        virtual void displayPlayerHands(const Player& p1, const Player& p2) = 0;
+        virtual void displayTurnStatus(const Player& p1, const Player& p2) = 0;
+        virtual void displayBoard() = 0;
+        virtual void displayMessage(const std::string& message) = 0;
+        virtual void displayError(const std::string& error) = 0;
+        virtual void displayWarning(const std::string& warning) = 0;
     };
     
     class GameEventNotifier {

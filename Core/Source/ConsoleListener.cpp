@@ -1,6 +1,10 @@
-﻿module Core.ConsolePrinter;
+﻿module Core.ConsoleListener;
 import <iostream>;
 import <iomanip>;
+import <limits>;
+import <sstream>;
+import <string>;
+import <vector>;
 import Core.Player;
 import Core.Board;
 import Models.Player;
@@ -139,6 +143,10 @@ namespace Core {
                 
             case Type::AVAILABLE_CARDS:
                 displayAvailableCards(event.cards);
+                break;
+                
+            case Type::AVAILABLE_SAVES:
+                displayAvailableSaves(event.saveNumbers);
                 break;
                 
             case Type::WONDER_LIST:
@@ -389,4 +397,90 @@ namespace Core {
     void ConsolePrinter::displayPhaseHeader(int phase) {
         std::cout << "\n========== PHASE " << phase << " ==========\n\n";
     }
+    
+    void ConsolePrinter::displayAvailableSaves(const std::vector<int>& saveNumbers) {
+        std::cout << "\n=== AVAILABLE SAVES ===\n";
+        for (int saveNum : saveNumbers) {
+            std::cout << "[" << saveNum << "] Save #" << saveNum << "\n";
+        }
+        std::cout << "[0] Start New Game\n";
+        std::cout << "Choose save number or 0 for new game: ";
+    }
+}
+
+namespace Core {
+
+ConsoleReader::ConsoleReader() = default;
+
+void ConsoleReader::clearInputBuffer()
+{
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+bool ConsoleReader::isValidInput(const std::string& input, int min, int max)
+{
+    try {
+        int value = std::stoi(input);
+        return value >= min && value <= max;
+    } catch (...) {
+        return false;
+    }
+}
+
+int ConsoleReader::getIntInput(int min, int max)
+{
+    std::string input;
+    while (true) {
+        std::getline(std::cin, input);
+        
+        if (isValidInput(input, min, max)) {
+            return std::stoi(input);
+        }
+    }
+}
+
+std::string ConsoleReader::getStringInput()
+{
+    std::string input;
+    std::getline(std::cin, input);
+    if (!input.empty() && input.back() == '\r') {
+        input.pop_back();
+    }
+    return input;
+}
+
+size_t ConsoleReader::selectCardIndex(size_t maxIndex)
+{
+    int choice = getIntInput(0, static_cast<int>(maxIndex));
+    return static_cast<size_t>(choice);
+}
+
+int ConsoleReader::selectAction()
+{
+    return getIntInput(0, 2);
+}
+
+int ConsoleReader::selectGameMode()
+{
+    return getIntInput(1, 4);
+}
+
+int ConsoleReader::selectPlaystyle()
+{
+    return getIntInput(1, 2);
+}
+
+size_t ConsoleReader::selectWonder(size_t maxIndex)
+{
+    int choice = getIntInput(0, static_cast<int>(maxIndex));
+    return static_cast<size_t>(choice);
+}
+
+int ConsoleReader::selectSave(const std::vector<int>& saveNumbers)
+{
+    int maxSave = saveNumbers.empty() ? 0 : saveNumbers.back();
+    return getIntInput(0, maxSave);
+}
+
 }

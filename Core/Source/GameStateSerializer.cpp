@@ -15,10 +15,12 @@ import Models.TradeRuleType;
 import <iostream>;
 import <algorithm>;
 import <bitset>;
+import <filesystem>;
 
 namespace Core {
     
     int GameStateSerializer::s_currentSaveNumber = 0;
+    GameStateMetadata GameStateSerializer::s_gameMetadata;
     
     void GameStateSerializer::JsonWriter::writeIndent() {
         for (int i = 0; i < indent; ++i) {
@@ -150,6 +152,38 @@ namespace Core {
         s_currentSaveNumber = number;
     }
     
+    const GameStateMetadata& GameStateSerializer::getMetadata() {
+        return s_gameMetadata;
+    }
+    
+    void GameStateSerializer::setMetadata(const GameStateMetadata& metadata) {
+        s_gameMetadata = metadata;
+    }
+    
+    void GameStateSerializer::setGameMode(int mode, bool training) {
+        s_gameMetadata.gameMode = mode;
+        s_gameMetadata.trainingMode = training;
+    }
+    
+    void GameStateSerializer::setPlayerPlaystyles(Playstyle p1, Playstyle p2) {
+        s_gameMetadata.player1Playstyle = p1;
+        s_gameMetadata.player2Playstyle = p2;
+    }
+    
+    void GameStateSerializer::setCurrentPhase(int phase, int round, bool isP1Turn) {
+        s_gameMetadata.currentPhase = phase;
+        s_gameMetadata.currentRound = round;
+        s_gameMetadata.isPlayer1Turn = isP1Turn;
+    }
+    
+    void GameStateSerializer::recordLastAction(const std::string& playerName, const std::string& actionType,
+                                               const std::string& cardName, const std::vector<std::string>& effects) {
+        s_gameMetadata.lastAction.playerName = playerName;
+        s_gameMetadata.lastAction.actionType = actionType;
+        s_gameMetadata.lastAction.cardName = cardName;
+        s_gameMetadata.lastAction.effectsApplied = effects;
+    }
+    
     bool GameStateSerializer::deleteSave(int saveNumber) {
         try {
             std::string filename = getSaveFilename(saveNumber);
@@ -165,7 +199,6 @@ namespace Core {
     }
     
     bool GameStateSerializer::saveGame(bool isNewGame) {
-        const auto& gameState = GameState::getInstance();
         int saveNumber;
         
         if (isNewGame) {
@@ -207,7 +240,7 @@ namespace Core {
         file.close();
         
         std::cout << "[JSON] Game saved to " << filename << " (Save #" << saveNumber << ")\n";
-        std::cout << "       Phase: " << gameState.getCurrentPhase() << ", Round: " << gameState.getCurrentRound() << "\n";
+        std::cout << "       Phase: " << GameState::getInstance().getCurrentPhase() << ", Round: " << GameState::getInstance().getCurrentRound() << "\n";
         return true;
     }
     
@@ -237,21 +270,19 @@ namespace Core {
     }
     
     void GameStateSerializer::serializeGameMetadata(JsonWriter& writer) {
-        const auto& gameState = GameState::getInstance();
-        
         writer.writeKey("gameMetadata");
         writer.startObject();
         
-        writer.writeInt("gameMode", gameState.getGameMode());
-        writer.writeBool("trainingMode", gameState.isTrainingMode());
-        writer.writeString("player1Playstyle", playstyleToString(gameState.getPlayer1Playstyle()));
-        writer.writeString("player2Playstyle", playstyleToString(gameState.getPlayer2Playstyle()));
+        writer.writeInt("gameMode", s_gameMetadata.gameMode);
+        writer.writeBool("trainingMode", s_gameMetadata.trainingMode);
+        writer.writeString("player1Playstyle", playstyleToString(s_gameMetadata.player1Playstyle));
+        writer.writeString("player2Playstyle", playstyleToString(s_gameMetadata.player2Playstyle));
         
-        writer.writeInt("currentPhase", gameState.getCurrentPhase());
-        writer.writeInt("currentRound", gameState.getCurrentRound());
-        writer.writeBool("isPlayer1Turn", gameState.isPlayer1Turn());
+        writer.writeInt("currentPhase", s_gameMetadata.currentPhase);
+        writer.writeInt("currentRound", s_gameMetadata.currentRound);
+        writer.writeBool("isPlayer1Turn", s_gameMetadata.isPlayer1Turn);
         
-        const auto& lastAction = gameState.getLastAction();
+        const auto& lastAction = s_gameMetadata.lastAction;
         writer.writeKey("lastAction");
         writer.startObject();
         writer.writeString("playerName", lastAction.playerName);
@@ -567,5 +598,53 @@ namespace Core {
             }
         }
         writer.endArray(false);
+    }
+    
+    void GameStateSerializer::saveVictoryToJson(const GameState& state, std::string& json)
+    {
+        if (state.hasEnded()) {
+            std::string victorySection = R"(
+    "victory": {
+        "gameEnded": true,
+        "winnerId": )" + std::to_string(state.getWinnerId()) + R"(,
+        "victoryType": ")" + state.getVictoryType() + R"(",
+        "winnerScore": )" + std::to_string(state.getWinnerScore()) + R"(,
+        "loserScore": )" + std::to_string(state.getLoserScore()) + R"(
+    })";
+            size_t closePos = json.rfind('}');
+            if (closePos != std::string::npos) {
+                json.insert(closePos, ",\n" + victorySection);
+            }
+        }
+    }
+
+    void GameStateSerializer::loadVictoryFromJson(GameState& state, const std::string& json)
+    {
+        size_t victoryPos = json.find("\"victory\"");
+        if (victoryPos != std::string::npos) {
+            size_t gameEndedPos = json.find("\"gameEnded\"", victoryPos);
+            size_t truePos = json.find("true", gameEndedPos);
+            
+            if (truePos != std::string::npos) {
+                size_t winnerIdPos = json.find("\"winnerId\"", victoryPos);
+                size_t winnerIdValue = json.find(":", winnerIdPos) + 1;
+                int winnerId = std::stoi(json.substr(winnerIdValue));
+                
+                size_t victoryTypePos = json.find("\"victoryType\"", victoryPos);
+                size_t typeStart = json.find("\"", victoryTypePos + 14) + 1;
+                size_t typeEnd = json.find("\"", typeStart);
+                std::string victoryType = json.substr(typeStart, typeEnd - typeStart);
+                
+                size_t winnerScorePos = json.find("\"winnerScore\"", victoryPos);
+                size_t scoreValue = json.find(":", winnerScorePos) + 1;
+                int winnerScore = std::stoi(json.substr(scoreValue));
+                
+                size_t loserScorePos = json.find("\"loserScore\"", victoryPos);
+                size_t loserValue = json.find(":", loserScorePos) + 1;
+                int loserScore = std::stoi(json.substr(loserValue));
+                
+                state.setVictory(winnerId, victoryType, winnerScore, loserScore);
+            }
+        }
     }
 }

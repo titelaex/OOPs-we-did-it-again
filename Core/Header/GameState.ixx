@@ -59,6 +59,14 @@ export namespace Core {
         void toggleTurn();
         void advanceToNextPhase();
         
+        void setVictory(int winnerId, const std::string& victoryType, int winnerScore, int loserScore);
+        bool hasEnded() const;
+        int getWinnerId() const;
+        std::string getVictoryType() const;
+        int getWinnerScore() const;
+        int getLoserScore() const;
+        void resetVictory();
+        
         GameEventNotifier& getEventNotifier() { return m_eventNotifier; }
         
     private:
@@ -77,6 +85,12 @@ export namespace Core {
         bool m_trainingMode = false;
         Playstyle m_player1Playstyle = Playstyle::BRITNEY;
         Playstyle m_player2Playstyle = Playstyle::BRITNEY;
+        
+        bool m_gameEnded = false;
+        int m_winnerId = -1;
+        std::string m_victoryType;
+        int m_winnerScore = 0;
+        int m_loserScore = 0;
         
         LastAction m_lastAction;
         GameEventNotifier m_eventNotifier;

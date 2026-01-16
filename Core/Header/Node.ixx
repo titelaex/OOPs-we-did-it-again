@@ -5,14 +5,14 @@ import <utility>;
 export namespace Core {
 	class Node : public std::enable_shared_from_this<Node> {
 	private:
-		std::unique_ptr<Models::Card> m_card;
+		std::shared_ptr<Models::Card> m_card;
 		std::weak_ptr<Node> m_child1;
 		std::weak_ptr<Node> m_child2;
 		std::weak_ptr<Node> m_parent1;
 		std::weak_ptr<Node> m_parent2;
 		void attachParent(const std::shared_ptr<Node>& parent);
 	public:
-		Node(std::unique_ptr<Models::Card> card);
+		Node(std::shared_ptr<Models::Card> card);
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
 		Node(Node&&) noexcept = default;
@@ -26,10 +26,9 @@ export namespace Core {
 		std::shared_ptr<Node> getChild2() const { return m_child2.lock(); }
 		void setChild1(const std::shared_ptr<Node>& child);
 		void setChild2(const std::shared_ptr<Node>& child);
-		Models::Card* getCard() const { return m_card.get(); }
-		void setCard(std::unique_ptr<Models::Card> card) { m_card = std::move(card); }
-		virtual void display() const { }
-		std::unique_ptr<Models::Card> releaseCard();
+		std::shared_ptr<const Models::Card> getCard() const;
+		void setCard(std::shared_ptr<Models::Card> card);
+		std::shared_ptr<Models::Card> releaseCard();
 		bool isAvailable() const;
 	};
-} 
+} } 

@@ -134,7 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Header\AIConfig.ixx" />
-    <ClCompile Include="Header\ConsolePrinter.ixx" />
+    <ClCompile Include="Header\ConsoleListener.ixx" />
     <ClCompile Include="Header\GameMetadata.ixx" />
     <ClCompile Include="Header\GameState.ixx" />
     <ClCompile Include="Header\IGameListener.ixx" />
@@ -157,7 +157,7 @@
     <ClCompile Include="Header/Node.ixx" />
     <ClCompile Include="Source/Player.cpp" />
     <ClCompile Include="Header/Player.ixx" />
-    <ClCompile Include="Source\ConsolePrinter.cpp" />
+    <ClCompile Include="Source\ConsoleListener.cpp" />
     <ClCompile Include="Source\GameMetadata.cpp" />
     <ClCompile Include="Source\IGameListener.cpp" />
     <ClCompile Include="Source\GameStateSerializer.cpp" />
