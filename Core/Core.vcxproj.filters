@@ -1,40 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Source/CardCsvParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header/Game.ixx">
+    <ClCompile Include="Header/AgeTree.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header/Node.ixx">
+    <ClCompile Include="Header\AIConfig.ixx">
       <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/Board.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header/Board.ixx">
       <Filter>Header Files</Filter>
@@ -42,95 +13,129 @@
     <ClCompile Include="Header/CardCsvParser.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Header\ConsoleListener.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
     <ClCompile Include="Header/Game.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header/AgeTree.ixx">
+    <ClCompile Include="Header\GameMetadata.ixx">
       <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/AgeTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header/Player.ixx">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source/GameState.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\GameState.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\PlayerDecisionMaker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
+    <ClCompile Include="Header\GameStateSerializer.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\MCTS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\TrainingLogger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\AIConfig.ixx">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\TrainingLogger.ixx">
+    <ClCompile Include="Header\IGameListener.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\MCTS.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WeightOptimizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\WeightOptimizer.ixx">
+    <ClCompile Include="Header/Node.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Header/Player.ixx">
+      <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\GameMetadata.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\PlayerNameValidator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Header\GameMetadata.ixx">
+    <ClCompile Include="Header\PlayerDecisionMaker.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\PlayerNameValidator.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Header\TrainingLogger.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\WeightOptimizer.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/Board.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/CardCsvParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ConsoleListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GameMetadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/GameState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GameStateSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Source\IGameListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header\IGameListener.ixx">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MCTS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/Node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayerDecisionMaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayerNameValidator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TrainingLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WeightOptimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source/AgeTree.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Config/Wonders.csv">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Config/Tokens.csv">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Config/Guilds.csv">
-      <Filter>Resource Files</Filter>
-    </None>
+    <None Include="batch_training.ps1" />
     <None Include="Config/AgeCards.csv">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="gamestate.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="batch_training.ps1" />
+    <None Include="Config/Guilds.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Config/Tokens.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Config/Wonders.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c271f2e0-48c3-4560-9737-eb2e8c9f3875}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{839fce38-4458-4392-b584-3de95e91645e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{db68be6a-d62a-40d5-8935-8b08054dda63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="phaseI_fix.txt" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ import <functional>;
 import <string>;
 import <vector>;
 import <utility>;
+import <memory>;
 import Models.Card;
 import Models.ScientificSymbolType;
 import Models.ResourceType;
@@ -65,7 +66,7 @@ namespace Models
 
 	export class __declspec(dllexport) AgeCardBuilder : public CardBuilder
 	{
-		AgeCard m_card;
+		std::unique_ptr<AgeCard> m_card{std::make_unique<AgeCard>()};
 	public:
 		AgeCardBuilder& setName(const std::string& name);
 		AgeCardBuilder& setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost);

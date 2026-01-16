@@ -18,18 +18,19 @@ export namespace Core {
 		Node(Node&&) noexcept = default;
 		Node& operator=(Node&&) noexcept = default;
 		virtual ~Node() = default;
-		std::shared_ptr<Node> getParent1() const { return m_parent1.lock(); }
-		std::shared_ptr<Node> getParent2() const { return m_parent2.lock(); }
-		void setParent1(const std::shared_ptr<Node>& p) { m_parent1 = p; }
-		void setParent2(const std::shared_ptr<Node>& p) { m_parent2 = p; }
-		std::shared_ptr<Node> getChild1() const { return m_child1.lock(); }
-		std::shared_ptr<Node> getChild2() const { return m_child2.lock(); }
+		std::shared_ptr<Node> getParent1() const;
+		std::shared_ptr<Node> getParent2() const;
+		void setParent1(const std::shared_ptr<Node>& p);
+		void setParent2(const std::shared_ptr<Node>& p);
+		std::shared_ptr<Node> getChild1() const;
+		std::shared_ptr<Node> getChild2() const;
 		void setChild1(const std::shared_ptr<Node>& child);
 		void setChild2(const std::shared_ptr<Node>& child);
-		Models::Card* getCard() const { return m_card.get(); }
-		void setCard(std::unique_ptr<Models::Card> card) { m_card = std::move(card); }
-		virtual void display() const { }
+		Models::Card* getCard();
+		const Models::Card* getCard() const;
+		Models::Card* getCardRaw() const;
+		void setCard(std::unique_ptr<Models::Card> card);
 		std::unique_ptr<Models::Card> releaseCard();
 		bool isAvailable() const;
 	};
-} 
+}

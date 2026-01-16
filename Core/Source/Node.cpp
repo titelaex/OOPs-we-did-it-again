@@ -3,11 +3,14 @@ import Models.Card;
 import <utility>;
 import <memory>;
 import Core.Node;
+
 namespace Core {
+
 Node::Node(std::unique_ptr<Models::Card> card)
     : m_card(std::move(card))
 {
 }
+
 void Node::attachParent(const std::shared_ptr<Node>& parent)
 {
     if (!parent) return;
@@ -21,6 +24,7 @@ void Node::attachParent(const std::shared_ptr<Node>& parent)
         m_parent2 = parent;
     }
 }
+
 void Node::setChild1(const std::shared_ptr<Node>& child)
 {
     m_child1 = child;
@@ -28,6 +32,7 @@ void Node::setChild1(const std::shared_ptr<Node>& child)
         child->attachParent(shared_from_this());
     }
 }
+
 void Node::setChild2(const std::shared_ptr<Node>& child)
 {
     m_child2 = child;
@@ -35,10 +40,32 @@ void Node::setChild2(const std::shared_ptr<Node>& child)
         child->attachParent(shared_from_this());
     }
 }
+
+Models::Card* Node::getCard()
+{
+	return m_card.get();
+}
+
+const Models::Card* Node::getCard() const
+{
+    return m_card.get();
+}
+
+Models::Card* Node::getCardRaw() const
+{
+    return m_card.get();
+}
+
+void Node::setCard(std::unique_ptr<Models::Card> card)
+{
+    m_card = std::move(card);
+}
+
 std::unique_ptr<Models::Card> Node::releaseCard()
 {
     return std::move(m_card);
 }
+
 bool Node::isAvailable() const
 {
     if (!m_card) return false;
@@ -48,4 +75,29 @@ bool Node::isAvailable() const
     bool c2Empty = (!c2) || (c2->getCard() == nullptr);
     return c1Empty && c2Empty;
 }
+
+std::shared_ptr<Node> Node::getParent1() const {
+		return m_parent1.lock();
+	}
+
+std::shared_ptr<Node> Node::getParent2() const {
+		return m_parent2.lock();
+	}
+
+void Node::setParent1(const std::shared_ptr<Node>& p) {
+		m_parent1 = p;
+	}
+
+void Node::setParent2(const std::shared_ptr<Node>& p) {
+		m_parent2 = p;
+	}
+
+std::shared_ptr<Node> Node::getChild1() const {
+		return m_child1.lock();
+	}
+
+std::shared_ptr<Node> Node::getChild2() const {
+		return m_child2.lock();
+	}
+
 }
