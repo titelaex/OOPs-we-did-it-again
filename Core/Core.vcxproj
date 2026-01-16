@@ -137,11 +137,8 @@
     <ClCompile Include="Header\ConsolePrinter.ixx" />
     <ClCompile Include="Header\GameMetadata.ixx" />
     <ClCompile Include="Header\GameState.ixx" />
-<<<<<<< HEAD
     <ClCompile Include="Header\IGameListener.ixx" />
-=======
     <ClCompile Include="Header\GameStateSerializer.ixx" />
->>>>>>> AmUitatSaSchimbBranchul
     <ClCompile Include="Header\MCTS.ixx" />
     <ClCompile Include="Header\PlayerDecisionMaker.ixx" />
     <ClCompile Include="Header\PlayerNameValidator.ixx" />
