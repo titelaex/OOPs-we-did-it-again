@@ -144,6 +144,19 @@
     <ClCompile Include="..\Core\Source\IGameListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Core\Header\IGameListener.ixx" />
+    <ClCompile Include="..\Core\Header\ConsoleListener.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Header\GameStateSerializer.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Source\GameStateSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Source\ConsoleListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\AgeTreeWidget.h">

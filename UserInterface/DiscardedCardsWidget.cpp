@@ -27,6 +27,7 @@ public:
             });
     }
 
+    // --- Game event no-ops ---
     void onCardBuilt(const Core::CardEvent&) override {}
     void onWonderBuilt(const Core::WonderEvent&) override {}
     void onTreeNodeChanged(const Core::TreeNodeEvent&) override {}
@@ -45,6 +46,20 @@ public:
     void onGameEnded() override {}
     void onPointsChanged(const Core::PointsEvent&) override {}
     void onPlayerStateChanged(int) override {}
+
+    void onDisplayRequested(const Core::DisplayRequestEvent&) override {}
+
+    void displayGameModeMenu() override {}
+    void displayPlaystyleMenu(const std::string&) override {}
+    void displayAvailableSaves(const std::vector<int>&) override {}
+    void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>&) override {}
+    void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>&) override {}
+    void displayPlayerHands(const Core::Player&, const Core::Player&) override {}
+    void displayTurnStatus(const Core::Player&, const Core::Player&) override {}
+    void displayBoard() override {}
+    void displayMessage(const std::string&) override {}
+    void displayError(const std::string&) override {}
+    void displayWarning(const std::string&) override {}
 
 private:
     DiscardedCardsWidget* m_widget;

@@ -109,14 +109,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Core\Header\AIConfig.ixx" />
+    <ClCompile Include="..\Core\Header\ConsoleListener.ixx" />
     <ClCompile Include="..\Core\Header\GameMetadata.ixx" />
+    <ClCompile Include="..\Core\Header\GameStateSerializer.ixx" />
     <ClCompile Include="..\Core\Header\IGameListener.ixx" />
     <ClCompile Include="..\Core\Header\MCTS.ixx" />
     <ClCompile Include="..\Core\Header\PlayerDecisionMaker.ixx" />
     <ClCompile Include="..\Core\Header\PlayerNameValidator.ixx" />
     <ClCompile Include="..\Core\Header\TrainingLogger.ixx" />
     <ClCompile Include="..\Core\Header\WeightOptimizer.ixx" />
+    <ClCompile Include="..\Core\Source\ConsoleListener.cpp" />
     <ClCompile Include="..\Core\Source\GameMetadata.cpp" />
+    <ClCompile Include="..\Core\Source\GameStateSerializer.cpp" />
     <ClCompile Include="..\Core\Source\IGameListener.cpp" />
     <ClCompile Include="..\Core\Source\MCTS.cpp" />
     <ClCompile Include="..\Core\Source\PlayerDecisionMaker.cpp" />
@@ -175,4 +179,3 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
