@@ -156,14 +156,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header\AgeTreeWidget.h" />
-    <ClInclude Include="Header\BoardWidget.h" />
-    <ClInclude Include="Header\CardSpineDelegate.h" />
-    <ClInclude Include="Header\PlayerPanelWidget.h" />
-    <ClInclude Include="Header\Preparation.h" />
-    <ClInclude Include="Header\UserInterface.h" />
-    <ClInclude Include="Header\WonderSelectionController.h" />
-    <ClInclude Include="Header\WonderSelectionWidget.h" />
+    <QtMoc Include="Header\AgeTreeWidget.h" />
+    <QtMoc Include="Header\BoardWidget.h" />
+    <QtMoc Include="Header\CardSpineDelegate.h" />
+    <QtMoc Include="Header\PlayerPanelWidget.h" />
+    <QtMoc Include="Header\Preparation.h" />
+    <QtMoc Include="Header\UserInterface.h" />
+    <QtMoc Include="Header\WonderSelectionController.h" />
+    <QtMoc Include="Header\WonderSelectionWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
@@ -172,3 +172,4 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
+

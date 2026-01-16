@@ -1,6 +1,6 @@
-#include "WonderSelectionController.h"
-#include "PlayerPanelWidget.h"
-#include "WonderSelectionWidget.h"
+#include "Header/WonderSelectionController.h"
+#include "Header/PlayerPanelWidget.h"
+#include "Header/WonderSelectionWidget.h"
 
 import Core.Board;
 import Core.Player;

@@ -1,5 +1,5 @@
-﻿#include "PlayerPanelWidget.h"
-#include "CardSpineDelegate.h"
+﻿#include "Header/PlayerPanelWidget.h"
+#include "Header/CardSpineDelegate.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
