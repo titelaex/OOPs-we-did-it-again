@@ -1,10 +1,10 @@
-﻿#include "BoardWidget.h"
-#include "UserInterface.h"
-#include "PlayerPanelWidget.h"
-#include "WonderSelectionWidget.h"
-#include "WonderSelectionController.h"
-#include "Preparation.h"
-#include "AgeTreeWidget.h"
+﻿#include "Header/BoardWidget.h"
+#include "Header/UserInterface.h"
+#include "Header/PlayerPanelWidget.h"
+#include "Header/WonderSelectionWidget.h"
+#include "Header/WonderSelectionController.h"
+#include "Header/Preparation.h"
+#include "Header/AgeTreeWidget.h"
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QVBoxLayout>
