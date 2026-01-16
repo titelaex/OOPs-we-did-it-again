@@ -1,98 +1,143 @@
 export module Core.IGameListener;
+import Core.Player;
+import Core.AIConfig;
+import Models.Card;
+import Models.Wonder;
+import Models.Token;
 import <string>;
 import <vector>;
+import <deque>;
+import <functional>;
 import <memory>;
-import Core.AIConfig;
+import <optional>;
 
 export namespace Core {
     
     struct CardEvent {
-        int playerID;
+        int playerID = 0;
         std::string playerName;
         std::string cardName;
-        int nodeIndex;
+        int nodeIndex = -1;
         std::string cardColor;
         std::vector<std::string> effectsApplied;
     };
     
-    struct ResourceEvent {
-        int playerID;
-        std::string playerName;
-        std::string resourceType;
-        int amount;
-        int newTotal;
-    };
-    
-    struct CoinEvent {
-        int playerID;
-        std::string playerName;
-        int amount;
-        int newTotal;
-    };
-    
-    struct TokenEvent {
-        int playerID;
-        std::string playerName;
-        std::string tokenName;
-        std::string tokenDescription;
-    };
-    
     struct WonderEvent {
-        int playerID;
+        int playerID = 0;
         std::string playerName;
         std::string wonderName;
-        int stageIndex;
+        int stageIndex = 0;
         std::string cardUsed;
     };
     
     struct TreeNodeEvent {
-        int nodeIndex;
+        int nodeIndex = -1;
         std::string cardName;
-        bool isAvailable;
-        bool isVisible;
-        bool isEmpty;
-        int ageIndex;
+        bool isAvailable = false;
+        bool isVisible = false;
+        bool isEmpty = false;
+        int ageIndex = 0;
+    };
+    
+    struct ResourceEvent {
+        int playerID = 0;
+        std::string playerName;
+        std::string resourceType;
+        int amount = 0;
+        int newTotal = 0;
+    };
+    
+    struct CoinEvent {
+        int playerID = 0;
+        std::string playerName;
+        int previousTotal = 0;
+        int newTotal = 0;
+        int change = 0;
+    };
+    
+    struct TokenEvent {
+        int playerID = 0;
+        std::string playerName;
+        std::string tokenName;
+        std::string tokenType;
+        std::string tokenDescription;
     };
     
     struct PawnEvent {
-        int previousPosition;
-        int newPosition;
-        int steps;
+        int previousPosition = 0;
+        int newPosition = 0;
+        int steps = 0;
         std::string reason;
     };
     
     struct TurnEvent {
-        int playerID;
+        int playerID = 0;
         std::string playerName;
-        int round;
-        int phase;
+        int round = 0;
+        int phase = 0;
     };
     
     struct PhaseEvent {
-        int previousPhase;
-        int newPhase;
+        int previousPhase = 0;
+        int newPhase = 0;
         std::string phaseName;
     };
     
     struct VictoryEvent {
-        int winnerPlayerID;
+        int winnerPlayerID = 0;
         std::string winnerName;
         std::string victoryType;
-        int winnerScore;
-        int loserScore;
+        int winnerScore = 0;
+        int loserScore = 0;
     };
     
     struct PointsEvent {
-        int playerID;
+        int playerID = 0;
         std::string playerName;
-        int militaryPoints;
-        int buildingPoints;
-        int wonderPoints;
-        int progressPoints;
-        int totalPoints;
+        int totalPoints = 0;
+        int militaryPoints = 0;
+        int buildingPoints = 0;
+        int wonderPoints = 0;
+        int progressPoints = 0;
     };
     
-    export class IGameListener {
+    struct DisplayRequestEvent {
+        enum class Type {
+            GAME_MODE_MENU,
+            PLAYSTYLE_MENU,
+            CONTINUE_PROMPT,
+            ACTION_MENU,
+            CARD_SELECTION_PROMPT,
+            AVAILABLE_CARDS,
+            AVAILABLE_SAVES,
+            WONDER_LIST,
+            WONDER_SELECTION_PROMPT,
+            PROGRESS_TOKENS,
+            TOKEN_SELECTION_PROMPT,
+            PLAYER_HANDS,
+            TURN_STATUS,
+            BOARD,
+            MESSAGE,
+            ERROR,
+            WARNING,
+            SEPARATOR,
+            PHASE_HEADER
+        };
+        
+        Type displayType;
+        std::string context;
+        int value = 0;
+        
+        std::deque<std::reference_wrapper<Models::Card>> cards;
+        std::vector<std::reference_wrapper<Models::Wonder>> wonders;
+        std::vector<std::reference_wrapper<const Models::Token>> tokens;
+        std::vector<int> saveNumbers;
+        
+        std::optional<std::reference_wrapper<const Player>> player1;
+        std::optional<std::reference_wrapper<const Player>> player2;
+    };
+    
+    class IGameListener {
     public:
         virtual ~IGameListener() = default;
         
@@ -122,9 +167,23 @@ export namespace Core {
         
         virtual void onPointsChanged(const PointsEvent& event) = 0;
         virtual void onPlayerStateChanged(int playerID) = 0;
+        
+        virtual void onDisplayRequested(const DisplayRequestEvent& event) = 0;
+        
+        virtual void displayGameModeMenu() = 0;
+        virtual void displayPlaystyleMenu(const std::string& playerName) = 0;
+        virtual void displayAvailableSaves(const std::vector<int>& saveNumbers) = 0;
+        virtual void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) = 0;
+        virtual void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders) = 0;
+        virtual void displayPlayerHands(const Player& p1, const Player& p2) = 0;
+        virtual void displayTurnStatus(const Player& p1, const Player& p2) = 0;
+        virtual void displayBoard() = 0;
+        virtual void displayMessage(const std::string& message) = 0;
+        virtual void displayError(const std::string& error) = 0;
+        virtual void displayWarning(const std::string& warning) = 0;
     };
     
-    export class GameEventNotifier {
+    class GameEventNotifier {
     public:
         void addListener(std::shared_ptr<IGameListener> listener);
         void removeListener(std::shared_ptr<IGameListener> listener);
@@ -156,8 +215,9 @@ export namespace Core {
         void notifyPointsChanged(const PointsEvent& event);
         void notifyPlayerStateChanged(int playerID);
         
+        void notifyDisplayRequested(const DisplayRequestEvent& event);
+        
     private:
-        std::vector<std::weak_ptr<IGameListener>> m_listeners;
-        void cleanupExpiredListeners();
+        std::vector<std::shared_ptr<IGameListener>> listeners;
     };
 }

@@ -1,4 +1,4 @@
-#include "BoardWidget.h"
+#include "Header/BoardWidget.h"
 #include <QtWidgets/QGraphicsPixmapItem>
 #include <QtWidgets/QGraphicsEllipseItem>
 #include <QtWidgets/QGraphicsTextItem>

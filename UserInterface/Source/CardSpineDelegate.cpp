@@ -1,4 +1,4 @@
-#include "CardSpineDelegate.h"
+#include "Header/CardSpineDelegate.h"
 
 #include <QPainter>
 #include <QPainterPath>

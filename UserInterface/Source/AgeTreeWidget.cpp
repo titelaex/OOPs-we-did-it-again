@@ -1,6 +1,6 @@
-#include "AgeTreeWidget.h"
+#include "Header/AgeTreeWidget.h"
 #include <QtCore/QDebug>
-#include "PlayerPanelWidget.h"
+#include "Header/PlayerPanelWidget.h"
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsRectItem>
