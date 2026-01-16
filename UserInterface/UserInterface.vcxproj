@@ -109,25 +109,29 @@
   <ItemGroup>
     <ClCompile Include="..\Core\Header\AIConfig.ixx" />
     <ClCompile Include="..\Core\Header\GameMetadata.ixx" />
+    <ClCompile Include="..\Core\Header\IGameListener.ixx" />
     <ClCompile Include="..\Core\Header\MCTS.ixx" />
     <ClCompile Include="..\Core\Header\PlayerDecisionMaker.ixx" />
     <ClCompile Include="..\Core\Header\PlayerNameValidator.ixx" />
     <ClCompile Include="..\Core\Header\TrainingLogger.ixx" />
     <ClCompile Include="..\Core\Header\WeightOptimizer.ixx" />
     <ClCompile Include="..\Core\Source\GameMetadata.cpp" />
+    <ClCompile Include="..\Core\Source\IGameListener.cpp" />
     <ClCompile Include="..\Core\Source\MCTS.cpp" />
     <ClCompile Include="..\Core\Source\PlayerDecisionMaker.cpp" />
     <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp" />
     <ClCompile Include="..\Core\Source\TrainingLogger.cpp" />
     <ClCompile Include="..\Core\Source\WeightOptimizer.cpp" />
-    <ClCompile Include="AgeTreeWidget.cpp" />
-    <ClCompile Include="BoardWidget.cpp" />
-    <ClCompile Include="CardSpineDelegate.cpp" />
-    <ClCompile Include="WonderSelectionController.cpp" />
-    <ClCompile Include="WonderSelectionWidget.cpp" />
+    <ClCompile Include="Source\AgeTreeWidget.cpp" />
+    <ClCompile Include="Source\BoardWidget.cpp" />
+    <ClCompile Include="Source\CardSpineDelegate.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\PlayerPanelWidget.cpp" />
+    <ClCompile Include="Source\UserInterface.cpp" />
+    <ClCompile Include="Source\WonderSelectionController.cpp" />
+    <ClCompile Include="Source\WonderSelectionWidget.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
-    <QtMoc Include="UserInterface.h" />
     <ClCompile Include="..\Core\Header\AgeTree.ixx" />
     <ClCompile Include="..\Core\Header\Board.ixx" />
     <ClCompile Include="..\Core\Header\CardCsvParser.ixx" />
@@ -142,9 +146,6 @@
     <ClCompile Include="..\Core\Source\GameState.cpp" />
     <ClCompile Include="..\Core\Source\Node.cpp" />
     <ClCompile Include="..\Core\Source\Player.cpp" />
-    <ClCompile Include="PlayerPanelWidget.cpp" />
-    <ClCompile Include="UserInterface.cpp" />
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
@@ -155,21 +156,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="PlayerPanelWidget.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="Preparation.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="WonderSelectionWidget.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="BoardWidget.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AgeTreeWidget.h" />
-    <ClInclude Include="CardSpineDelegate.h" />
-    <QtMoc Include="WonderSelectionController.h" />
+    <ClInclude Include="Header\AgeTreeWidget.h" />
+    <ClInclude Include="Header\BoardWidget.h" />
+    <ClInclude Include="Header\CardSpineDelegate.h" />
+    <ClInclude Include="Header\PlayerPanelWidget.h" />
+    <ClInclude Include="Header\Preparation.h" />
+    <ClInclude Include="Header\UserInterface.h" />
+    <ClInclude Include="Header\WonderSelectionController.h" />
+    <ClInclude Include="Header\WonderSelectionWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -29,17 +29,8 @@
     <QtUic Include="UserInterface.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="UserInterface.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="UserInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\Header\AgeTree.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -82,12 +73,6 @@
     <ClCompile Include="..\Core\Source\Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerPanelWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WonderSelectionWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\Header\PlayerDecisionMaker.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -127,41 +112,60 @@
     <ClCompile Include="..\Core\Source\PlayerNameValidator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BoardWidget.cpp">
+    <ClCompile Include="..\Core\Header\IGameListener.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Source\IGameListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AgeTreeWidget.cpp">
+    <ClCompile Include="Source\AgeTreeWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CardSpineDelegate.cpp">
+    <ClCompile Include="Source\BoardWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WonderSelectionController.cpp">
+    <ClCompile Include="Source\CardSpineDelegate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayerPanelWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WonderSelectionController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WonderSelectionWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="PlayerPanelWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="Preparation.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="WonderSelectionWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="BoardWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="WonderSelectionController.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AgeTreeWidget.h">
+    <ClInclude Include="Header\AgeTreeWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CardSpineDelegate.h">
+    <ClInclude Include="Header\BoardWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\CardSpineDelegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\PlayerPanelWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Preparation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\UserInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\WonderSelectionController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\WonderSelectionWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
