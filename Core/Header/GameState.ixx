@@ -70,7 +70,7 @@ export namespace Core {
         void resetVictory();
         
         void saveGameState(const std::string& filename);
-        void loadGameState(const std::string& filename);
+        void loadGameState(const std::string& filename, int saveNumber = -1);
         void updatePhaseInfo();
         
         GameEventNotifier& getEventNotifier();

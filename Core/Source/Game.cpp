@@ -268,7 +268,8 @@ namespace Core {
 					discarded.push_back(std::move(cardPtr));
 					break;
 				}
-				if (!decisionMaker) {
+				bool isHuman = (decisionMaker && dynamic_cast<HumanDecisionMaker*>(decisionMaker) != nullptr);
+				if (isHuman) {
 					auto& notifier = GameState::getInstance().getEventNotifier();
 					DisplayRequestEvent headerEvent;
 					headerEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
@@ -460,7 +461,7 @@ namespace Core {
 			auto& board = Core::Board::getInstance();
 			board.setPawnPos(9);
 			std::bitset<19> pawnTrack;
-			pawnTrack.set();
+			pawnTrack.set(8);
 			board.setPawnTrack(pawnTrack);
 			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
@@ -713,13 +714,13 @@ namespace Core {
 			auto& poolG = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedGuildCards());
 			size_t take3 = std::min<size_t>(17, pool3.size());
 			size_t takeG = std::min<size_t>(3, poolG.size());
-			size_t i = 0;
-			while (i < pool3.size() && selected.size() < take3) {
-				if (!pool3[i]) { ++i; continue; }
-				if (dynamic_cast<Models::AgeCard*>(pool3[i].get())) {
+		 size_t i = 0;
+		 while (i < pool3.size() && selected.size() < take3) {
+			 if (!pool3[i]) { ++i; continue; }
+			 if (dynamic_cast<Models::AgeCard*>(pool3[i].get())) {
 				 selected.push_back(std::move(pool3[i]));
 				 pool3.erase(pool3.begin() + i);
-				}
+			 }
 			 else {
 				 ++i;
 			 }
@@ -815,7 +816,6 @@ namespace Core {
 			notifier.notifyDisplayRequested(event);
 			};
 
-		// Load 4 wonders for Round 1
 		for (size_t sel = 0; sel < 4 && !wondersPool.empty(); ++sel) {
 			size_t idx = 0;
 			bool found = false;
@@ -839,10 +839,10 @@ namespace Core {
 		auto draftWonders = [&](bool startWithP1) {
 			std::vector<bool> playerOrder;
 			if (startWithP1) {
-				playerOrder = { true, false, false, true };  // P1, P2, P2, P1
+				playerOrder = { true, false, false, true }; 
 			}
 			else {
-				playerOrder = { false, true, true, false };  // P2, P1, P1, P2
+				playerOrder = { false, true, true, false }; 
 			}
 
 			for (size_t i = 0; i < playerOrder.size(); ++i) {
@@ -1173,7 +1173,7 @@ namespace Core {
 					 pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
 					 notifier.notifyDisplayRequested(pairEvent);
 
-					 cur.chooseProgressTokenFromBoard();
+					 cur.chooseProgressTokenFromBoard(&curDecisionMaker);
 				 }
 				}
 			}
@@ -1520,7 +1520,6 @@ void Game::announceVictory(int winner, const std::string& victoryType, const Pla
 
 }
 
-// Helper function to check if saved game exists
 bool hasSavedGame(const std::string& filename) {
 	return std::filesystem::exists(filename);
 }
@@ -1547,7 +1546,7 @@ void Game::initGame() {
 
 		int choice = reader.selectSave(existingSaves);
 		if (choice > 0 && std::find(existingSaves.begin(), existingSaves.end(), choice) != existingSaves.end()) {
-			gameState.loadGameState("");
+			gameState.loadGameState("", choice);
 			GameStateSerializer::setCurrentSaveNumber(choice);
 
 			DisplayRequestEvent loadEvent;

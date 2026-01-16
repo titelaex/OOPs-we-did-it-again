@@ -20,6 +20,8 @@ import Models.AgeCard;
 import Models.GuildCard;
 import Core.CardCsvParser;
 import Core.IGameListener;
+import Core.PlayerDecisionMaker;
+
 namespace Core {
 	namespace {
 		thread_local Player* g_current_player = nullptr;
@@ -167,7 +169,6 @@ void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<
 		ageCard->getName(),                             
 		-1,                                             
 		Models::ColorTypeToString(ageCard->getColor()), 
-		{}                                              
 		});
 
 	discardedCards.push_back(std::move(ageCard));
@@ -884,44 +885,68 @@ void Core::Player::drawToken()
 {
 	Core::drawTokenForCurrentPlayer();
 }
-void Core::Player::chooseProgressTokenFromBoard()
+void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker)
 {
 	auto& board = Core::Board::getInstance();
 	auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
+	auto& notifier = GameState::getInstance().getEventNotifier();
 
 	if (availableTokens.empty()) {
-		std::cout << "Nu mai sunt token-uri de progres disponibile pe tabela!\n";
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "No progress tokens available on the board!";
+		notifier.notifyDisplayRequested(event);
 		return;
 	}
 
-	std::cout << "\nFELICITARI! Ai format o pereche de simboluri stiintifice!\n";
-	std::cout << "Alege un token de progres de pe tabela:\n";
+	DisplayRequestEvent pairEvent;
+	pairEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+	pairEvent.context = "\nCONGRATULATIONS! You formed a pair of scientific symbols!";
+	notifier.notifyDisplayRequested(pairEvent);
+	
+	pairEvent.context = "Choose a progress token from the board:";
+	notifier.notifyDisplayRequested(pairEvent);
 
+	// Build list of available token indices
+	std::vector<size_t> tokenIndices;
 	for (size_t i = 0; i < availableTokens.size(); ++i) {
 		if (availableTokens[i]) {
-			std::cout << "[" << i << "] " << availableTokens[i]->getName() << "\n";
+			tokenIndices.push_back(i);
+			DisplayRequestEvent tokenEvent;
+			tokenEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			tokenEvent.context = "[" + std::to_string(i) + "] " + availableTokens[i]->getName();
+			notifier.notifyDisplayRequested(tokenEvent);
 		}
 	}
 
 	size_t choice = 0;
-	bool valid = false;
-	while (!valid) {
-		std::cout << "Alegerea ta (0-" << availableTokens.size() - 1 << "): ";
-		if (std::cin >> choice && choice < availableTokens.size()) {
-			valid = true;
-		}
-		else {
-			std::cin.clear();
-			std::string dummy;
-			std::getline(std::cin, dummy);
-			std::cout << "Input invalid.\n";
+	if (decisionMaker) {
+		// Use decision maker (works for both human and AI)
+		choice = decisionMaker->selectProgressToken(tokenIndices);
+	} else {
+		// Fallback to console input if no decision maker
+		bool valid = false;
+		while (!valid) {
+			std::cout << "Your choice (0-" << availableTokens.size() - 1 << "): ";
+			if (std::cin >> choice && choice < availableTokens.size()) {
+				valid = true;
+			}
+			else {
+				std::cin.clear();
+				std::string dummy;
+				std::getline(std::cin, dummy);
+				std::cout << "Invalid input.\n";
+			}
 		}
 	}
 
 	auto chosenToken = std::move(availableTokens[choice]);
 	availableTokens.erase(availableTokens.begin() + choice);
 	if (chosenToken) {
-		std::cout << "Ai ales token-ul: " << chosenToken->getName() << "\n\n";
+		DisplayRequestEvent choiceEvent;
+		choiceEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		choiceEvent.context = "You chose the token: " + std::string(chosenToken->getName()) + "\n";
+		notifier.notifyDisplayRequested(choiceEvent);
 		m_player->addToken(std::move(chosenToken));
 	}
 }
