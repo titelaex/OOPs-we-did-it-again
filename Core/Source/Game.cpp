@@ -877,6 +877,7 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
         } 
         Player* cur = playerOneTurn ? &p1 : &p2;
         Player* opp = playerOneTurn ? &p2 : &p1;
+        Core::setCurrentPlayer(cur);
         IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
@@ -893,7 +894,17 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
         displayCardDetails(cardPtr.get());
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         uint8_t shields = getShieldPointsFromCard(cardPtr.get());
-        std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+        std::cout << " You chose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+        //pentru tokeni
+        std::optional<Models::ScientificSymbolType> symbolToCheck;
+        bool potentialPair = false;
+        if (auto* ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+            symbolToCheck = ageCard->getScientificSymbols();
+            if (symbolToCheck.has_value()) {
+                potentialPair = true;
+            }
+        }
+
         int action = curDecisionMaker->selectCardAction();
         Models::Card* rawCardPtr = cardPtr.get();
         int attemptCount = 0;
@@ -921,6 +932,33 @@ void Game::phaseI(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IPl
                     std::cout << "\n*** ACTION CANCELLED - Please choose another action ***\n\n";
                     nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
                     continue; 
+                }
+            }
+            if (!cardPtr && action == 0 && potentialPair) {
+                int realCount = 0;
+                auto targetSymbol = symbolToCheck.value();
+
+                // 1. Parcurgem manual toate cartile jucatorului pentru a fi 100% siguri
+                const auto& inventory = cur->m_player->getOwnedCards();
+
+                for (const auto& ownedCardPtr : inventory) {
+                    // Verificam daca e AgeCard (doar ele au simboluri stiintifice)
+                    if (auto* ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+                        auto sym = ageCard->getScientificSymbols();
+                        if (sym.has_value() && sym.value() == targetSymbol) {
+                            realCount++;
+                        }
+                    }
+                }
+
+                // 2. Afisam Debugging clar
+                std::cout << "\n[VERIFICARE TOKEN] Simbolul construit: " << (int)targetSymbol << "\n";
+                std::cout << "[VERIFICARE TOKEN] Carti gasite in inventar cu acest simbol: " << realCount << "\n";
+
+                // 3. Conditia de victorie (Pereche = 2 simboluri identice)
+                if (realCount == 2) {
+                    std::cout << ">>> PERECHE CONFIRMATA! Alege un token! <<<\n";
+                    cur->chooseProgressTokenFromBoard();
                 }
             }
         }
@@ -1052,6 +1090,7 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
         }
         Player* cur = playerOneTurn ? &p1 : &p2;
         Player* opp = playerOneTurn ? &p2 : &p1;
+        Core::setCurrentPlayer(cur);
         IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
@@ -1068,7 +1107,17 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
         displayCardDetails(cardPtr.get());
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         uint8_t shields = getShieldPointsFromCard(cardPtr.get());
-        std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+        std::cout << " You chose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+
+        std::optional<Models::ScientificSymbolType> symbolToCheck;
+        bool potentialPair = false;
+        if (auto* ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+            symbolToCheck = ageCard->getScientificSymbols();
+            if (symbolToCheck.has_value()) {
+                potentialPair = true;
+            }
+        }
+
         int action = curDecisionMaker->selectCardAction();
         int attemptCount = 0;
         const int maxAttempts = 3;
@@ -1095,6 +1144,34 @@ void Game::phaseII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, IP
                     std::cout << "\n*** ACTION CANCELLED - Please choose another action ***\n\n";
                     nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
                     continue; 
+                }
+                if (!cardPtr && potentialPair && action == 0)
+                {
+                    int realCount = 0;
+                    auto targetSymbol = symbolToCheck.value();
+
+                    // 1. Parcurgem manual toate cartile jucatorului pentru a fi 100% siguri
+                    const auto& inventory = cur->m_player->getOwnedCards();
+
+                    for (const auto& ownedCardPtr : inventory) {
+                        // Verificam daca e AgeCard (doar ele au simboluri stiintifice)
+                        if (auto* ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+                            auto sym = ageCard->getScientificSymbols();
+                            if (sym.has_value() && sym.value() == targetSymbol) {
+                                realCount++;
+                            }
+                        }
+                    }
+
+                    // 2. Afisam Debugging clar
+                    std::cout << "\n[VERIFICARE TOKEN] Simbolul construit: " << (int)targetSymbol << "\n";
+                    std::cout << "[VERIFICARE TOKEN] Carti gasite in inventar cu acest simbol: " << realCount << "\n";
+
+                    // 3. Conditia de victorie (Pereche = 2 simboluri identice)
+                    if (realCount == 2) {
+                        std::cout << ">>> PERECHE CONFIRMATA! Alege un token! <<<\n";
+                        cur->chooseProgressTokenFromBoard();
+                    }
                 }
             }
         }
@@ -1226,6 +1303,7 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
         }
         Player* cur = playerOneTurn ? &p1 : &p2;
         Player* opp = playerOneTurn ? &p2 : &p1;
+        Core::setCurrentPlayer(cur);
         IPlayerDecisionMaker* curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         std::cout << (playerOneTurn ? "Player 1" : "Player 2") << " choose index (0-" << (availableIndex.size() - 1) << "): ";
@@ -1242,7 +1320,17 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
         displayCardDetails(cardPtr.get());
         displayPlayerResources(*cur, playerOneTurn ? "Player 1" : "Player 2");
         uint8_t shields = getShieldPointsFromCard(cardPtr.get());
-        std::cout << " You choose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+        std::cout << " You chose " << cardPtr->getName() << " . Choose the action: '[0]=build, [1]=sell, [2]=use as wonder\n";
+
+        std::optional<Models::ScientificSymbolType> symbolToCheck;
+        bool potentialPair = false;
+        if (auto* ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+            symbolToCheck = ageCard->getScientificSymbols();
+            if (symbolToCheck.has_value()) {
+                potentialPair = true;
+            }
+        }
+
         int action = curDecisionMaker->selectCardAction();
         int attemptCount = 0;
         const int maxAttempts = 3;
@@ -1269,6 +1357,34 @@ void Game::phaseIII(Player& p1, Player& p2, IPlayerDecisionMaker* p1Decisions, I
                     std::cout << "\n*** ACTION CANCELLED - Please choose another action ***\n\n";
                     nodes[chosenNodeIndex]->setCard(std::move(cardPtr));
                     continue; 
+                }
+                if (!cardPtr && potentialPair && action==0)
+                {
+                    int realCount = 0;
+                    auto targetSymbol = symbolToCheck.value();
+
+                    // 1. Parcurgem manual toate cartile jucatorului pentru a fi 100% siguri
+                    const auto& inventory = cur->m_player->getOwnedCards();
+
+                    for (const auto& ownedCardPtr : inventory) {
+                        // Verificam daca e AgeCard (doar ele au simboluri stiintifice)
+                        if (auto* ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+                            auto sym = ageCard->getScientificSymbols();
+                            if (sym.has_value() && sym.value() == targetSymbol) {
+                                realCount++;
+                            }
+                        }
+                    }
+
+                    // 2. Afisam Debugging clar
+                    std::cout << "\n[VERIFICARE TOKEN] Simbolul construit: " << (int)targetSymbol << "\n";
+                    std::cout << "[VERIFICARE TOKEN] Carti gasite in inventar cu acest simbol: " << realCount << "\n";
+
+                    // 3. Conditia de victorie (Pereche = 2 simboluri identice)
+                    if (realCount == 2) {
+                        std::cout << ">>> PERECHE CONFIRMATA! Alege un token! <<<\n";
+                        cur->chooseProgressTokenFromBoard();
+                    }
                 }
             }
         }

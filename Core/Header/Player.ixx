@@ -24,6 +24,7 @@ export namespace Core
 		void setHasAnotherTurn(bool has);
 		void discardCard(Models::ColorType color);
 		void drawToken();
+		void chooseProgressTokenFromBoard();
 		void takeNewCard();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);

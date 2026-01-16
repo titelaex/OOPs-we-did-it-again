@@ -849,6 +849,47 @@ void Core::Player::drawToken()
 {
 	Core::drawTokenForCurrentPlayer();
 }
+void Core::Player::chooseProgressTokenFromBoard()
+{
+	auto& board = Core::Board::getInstance();
+	auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
+
+	if (availableTokens.empty()) {
+		std::cout << "Nu mai sunt token-uri de progres disponibile pe tabla!\n";
+		return;
+	}
+
+	std::cout << "\nFELICITARI! Ai format o pereche de simboluri stiintifice!\n";
+	std::cout << "Alege un token de progres de pe tabla:\n";
+
+	for (size_t i = 0; i < availableTokens.size(); ++i) {
+		if (availableTokens[i]) {
+			std::cout << "[" << i << "] " << availableTokens[i]->getName() << "\n";
+		}
+	}
+
+	size_t choice = 0;
+	bool valid = false;
+	while (!valid) {
+		std::cout << "Alegerea ta (0-" << availableTokens.size() - 1 << "): ";
+		if (std::cin >> choice && choice < availableTokens.size()) {
+			valid = true;
+		}
+		else {
+			std::cin.clear();
+			std::string dummy;
+			std::getline(std::cin, dummy);
+			std::cout << "Input invalid.\n";
+		}
+	}
+
+	auto chosenToken = std::move(availableTokens[choice]);
+	availableTokens.erase(availableTokens.begin() + choice);
+	if (chosenToken) {
+		std::cout << "Ai ales token-ul: " << chosenToken->getName() << "\n\n";
+		m_player->addToken(std::move(chosenToken));
+	}
+}
 void Core::Player::takeNewCard()
 {
 	Core::Player* cp = getCurrentPlayer();
