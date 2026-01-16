@@ -162,11 +162,8 @@
     <ClCompile Include="Header/Player.ixx" />
     <ClCompile Include="Source\ConsolePrinter.cpp" />
     <ClCompile Include="Source\GameMetadata.cpp" />
-<<<<<<< HEAD
     <ClCompile Include="Source\IGameListener.cpp" />
-=======
     <ClCompile Include="Source\GameStateSerializer.cpp" />
->>>>>>> AmUitatSaSchimbBranchul
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\MCTS.cpp" />
     <ClCompile Include="Source\PlayerDecisionMaker.cpp" />

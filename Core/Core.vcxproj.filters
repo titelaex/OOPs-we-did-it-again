@@ -102,7 +102,6 @@
     <ClCompile Include="Header\PlayerNameValidator.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="Source\IGameListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -113,12 +112,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\ConsolePrinter.ixx">
-=======
     <ClCompile Include="Source\GameStateSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Header\GameStateSerializer.ixx">
->>>>>>> AmUitatSaSchimbBranchul
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
