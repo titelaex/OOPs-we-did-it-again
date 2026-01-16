@@ -108,6 +108,12 @@
     <ClCompile Include="Header\IGameListener.ixx">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ConsolePrinter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\ConsolePrinter.ixx">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Config/Wonders.csv">
@@ -131,6 +137,5 @@
     <Text Include="Logs/Preparation.log">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="phaseI_fix.txt" />
   </ItemGroup>
 </Project>
