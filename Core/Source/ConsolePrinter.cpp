@@ -1,5 +1,12 @@
-module Core.ConsolePrinter;
+﻿module Core.ConsolePrinter;
 import <iostream>;
+import <iomanip>;
+import Core.Player;
+import Core.Board;
+import Models.Player;
+import Models.Card;
+import Models.Wonder;
+import Models.Token;
 
 namespace Core {
     
@@ -104,5 +111,282 @@ namespace Core {
     
     void ConsolePrinter::onPlayerStateChanged(int playerID) {
         std::cout << "[STATE] Player " << playerID << " updated\n";
+    }
+    
+    void ConsolePrinter::onDisplayRequested(const DisplayRequestEvent& event) {
+        using Type = DisplayRequestEvent::Type;
+        
+        switch (event.displayType) {
+            case Type::GAME_MODE_MENU:
+                displayGameModeMenu();
+                break;
+                
+            case Type::PLAYSTYLE_MENU:
+                displayPlaystyleMenu(event.context);
+                break;
+                
+            case Type::CONTINUE_PROMPT:
+                displayContinueGamePrompt();
+                break;
+                
+            case Type::ACTION_MENU:
+                displayActionMenu();
+                break;
+                
+            case Type::CARD_SELECTION_PROMPT:
+                displayCardSelectionPrompt();
+                break;
+                
+            case Type::AVAILABLE_CARDS:
+                displayAvailableCards(event.cards);
+                break;
+                
+            case Type::WONDER_LIST:
+                displayWonderList(event.wonders);
+                break;
+                
+            case Type::WONDER_SELECTION_PROMPT:
+                displayWonderSelectionPrompt(event.context);
+                break;
+                
+            case Type::PROGRESS_TOKENS:
+                displayProgressTokens(event.tokens);
+                break;
+                
+            case Type::TOKEN_SELECTION_PROMPT:
+                displayTokenSelectionPrompt();
+                break;
+                
+            case Type::PLAYER_HANDS:
+                if (event.player1 && event.player2) {
+                    displayPlayerHands(event.player1->get(), event.player2->get());
+                }
+                break;
+                
+            case Type::TURN_STATUS:
+                if (event.player1 && event.player2) {
+                    displayTurnStatus(event.player1->get(), event.player2->get());
+                }
+                break;
+                
+            case Type::BOARD:
+                displayBoard();
+                break;
+                
+            case Type::MESSAGE:
+                displayMessage(event.context);
+                break;
+                
+            case Type::ERROR:
+                displayError(event.context);
+                break;
+                
+            case Type::WARNING:
+                displayWarning(event.context);
+                break;
+                
+            case Type::SEPARATOR:
+                displaySeparator();
+                break;
+                
+            case Type::PHASE_HEADER:
+                displayPhaseHeader(event.value);
+                break;
+        }
+    }
+    
+    void ConsolePrinter::displayGameModeMenu() {
+        std::cout << "\n=== CHOOSE GAME MODE ===\n";
+        std::cout << "[1] Human vs Human\n";
+        std::cout << "[2] Human vs AI\n";
+        std::cout << "[3] AI vs AI (Training Mode)\n";
+        std::cout << "[4] Human with AI Suggestions\n";
+        std::cout << "Choice: ";
+    }
+    
+    void ConsolePrinter::displayPlaystyleMenu(const std::string& playerName) {
+        std::cout << "\n=== CHOOSE PLAYSTYLE FOR " << playerName << " ===\n";
+        std::cout << "[1] Britney (Peaceful/Long-game)\n";
+        std::cout << "[2] Spears (Aggressive/Military)\n";
+        std::cout << "Choice: ";
+    }
+    
+    void ConsolePrinter::displayContinueGamePrompt() {
+        std::cout << "\n=== NEW GAME OR CONTINUE? ===\n";
+        std::cout << "[0] New Game\n";
+        std::cout << "[1] Continue Previous Game\n";
+        std::cout << "Choice: ";
+    }
+    
+    void ConsolePrinter::displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) {
+        std::cout << "\n=== AVAILABLE CARDS ===\n";
+        for (size_t i = 0; i < cards.size(); ++i) {
+            std::cout << "[" << i << "] ";
+            cards[i].get().displayCardInfo();
+        }
+    }
+    
+    void ConsolePrinter::displayCardSelectionPrompt() {
+        std::cout << "\nSelect a card (enter index): ";
+    }
+    
+    void ConsolePrinter::displayActionMenu() {
+        std::cout << "\n=== CHOOSE ACTION ===\n";
+        std::cout << "[0] Build Card\n";
+        std::cout << "[1] Sell Card for Coins\n";
+        std::cout << "[2] Use for Wonder Stage\n";
+        std::cout << "Choice: ";
+    }
+    
+    void ConsolePrinter::displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders) {
+        std::cout << "\n=== AVAILABLE WONDERS ===\n";
+        for (size_t i = 0; i < wonders.size(); ++i) {
+            std::cout << "[" << i << "] ";
+            wonders[i].get().displayCardInfo();
+        }
+    }
+    
+    void ConsolePrinter::displayWonderSelectionPrompt(const std::string& playerName) {
+        std::cout << "\n" << playerName << ", choose a wonder (enter index): ";
+    }
+    
+    void ConsolePrinter::displayProgressTokens(const std::vector<std::reference_wrapper<const Models::Token>>& tokens) {
+        std::cout << "\n=== PROGRESS TOKENS ===\n";
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            std::cout << "[" << i << "] " << tokens[i].get().getName() << "\n";
+        }
+    }
+    
+    void ConsolePrinter::displayTokenSelectionPrompt() {
+        std::cout << "\nChoose a progress token (enter index): ";
+    }
+    
+    void ConsolePrinter::displayPlayerHands(const Player& p1, const Player& p2) {
+        std::cout << "\n========== PLAYER HANDS ==========\n";
+        
+        auto displayPlayer = [](const Player& p, const std::string& label) {
+            std::cout << "\n" << label << ": " 
+                      << (p.m_player ? p.m_player->getPlayerUsername() : "Unknown") << "\n";
+            
+            if (!p.m_player) return;
+            
+            auto coins = p.m_player->getRemainingCoins();
+            uint32_t totalCoins = p.m_player->totalCoins(coins);
+            std::cout << "  Coins: " << totalCoins << " (G:" << static_cast<int>(std::get<0>(coins))
+                      << " S:" << static_cast<int>(std::get<1>(coins))
+                      << " B:" << static_cast<int>(std::get<2>(coins)) << ")\n";
+            
+            const auto& cards = p.m_player->getOwnedCards();
+            std::cout << "  Cards: " << cards.size() << "\n";
+            
+            const auto& wonders = p.m_player->getOwnedWonders();
+            std::cout << "  Wonders: " << wonders.size();
+            int built = 0;
+            for (const auto& w : wonders) {
+                if (w && w->IsConstructed()) built++;
+            }
+            std::cout << " (" << built << " built)\n";
+            
+            const auto& tokens = p.m_player->getOwnedTokens();
+            std::cout << "  Tokens: " << tokens.size() << "\n";
+        };
+        
+        displayPlayer(p1, "PLAYER 1");
+        displayPlayer(p2, "PLAYER 2");
+        
+        std::cout << "==================================\n\n";
+    }
+    
+    void ConsolePrinter::displayTurnStatus(const Player& p1, const Player& p2) {
+        auto& board = Board::getInstance();
+        int pawnPos = board.getPawnPos();
+        
+        std::cout << "\n========== TURN STATUS ==========\n";
+        
+        std::cout << "Military Track: P1 [";
+        for (int i = 0; i <= 18; ++i) {
+            if (i == pawnPos) std::cout << "●";
+            else if (i == 9) std::cout << "|";
+            else std::cout << "-";
+        }
+        std::cout << "] P2\n";
+        std::cout << "Position: " << pawnPos;
+        if (pawnPos < 9) std::cout << " (P1 +" << (9 - pawnPos) << ")";
+        else if (pawnPos > 9) std::cout << " (P2 +" << (pawnPos - 9) << ")";
+        else std::cout << " (Neutral)";
+        std::cout << "\n\n";
+        
+        auto displayScore = [](const Player& p, const std::string& name) {
+            if (!p.m_player) return;
+            const auto& pts = p.m_player->getPoints();
+            uint32_t total = static_cast<uint32_t>(pts.m_militaryVictoryPoints) +
+                            static_cast<uint32_t>(pts.m_buildingVictoryPoints) +
+                            static_cast<uint32_t>(pts.m_wonderVictoryPoints) +
+                            static_cast<uint32_t>(pts.m_progressVictoryPoints);
+            total += p.m_player->totalCoins(p.m_player->getRemainingCoins()) / 3;
+            
+            std::cout << name << ": " << p.m_player->getPlayerUsername() << "\n";
+            std::cout << "  Total: " << total << " VP\n";
+            std::cout << "  Military: " << static_cast<int>(pts.m_militaryVictoryPoints) << " VP\n";
+            std::cout << "  Buildings: " << static_cast<int>(pts.m_buildingVictoryPoints) << " VP\n";
+            std::cout << "  Wonders: " << static_cast<int>(pts.m_wonderVictoryPoints) << " VP\n";
+            std::cout << "  Progress: " << static_cast<int>(pts.m_progressVictoryPoints) << " VP\n\n";
+        };
+        
+        displayScore(p1, "PLAYER 1");
+        displayScore(p2, "PLAYER 2");
+        
+        std::cout << "=================================\n\n";
+    }
+    
+    void ConsolePrinter::displayBoard() {
+        auto& board = Board::getInstance();
+        
+        std::cout << "\n========== BOARD ==========\n";
+        
+        const auto& progressTokens = board.getProgressTokens();
+        std::cout << "Progress Tokens: ";
+        for (const auto& t : progressTokens) {
+            if (t) std::cout << t->getName() << " ";
+        }
+        std::cout << "\n";
+        
+        int pawnPos = board.getPawnPos();
+        std::cout << "\nMilitary: P1 [";
+        for (int i = 0; i <= 18; ++i) {
+            if (i == pawnPos) std::cout << "●";
+            else if (i == 9) std::cout << "|";
+            else std::cout << "-";
+        }
+        std::cout << "] P2\n";
+        
+        const auto& militaryTokens = board.getMilitaryTokens();
+        std::cout << "Military Tokens: ";
+        for (const auto& t : militaryTokens) {
+            if (t) std::cout << t->getName() << " ";
+        }
+        std::cout << "\n";
+        
+        std::cout << "===========================\n\n";
+    }
+    
+    void ConsolePrinter::displayMessage(const std::string& message) {
+        std::cout << "[INFO] " << message << "\n";
+    }
+    
+    void ConsolePrinter::displayError(const std::string& error) {
+        std::cout << "[ERROR] " << error << "\n";
+    }
+    
+    void ConsolePrinter::displayWarning(const std::string& warning) {
+        std::cout << "[WARNING] " << warning << "\n";
+    }
+    
+    void ConsolePrinter::displaySeparator() {
+        std::cout << "\n========================================\n\n";
+    }
+    
+    void ConsolePrinter::displayPhaseHeader(int phase) {
+        std::cout << "\n========== PHASE " << phase << " ==========\n\n";
     }
 }

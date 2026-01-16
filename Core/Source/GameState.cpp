@@ -1,6 +1,7 @@
 ﻿module Core.GameState;
 import Core.Board;
 import Core.Player;
+import Core.ConsolePrinter;
 
 namespace Core {
     
@@ -12,6 +13,9 @@ namespace Core {
     GameState::GameState() : m_board(Core::Board::getInstance()) {
         m_player1 = std::make_shared<Core::Player>();
         m_player2 = std::make_shared<Core::Player>();
+        
+        auto consolePrinter = std::make_shared<ConsolePrinter>();
+        m_eventNotifier.addListener(consolePrinter);
     }
     
     std::shared_ptr<Player> GameState::GetPlayer1() {

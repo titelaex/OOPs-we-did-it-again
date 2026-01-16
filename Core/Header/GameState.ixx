@@ -2,6 +2,7 @@
 import Core.Board;
 import Core.Player;
 import Core.AIConfig;
+import Core.IGameListener;
 import <string>;
 import <memory>;
 import <vector>;
@@ -58,6 +59,8 @@ export namespace Core {
         void toggleTurn();
         void advanceToNextPhase();
         
+        GameEventNotifier& getEventNotifier() { return m_eventNotifier; }
+        
     private:
         GameState();
         ~GameState() = default;
@@ -76,5 +79,6 @@ export namespace Core {
         Playstyle m_player2Playstyle = Playstyle::BRITNEY;
         
         LastAction m_lastAction;
+        GameEventNotifier m_eventNotifier;
     };
 }

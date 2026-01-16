@@ -1,6 +1,14 @@
 export module Core.ConsolePrinter;
 import Core.IGameListener;
+import Core.Player;
+import Models.Card;
+import Models.Wonder;
+import Models.Token;
 import <memory>;
+import <string>;
+import <vector>;
+import <deque>;
+import <functional>;
 
 export namespace Core {
     
@@ -35,5 +43,32 @@ export namespace Core {
         
         void onPointsChanged(const PointsEvent& event) override;
         void onPlayerStateChanged(int playerID) override;
+        
+        void onDisplayRequested(const DisplayRequestEvent& event) override;
+        
+    private:
+        void displayGameModeMenu();
+        void displayPlaystyleMenu(const std::string& playerName);
+        void displayContinueGamePrompt();
+        
+        void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards);
+        void displayCardSelectionPrompt();
+        void displayActionMenu();
+        
+        void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders);
+        void displayWonderSelectionPrompt(const std::string& playerName);
+        
+        void displayProgressTokens(const std::vector<std::reference_wrapper<const Models::Token>>& tokens);
+        void displayTokenSelectionPrompt();
+        
+        void displayPlayerHands(const Player& p1, const Player& p2);
+        void displayTurnStatus(const Player& p1, const Player& p2);
+        void displayBoard();
+        
+        void displayMessage(const std::string& message);
+        void displayError(const std::string& error);
+        void displayWarning(const std::string& warning);
+        void displaySeparator();
+        void displayPhaseHeader(int phase);
     };
 }
