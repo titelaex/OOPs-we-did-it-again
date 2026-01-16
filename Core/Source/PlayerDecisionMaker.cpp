@@ -14,6 +14,7 @@ import Core.AIConfig;
 import Models.Card;
 import Models.AgeCard;
 import Models.Wonder;
+import Models.Token;
 namespace Core {
 size_t HumanDecisionMaker::selectCard(const std::vector<size_t>& available) {
     size_t choice = 0;
@@ -66,6 +67,25 @@ size_t HumanDecisionMaker::selectWonder(const std::vector<size_t>& candidates) {
         }
         if (choice >= candidates.size()) {
             std::cout << "ERROR: Invalid wonder choice! Please enter a number between 0 and " << (candidates.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
+    }
+    return choice;
+}
+size_t HumanDecisionMaker::selectProgressToken(const std::vector<size_t>& available) {
+    size_t choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (available.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= available.size()) {
+            std::cout << "ERROR: Invalid token choice! Please enter a number between 0 and " << (available.size() - 1) << ": ";
             continue;
         }
         validInput = true;
@@ -126,19 +146,123 @@ size_t MCTSDecisionMaker::selectCard(const std::vector<size_t>& available) {
     return dist(gen);
 }
 int MCTSDecisionMaker::selectCardAction() {
+    auto* currentPlayer = getCurrentPlayer();
+    if (!currentPlayer || !currentPlayer->m_player) {
+        return (m_playstyle == Playstyle::BRITNEY) ? 0 : 0;
+    }
+    
+    auto& board = Board::getInstance();
+    uint8_t coins = currentPlayer->m_player->totalCoins(currentPlayer->m_player->getRemainingCoins());
+    
+    auto& ownedWonders = currentPlayer->m_player->getOwnedWonders();
+    int unbuildWonders = 0;
+    for (const auto& w : ownedWonders) {
+        if (w && !w->IsConstructed()) unbuildWonders++;
+    }
+    
     if (m_playstyle == Playstyle::BRITNEY) {
-        return 0; 
+        if (coins < 3) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dist(0, 99);
+            return (dist(gen) < 70) ? 1 : 0;
+        }
+        
+        if (unbuildWonders > 0 && coins >= 4) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dist(0, 99);
+            if (dist(gen) < 15) return 2;
+        }
+        
+        return 0;
+        
     } else {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> dist(0, 9);
-        return (dist(gen) < 7) ? 0 : 2;
+        if (coins < 2) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dist(0, 99);
+            return (dist(gen) < 60) ? 1 : 0;
+        }
+        
+        if (unbuildWonders > 0 && coins >= 3) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dist(0, 99);
+            if (dist(gen) < 35) return 2;
+        }
+        
+        if (coins < 5) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dist(0, 99);
+            if (dist(gen) < 20) return 1;
+        }
+        
+        return 0;
     }
 }
 size_t MCTSDecisionMaker::selectWonder(const std::vector<size_t>& candidates) {
     if (candidates.empty()) return 0;
     if (candidates.size() == 1) return 0;
     return 0;
+}
+size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& available) {
+    if (available.empty()) return 0;
+    if (available.size() == 1) return 0;
+    
+    auto& board = Board::getInstance();
+    const auto& tokens = board.getProgressTokens();
+    
+    std::vector<std::pair<size_t, double>> ratings;
+    for (size_t i = 0; i < available.size(); ++i) {
+        size_t tokenIdx = available[i];
+        if (tokenIdx >= tokens.size() || !tokens[tokenIdx]) continue;
+        
+        const auto* token = tokens[tokenIdx].get();
+        double score = 0.0;
+        std::string name = token->getName();
+        
+        if (m_playstyle == Playstyle::BRITNEY) {
+            if (name == "Philosophy") score = 10.0;
+            if (name == "Mathematics") score = 9.0;
+            if (name == "Urbanism") score = 8.5;
+            if (name == "Strategy") score = 8.0;
+            if (name == "Law") score = 7.5;
+            if (name == "Theology") score = 7.0;
+            if (name == "Architecture") score = 6.5;
+            if (name == "Masonry") score = 6.0;
+            if (name == "Economy") score = 5.5;
+            if (name == "Engineering") score = 5.0;
+        } else {
+            if (name == "Strategy") score = 10.0;
+            if (name == "Theology") score = 9.0;
+            if (name == "Engineering") score = 8.5;
+            if (name == "Masonry") score = 8.0;
+            if (name == "Architecture") score = 7.5;
+            if (name == "Mathematics") score = 7.0;
+            if (name == "Philosophy") score = 6.5;
+            if (name == "Economy") score = 6.0;
+            if (name == "Law") score = 5.5;
+            if (name == "Urbanism") score = 5.0;
+        }
+        
+        ratings.push_back({i, score});
+    }
+    
+    if (ratings.empty()) return 0;
+    
+    std::sort(ratings.begin(), ratings.end(),
+              [](const auto& a, const auto& b) { return a.second > b.second; });
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dist(0, 99);
+    
+    if (ratings.size() > 1 && dist(gen) < 20) {
+        return ratings[1].first;
+    }
+    return ratings[0].first;
 }
 std::uint8_t MCTSDecisionMaker::selectStartingPlayer() {
     return (m_playstyle == Playstyle::SPEARS) ? 0 : 1;
@@ -164,15 +288,13 @@ void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& opti
     
     std::cout << "\n[" << playstyleToString(m_suggestionStyle) << "]: AI Suggestions for " << context << ":\n";
     
-    // Evaluate each option using simple heuristics
-    std::vector<std::pair<size_t, double>> rankedOptions; // {position_in_available, score}
+    std::vector<std::pair<size_t, double>> rankedOptions;
     
     auto& board = Board::getInstance();
     
     for (size_t pos = 0; pos < options.size(); ++pos) {
-        size_t nodeIdx = options[pos];  // Internal node index (14, 15, etc)
+        size_t nodeIdx = options[pos];
         
-        // Get the actual card at this node - check all possible age phases
         Models::Card* card = nullptr;
         const auto& nodes1 = board.getAge1Nodes();
         const auto& nodes2 = board.getAge2Nodes();
@@ -189,9 +311,7 @@ void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& opti
         double score = 0.0;
         
         if (card) {
-            // Evaluate card based on playstyle
             if (m_suggestionStyle == Playstyle::BRITNEY) {
-                // Britney: Victory Points > Military
                 score += card->getVictoryPoints() * 2.0;
                 if (auto* ageCard = dynamic_cast<Models::AgeCard*>(card)) {
                     score += ageCard->getShieldPoints() * 0.5;
@@ -200,30 +320,26 @@ void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& opti
                     }
                 }
             } else {
-                // Spears: Military > Victory Points
                 if (auto* ageCard = dynamic_cast<Models::AgeCard*>(card)) {
                     score += ageCard->getShieldPoints() * 3.0;
                     score += card->getVictoryPoints() * 0.5;
                 }
             }
             
-            // Add small randomness
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_real_distribution<> noise(0.0, 0.1);
             score += noise(gen);
         } else {
-            score = 0.1; // Fallback for missing cards
+            score = 0.1;
         }
         
-        rankedOptions.push_back({pos, score});  // Store position (0-5), not nodeIdx
+        rankedOptions.push_back({pos, score});
     }
     
-    // Sort by score (descending)
     std::sort(rankedOptions.begin(), rankedOptions.end(),
               [](const auto& a, const auto& b) { return a.second > b.second; });
     
-    // Display ranked suggestions
     size_t topPicks = std::min(size_t(3), rankedOptions.size());
     for (size_t i = 0; i < topPicks; ++i) {
         std::cout << "  [" << playstyleToString(m_suggestionStyle) << "]: ";
@@ -304,6 +420,27 @@ size_t HumanAssistedDecisionMaker::selectWonder(const std::vector<size_t>& candi
     }
     return choice;
 }
+size_t HumanAssistedDecisionMaker::selectProgressToken(const std::vector<size_t>& available) {
+    showSuggestions(available, "progress token selection");
+    std::cout << "Your choice (0-" << (available.size() - 1) << "): ";
+    size_t choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (available.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= available.size()) {
+            std::cout << "ERROR: Invalid token choice! Please enter a number between 0 and " << (available.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
+    }
+    return choice;
+}
 std::uint8_t HumanAssistedDecisionMaker::selectStartingPlayer() {
     std::cout << "\n[" << playstyleToString(m_suggestionStyle) << "]: AI Suggestion:\n";
     if (m_suggestionStyle == Playstyle::SPEARS) {
@@ -349,10 +486,17 @@ size_t AIDecisionMaker::selectWonder(const std::vector<size_t>& candidates) {
     if (candidates.empty()) return 0;
     return 0;
 }
+size_t AIDecisionMaker::selectProgressToken(const std::vector<size_t>& available) {
+    if (available.empty()) return 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
+    return dist(gen);
+}
 std::uint8_t AIDecisionMaker::selectStartingPlayer() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dist(0, 1);
     return static_cast<std::uint8_t>(dist(gen));
 }
-} 
+}

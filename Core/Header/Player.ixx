@@ -7,8 +7,11 @@ import Models.ColorType;
 import Models.LinkingSymbolType;
 import <iostream>;
 import <vector>;
+
 export namespace Core
 {
+	struct IPlayerDecisionMaker;
+	
 	export class Player
 	{
 	public:
@@ -24,7 +27,7 @@ export namespace Core
 		void setHasAnotherTurn(bool has);
 		void discardCard(Models::ColorType color);
 		void drawToken();
-		void chooseProgressTokenFromBoard();
+		void chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker = nullptr);
 		void takeNewCard();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(const Models::Card* card, std::unique_ptr<Models::Player>& opponent);
