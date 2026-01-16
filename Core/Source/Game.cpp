@@ -460,7 +460,7 @@ namespace Core {
 			auto& board = Core::Board::getInstance();
 			board.setPawnPos(9);
 			std::bitset<19> pawnTrack;
-			pawnTrack.set();
+			pawnTrack.set(8);
 			board.setPawnTrack(pawnTrack);
 			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
@@ -1547,7 +1547,7 @@ void Game::initGame() {
 
 		int choice = reader.selectSave(existingSaves);
 		if (choice > 0 && std::find(existingSaves.begin(), existingSaves.end(), choice) != existingSaves.end()) {
-			gameState.loadGameState("");
+			gameState.loadGameState("", choice);
 			GameStateSerializer::setCurrentSaveNumber(choice);
 
 			DisplayRequestEvent loadEvent;
