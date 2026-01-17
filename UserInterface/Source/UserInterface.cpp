@@ -508,12 +508,14 @@ void UserInterface::initializeGame() {
 		Q_UNUSED(nodeIndex);
 		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
 	});
-	connect(m_gameListener.get(), &GameListenerBridge::treeNodeChangedSignal, this, [this](int ageIndex, int nodeIndex, bool isAvailable, bool isEmpty){
-		Q_UNUSED(nodeIndex);
-		Q_UNUSED(isAvailable);
-		Q_UNUSED(isEmpty);
-		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
-	});
+	connect(m_gameListener.get(), &GameListenerBridge::treeNodeChangedSignal, this,
+		[this](int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty){
+			Q_UNUSED(nodeIndex);
+			Q_UNUSED(isAvailable);
+			Q_UNUSED(isVisible);
+			Q_UNUSED(isEmpty);
+			if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
+		});
 
 	// Initial sync (in case the pawn already has a non-zero position)
 	auto& board = Core::Board::getInstance();

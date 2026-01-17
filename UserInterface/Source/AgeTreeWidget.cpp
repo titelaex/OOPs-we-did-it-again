@@ -32,6 +32,7 @@ import Core.GameState;
 import Core.Game;
 import Models.Card;
 import Models.AgeCard;
+import Models.ColorType;
 
 class ClickableRect : public QGraphicsRectItem {
 public:
@@ -196,6 +197,26 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	// Action succeeded: refresh UI and advance current player
 	refreshPanels();
 
+	// Reveal parents that just became available (backend rule): if both children are empty -> parent becomes available + visible
+	{
+		auto revealIfUnlocked = [&](const std::shared_ptr<Core::Node>& parent) {
+			if (!parent) return;
+			auto c1 = parent->getChild1();
+			auto c2 = parent->getChild2();
+			bool empty1 = (!c1 || c1->getCard() == nullptr);
+			bool empty2 = (!c2 || c2->getCard() == nullptr);
+			if (empty1 && empty2) {
+				if (auto* pc = parent->getCard()) {
+					pc->setIsAvailable(true);
+					pc->setIsVisible(true);
+				}
+			}
+		};
+
+		revealIfUnlocked(node->getParent1());
+		revealIfUnlocked(node->getParent2());
+	}
+
 	// Military pawn movement for red cards with shields (use original card info)
 	if (card) {
 		const Models::AgeCard* ageBuilt = dynamic_cast<const Models::AgeCard*>(card);
@@ -292,30 +313,28 @@ void AgeTreeWidget::showAgeTree(int age)
 	else rows = { 2,3,4,2,4,3,2 };
 
 	// Choose palette depending on age
-	QColor visibleTopColor;
-	QColor visibleBottomColor;
-	QColor borderColor;
 	QColor invisibleBorderColor = QColor("#CCCCCC");
-	QColor visibleTextColor = QColor("#FFFFFF");
 	QColor lineColor = QColor("#4B5563");
-	if (age == 2) {
-		// Blue palette for Age II
-		visibleTopColor = QColor("#60A5FA");
-		visibleBottomColor = QColor("#1E3A8A");
-		borderColor = QColor("#0369A1");
-	}
-	else {
-		// Brown palette for Age I and III
-		visibleTopColor = QColor("#B58860");
-		visibleBottomColor = QColor("#7C4A1C");
-		borderColor = QColor("#7C4A1C");
-	}
+
+	auto paletteForCardColor = [](Models::ColorType c) -> std::tuple<QColor, QColor, QColor, QColor> {
+		// returns {top, bottom, border, text}
+		switch (c) {
+		case Models::ColorType::BROWN:  return { QColor("#B58860"), QColor("#7C4A1C"), QColor("#7C4A1C"), QColor("#FFFFFF") };
+		case Models::ColorType::GREY:   return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#111827") };
+		case Models::ColorType::RED:    return { QColor("#F87171"), QColor("#B91C1C"), QColor("#7F1D1D"), QColor("#FFFFFF") };
+		case Models::ColorType::YELLOW: return { QColor("#FCD34D"), QColor("#D97706"), QColor("#92400E"), QColor("#111827") };
+		case Models::ColorType::GREEN:  return { QColor("#34D399"), QColor("#047857"), QColor("#065F46"), QColor("#FFFFFF") };
+		case Models::ColorType::BLUE:   return { QColor("#60A5FA"), QColor("#1E3A8A"), QColor("#0369A1"), QColor("#FFFFFF") };
+		case Models::ColorType::PURPLE: return { QColor("#A78BFA"), QColor("#5B21B6"), QColor("#4C1D95"), QColor("#FFFFFF") };
+		default:                        return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#FFFFFF") };
+		}
+	};
 
 	// clear previous layout
 	if (auto oldLayout = this->layout()) {
 		while (auto item = oldLayout->takeAt(0)) {
 			if (auto w = item->widget()) {
-				w->removeEventFilter(this);
+			w->removeEventFilter(this);
 			}
 			delete item;
 		}
@@ -401,31 +420,29 @@ void AgeTreeWidget::showAgeTree(int age)
 				cardPtr->setIsAvailable(isAvailable);
 			}
 
+			const bool isVisible = (cardPtr && cardPtr->isVisible());
+
+			QRectF rrect(pos, QSizeF(cardW, cardH));
+			QGraphicsRectItem* baseItem = nullptr;
+
 			if (isAvailable) {
-				QRectF rrect(pos, QSizeF(cardW, cardH));
-				ClickableRect* item = new ClickableRect(rrect);
+				// Clickable leaf
+				auto* item = new ClickableRect(rrect);
 				item->setZValue(1);
 				m_scene->addItem(item);
-				rects[idx] = item;
+				baseItem = item;
 
-				// Style based on card visibility: colored gradient if visible, otherwise white
-				bool isVisible = cardPtr->isVisible();
-				if (isVisible) {
-					item->setGradientColors(visibleTopColor, visibleBottomColor);
-					item->setBorderColor(borderColor);
-				}
-				else {
-					item->setGradientColors(QColor("#FFFFFF"), QColor("#FFFFFF"));
-					item->setBorderColor(invisibleBorderColor);
-				}
+				// Available cards always use their color (even if face-down)
+				auto [top, bottom, border, text] = paletteForCardColor(cardPtr ? cardPtr->getColor() : Models::ColorType::NO_COLOR);
+				item->setGradientColors(top, bottom);
+				item->setBorderColor(border);
 
-				// Only show text when a card exists AND it is visible
 				if (isVisible) {
 					QString name = QString::fromStdString(cardPtr->getName());
 					QGraphicsTextItem* t = m_scene->addText(name);
 					QFont f = t->font(); f.setBold(true); f.setPointSize(15);
 					t->setFont(f);
-					t->setDefaultTextColor(visibleTextColor);
+					t->setDefaultTextColor(text);
 					QRectF tb = t->boundingRect();
 					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
 					t->setZValue(2);
@@ -437,27 +454,43 @@ void AgeTreeWidget::showAgeTree(int age)
 					};
 			}
 			else {
-				QRectF rect(pos, QSizeF(cardW, cardH));
-				QColor bg = QColor("#EDE7E0");
-				QGraphicsRectItem* ritem = m_scene->addRect(rect, QPen(borderColor, 3), QBrush(bg));
-				ritem->setZValue(1);
+				// Non-leaf: not clickable, but should still be colored when visible
+				if (isVisible) {
+					auto* item = new ClickableRect(rrect);
+					item->setZValue(1);
+					m_scene->addItem(item);
+					baseItem = item;
 
-				// For non-available slots only show text when a visible card exists; otherwise show nothing
-				if (cardPtr && cardPtr->isVisible()) {
+					auto [top, bottom, border, text] = paletteForCardColor(cardPtr ? cardPtr->getColor() : Models::ColorType::NO_COLOR);
+					item->setGradientColors(top, bottom);
+					item->setBorderColor(border);
+
 					QString name = QString::fromStdString(cardPtr->getName());
 					QGraphicsTextItem* t = m_scene->addText(name);
-					t->setDefaultTextColor(Qt::black);
+					QFont f = t->font(); f.setBold(true); f.setPointSize(15);
+					t->setFont(f);
+					t->setDefaultTextColor(text);
 					QRectF tb = t->boundingRect();
 					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
 					t->setZValue(2);
 				}
-
-				rects[idx] = ritem;
+				else {
+					// Face-down and not available => neutral card back
+					QColor bg = QColor("#EDE7E0");
+					QGraphicsRectItem* ritem = m_scene->addRect(rrect, QPen(QColor("#374151"), 3), QBrush(bg));
+					ritem->setZValue(1);
+					baseItem = ritem;
+				}
 			}
+
+			rects[idx] = baseItem;
 			++idx;
 		}
 	}
 
+	// Remove connector lines behind the tree for cleaner UI
+	// (previously drawn below cards using linePen)
+	/*
 	QPen linePen(lineColor); linePen.setWidth(3);
 	for (size_t i = 0; i < nodes.size(); ++i) {
 		if (!nodes[i]) continue;
@@ -485,6 +518,7 @@ void AgeTreeWidget::showAgeTree(int age)
 			}
 		}
 	}
+	*/
 
 	auto* vlayout = new QVBoxLayout(this);
 	vlayout->setContentsMargins(8, 8, 8, 8);
