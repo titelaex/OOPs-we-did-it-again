@@ -164,6 +164,17 @@ namespace Core {
                 displayTokenSelectionPrompt();
                 break;
                 
+            case Type::CARD_DISCARD_SELECTION_PROMPT:
+                std::cout << "\n" << event.context << "\n";
+                {
+                    size_t i = 0;
+                    for (const auto& cardRef : event.cards) {
+                        std::cout << "[" << i << "] " << cardRef.get().getName() << "\n";
+                        ++i;
+                    }
+                }
+                break;
+                
             case Type::PLAYER_HANDS:
                 if (event.player1 && event.player2) {
                     displayPlayerHands(event.player1->get(), event.player2->get());

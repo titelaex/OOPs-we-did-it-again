@@ -10,6 +10,7 @@ import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
 import Core.AIConfig;
 import Core.IGameListener;
+import Models.ColorType;
 export namespace Core {
     class Game {
     public:
@@ -26,10 +27,13 @@ export namespace Core {
         static void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2, 
                                     IPlayerDecisionMaker* p1Decisions = nullptr, IPlayerDecisionMaker* p2Decisions = nullptr);
         static void debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool);
-        static void awardMilitaryTokenIfPresent(Player& receiver);
+        static void awardMilitaryTokenIfPresent(Player& receiver, Player& opponent);
         static void movePawn(int steps);
         static void displayPlayerHands(const Player& p1, const Player& p2);
         static void displayTurnStatus(const Player& p1, const Player& p2);
         static void announceVictory(int winner, const std::string& victoryType, const Player& p1, const Player& p2);
+        static void handleOpponentCardDiscard(Player& cardOwner, Player& discardingPlayer, 
+                                              Models::ColorType color, 
+                                              IPlayerDecisionMaker& decisionMaker);
     };
 }

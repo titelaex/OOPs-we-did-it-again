@@ -355,11 +355,14 @@ namespace Core {
     }
     
     void GameStateSerializer::recordLastAction(const std::string& playerName, const std::string& actionType,
-                                               const std::string& cardName, const std::vector<std::string>& effects) {
+                                               const std::string& cardName, const std::vector<std::string>& effects,
+                                               int round, int phase) {
         s_gameMetadata.lastAction.playerName = playerName;
         s_gameMetadata.lastAction.actionType = actionType;
         s_gameMetadata.lastAction.cardName = cardName;
         s_gameMetadata.lastAction.effectsApplied = effects;
+        s_gameMetadata.lastAction.round = round;
+        s_gameMetadata.lastAction.phase = phase;
     }
     
     bool GameStateSerializer::deleteSave(int saveNumber) {
@@ -617,9 +620,9 @@ namespace Core {
             std::string username = extractString(objStr, "username", "Player");
             wrapper->m_player = std::make_unique<Models::Player>(id, username);
             auto* p = wrapper->m_player.get();
-            uint8_t g = static_cast<uint8_t>(extractInt(objStr, "gold", 0));
+            uint8_t g = static_cast<uint8_t>(extractInt(objStr, "bronze", 0));
             uint8_t s = static_cast<uint8_t>(extractInt(objStr, "silver", 0));
-            uint8_t b = static_cast<uint8_t>(extractInt(objStr, "bronze", 0));
+            uint8_t b = static_cast<uint8_t>(extractInt(objStr, "gold", 0));
             p->setRemainingCoins({ g, s, b });
             for (auto& name : parsePlayerArray(objStr, "builtCards")) {
                 if (auto c = cloneCard(catalog, name)) p->addCard(std::move(c));

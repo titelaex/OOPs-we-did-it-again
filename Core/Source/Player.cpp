@@ -64,7 +64,7 @@ void Core::playTurnForCurrentPlayer()
 	if (!cp) return;
 	std::cout << "Playing an extra turn for player\n";
 }
-void Core::drawTokenForCurrentPlayer()
+void Core::drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker)
 {
 	Core::Player* cp = getCurrentPlayer();
 	if (!cp) return;
@@ -77,9 +77,25 @@ void Core::drawTokenForCurrentPlayer()
 	std::random_device rd; std::mt19937 gen(rd());
 	std::shuffle(combined.begin(), combined.end(), gen);
 	size_t pickCount = std::min<size_t>(3, combined.size());
-	std::cout << "Choose a token: \n";
-	for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
-	size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose a token:";
+	notifier.notifyDisplayRequested(event);
+	
+	std::vector<size_t> tokenIndices;
+	for (size_t i = 0; i < pickCount; ++i) {
+		tokenIndices.push_back(i);
+		event.context = "[" + std::to_string(i) + "] " + combined[i]->getName();
+		notifier.notifyDisplayRequested(event);
+	}
+	
+	size_t choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectProgressToken(tokenIndices);
+	}
+	
+	if (choice >= pickCount) choice = 0;
 	auto chosen = std::move(combined[choice]);
 	if (chosen) cp->m_player->addToken(std::move(chosen));
 	std::vector<std::unique_ptr<Models::Token>> newProgress;
@@ -92,41 +108,15 @@ void Core::drawTokenForCurrentPlayer()
 	Board::getInstance().setProgressTokens(std::move(newProgress));
 	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
 }
-void Core::discardOpponentCardOfColor(Models::ColorType color)
+void Core::discardOpponentCardOfColor(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
 {
+	Core::Player* opponent = Core::getOpponentPlayer();
+	if (!opponent || !decisionMaker) return;
+	
 	Core::Player* cp = getCurrentPlayer();
 	if (!cp) return;
-	Core::Player* opponent = getOpponentPlayer();
-	if (!opponent) return;
-	auto& owned = opponent->m_player->getOwnedCards();
-	std::vector<size_t> candidates;
-	for (size_t i = 0; i < owned.size(); ++i) {
-		if (!owned[i]) continue;
-		if (owned[i]->getColor() == color) candidates.push_back(i);
-	}
-	if (candidates.empty()) return;
-	std::cout << "Choose opponent card to discard:\n";
-	for (size_t idx = 0; idx < candidates.size(); ++idx) {
-		size_t i = candidates[idx];
-		std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
-	}
-	size_t choice = 0; std::cin >> choice; if (choice >= candidates.size()) choice = 0;
-	size_t removeIdx = candidates[choice];
-	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
-	if (moved)
-	{
-		Core::Game::getNotifier().notifyCardDiscarded({
-			static_cast<int>(cp->m_player->getkPlayerId()),  
-			cp->m_player->getPlayerUsername(),
-			moved->getName(),                               
-			-1,
-			Models::ColorTypeToString(moved->getColor()),    
-			{"Opponent card destroyed"}                      
-			});
-
-		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
-		discarded.push_back(std::move(moved));
-	}
+	
+	Game::handleOpponentCardDiscard(*opponent, *cp, color, *decisionMaker);
 }
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {
@@ -221,9 +211,20 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 	if (wonder->getShieldPoints() > 0)
 	{
 		Game::movePawn(static_cast<int>(wonder->getShieldPoints()));
-		Game::awardMilitaryTokenIfPresent(*this);
+		Core::Player oppWrapper;
+		oppWrapper.m_player = std::move(opponent);
+		Game::awardMilitaryTokenIfPresent(*this, oppWrapper);
+		opponent = std::move(oppWrapper.m_player);
 	}
 	std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully\n";
+	bool hasTheologyToken = m_player->hasToken(Models::TokenIndex::THEOLOGY);
+	if (hasTheologyToken) {
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Theology Token: Wonder grants an extra Play Again effect!";
+		notifier.notifyDisplayRequested(event);
+	}
 }
 bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
@@ -243,13 +244,7 @@ bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, cons
 	if (missingResources.empty()) {
 		return true;
 	}
-	bool hasArchitectureToken = false;
-	for (const auto& token : m_player->getOwnedTokens()) {
-		if (token->getName() == "Architecture") {
-			hasArchitectureToken = true;
-			break;
-		}
-	}
+	bool hasArchitectureToken = m_player->hasToken(Models::TokenIndex::ARCHITECTURE);
 	auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
 		const auto& tradeRules = m_player->getTradeRules();
 		Models::TradeRuleType ruleType;
@@ -334,13 +329,7 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
 		std::cout << "Player constructed the wonder for free (sufficient resources owned).\n";
 		return;
 	}
-	bool hasArchitectureToken = false;
-	for (const auto& token : m_player->getOwnedTokens()) {
-		if (token->getName() == "Architecture") {
-			hasArchitectureToken = true;
-			break;
-		}
-	}
+	bool hasArchitectureToken = m_player->hasToken(Models::TokenIndex::ARCHITECTURE);
 	if (hasArchitectureToken && totalMissingUnits <= 2) {
 		std::cout << "Player constructed the wonder for free (covered fully by Architecture token).\n";
 		return;
@@ -464,14 +453,23 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 			if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
 			{
 				card->setIsVisible(false);
-				std::cout << "Card \"" << card->getName() << "\" constructed for free via chain->\n";
+				auto& notifier = GameState::getInstance().getEventNotifier();
+				DisplayRequestEvent event;
+				event.displayType = DisplayRequestEvent::Type::MESSAGE;
+				event.context = "Card \"" + std::string(card->getName()) + "\" constructed for free via chain->";
+				notifier.notifyDisplayRequested(event);
 				applyCardEffects(card);
 				if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 					const auto& resourceProduction = ageCard->getResourcesProduction();
 					for (const auto& [resource, amount] : resourceProduction) {
 						m_player->addPermanentResource(resource, amount);
-						std::cout << "  Added " << static_cast<int>(amount) << "x " << Models::ResourceTypeToString(resource) << " to permanent resources\n";
+						event.context = "  Added " + std::to_string(static_cast<int>(amount)) + "x " + Models::ResourceTypeToString(resource) + " to permanent resources";
+						notifier.notifyDisplayRequested(event);
 					}
+				}
+				bool hasUrbanismToken = m_player->hasToken(Models::TokenIndex::URBANISM);
+				if (hasUrbanismToken) {
+					addCoins(4);
 				}
 				m_player->addCard(std::move(card));
 				return;
@@ -532,6 +530,12 @@ bool Core::Player::canAffordCard(const Models::Card* card, std::unique_ptr<Model
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentProduction = opponent->getOwnedPermanentResources();
     uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
+    
+    bool hasMasonryToken = m_player->hasToken(Models::TokenIndex::MASONRY);
+    if (hasMasonryToken && card->getColor() == Models::ColorType::BLUE) {
+        availableCoins += 2;
+    }
+    
     for (const auto& kv : cost)
     {
         auto resource = kv.first;
@@ -592,6 +596,14 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 		std::cout << "  Buying " << static_cast<int>(missing) << "x " << Models::ResourceTypeToString(resource) 
 		          << " for " << static_cast<int>(costPerUnit) << " coins each (total: " << static_cast<int>(costPerUnit * missing) << " coins)\n";
 	}
+	
+	bool hasMasonryToken = m_player->hasToken(Models::TokenIndex::MASONRY);
+	if (hasMasonryToken && card->getColor() == Models::ColorType::BLUE) {
+		if (totalCoinsToPay >= 2) {
+			totalCoinsToPay -= 2;
+		}
+	}
+	
 	if (totalCoinsToPay > 0) {
 		std::cout << "  Total coins to pay for trading: " << static_cast<int>(totalCoinsToPay) << " coins\n";
 		subtractCoins(totalCoinsToPay);
@@ -653,51 +665,67 @@ void Core::Player::subtractCoins(uint8_t amt)
 }
 namespace Core
 {
-	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens)
+	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
 	{
 		Core::Player* cp = getCurrentPlayer();
 		if (!cp) return;
 		if (tokens.empty()) return;
-		std::cout << "Choose a progress token by index:\n";
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Choose a progress token by index:";
+		notifier.notifyDisplayRequested(event);
+		
+		std::vector<size_t> tokenIndices;
 		for (size_t i = 0; i < tokens.size(); ++i) {
-			if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
+			if (tokens[i]) {
+				tokenIndices.push_back(i);
+				event.context = "[" + std::to_string(i) + "] " + tokens[i]->getName();
+				notifier.notifyDisplayRequested(event);
+			}
 		}
+		
 		size_t idx = 0;
-		if (!(std::cin >> idx) || idx >= tokens.size()) {
-			if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-			idx = 0;
+		if (decisionMaker) {
+			idx = decisionMaker->selectProgressToken(tokenIndices);
 		}
+		
+		if (idx >= tokens.size()) idx = 0;
 		std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
 		tokens.erase(tokens.begin() + idx);
 		if (taken) cp->m_player->addToken(std::move(taken));
 	}
-	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens)
+	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
 	{
 		Core::Player* cp = getCurrentPlayer();
 		if (!cp) return;
 		if (tokens.empty()) return;
-		std::cout << "Choose a progress token by name:\n";
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Choose a progress token by name:";
+		notifier.notifyDisplayRequested(event);
+		
+		std::vector<size_t> tokenIndices;
 		for (size_t i = 0; i < tokens.size(); ++i) {
-			if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
-		}
-		std::string name;
-		if (!std::getline(std::cin >> std::ws, name)) return;
-		if (name.empty()) {
-			if (!tokens.empty() && tokens[0]) {
-				cp->m_player->addToken(std::move(tokens[0]));
-				tokens.erase(tokens.begin());
-			}
-			return;
-		}
-		for (auto it = tokens.begin(); it != tokens.end(); ++it) {
-			if (*it && (*it)->getName() == name) {
-				std::unique_ptr<Models::Token> taken = std::move(*it);
-				tokens.erase(it);
-				if (taken) cp->m_player->addToken(std::move(taken));
-				return;
+			if (tokens[i]) {
+				tokenIndices.push_back(i);
+				event.context = "[" + std::to_string(i) + "] " + tokens[i]->getName();
+				notifier.notifyDisplayRequested(event);
 			}
 		}
-		std::cout << "No progress token named '" << name << "' found." << std::endl;
+		
+		size_t idx = 0;
+		if (decisionMaker) {
+			idx = decisionMaker->selectProgressToken(tokenIndices);
+		}
+		
+		if (idx >= tokenIndices.size()) idx = 0;
+		size_t selectedIdx = tokenIndices[idx];
+		
+		std::unique_ptr<Models::Token> taken = std::move(tokens[selectedIdx]);
+		tokens.erase(tokens.begin() + selectedIdx);
+		if (taken) cp->m_player->addToken(std::move(taken));
 	}
 }
 namespace Core {
@@ -849,7 +877,7 @@ void Core::Player::setHasAnotherTurn(bool hasAnotherTurn)
 	std::cout << "Player gets an extra turn!\n";
 	Core::playTurnForCurrentPlayer();
 }
-void Core::Player::discardCard(Models::ColorType color)
+void Core::Player::discardCard(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
 {
 	Core::Player* opponent = Core::getOpponentPlayer();
 	if (!opponent) return;
@@ -862,28 +890,40 @@ void Core::Player::discardCard(Models::ColorType color)
 		}
 	}
 	if (candidates.empty()) {
-		std::cout << "No opponent cards of the specified color to discard.\n";
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "No opponent cards of the specified color to discard.";
+		notifier.notifyDisplayRequested(event);
 		return;
 	}
-	std::cout << "Choose opponent card to discard:\n";
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose opponent card to discard:";
+	notifier.notifyDisplayRequested(event);
+	
 	for (size_t idx = 0; idx < candidates.size(); ++idx) {
 		size_t i = candidates[idx];
-		std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
+		event.context = "[" + std::to_string(idx) + "] " + owned[i]->getName();
+		notifier.notifyDisplayRequested(event);
 	}
+	
 	size_t choice = 0;
-	if (!(std::cin >> choice) || choice >= candidates.size()) {
-		if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-		choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectCard(candidates);
 	}
+	
+	if (choice >= candidates.size()) choice = 0;
 	size_t removeIdx = candidates[choice];
 	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
 	if (!moved) return;
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Core::Board::getInstance().getDiscardedCards());
 	discarded.push_back(std::move(moved));
 }
-void Core::Player::drawToken()
+void Core::Player::drawToken(IPlayerDecisionMaker* decisionMaker)
 {
-	Core::drawTokenForCurrentPlayer();
+	Core::drawTokenForCurrentPlayer(decisionMaker);
 }
 void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker)
 {
@@ -950,35 +990,57 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 		m_player->addToken(std::move(chosenToken));
 	}
 }
-void Core::Player::takeNewCard()
+void Core::Player::takeNewCard(IPlayerDecisionMaker* decisionMaker)
 {
 	Core::Player* cp = getCurrentPlayer();
 	if (!cp) return;
 	auto& board = Core::Board::getInstance();
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	
 	if (discarded.empty()) {
-		std::cout << "No cards in the discard pile.\n";
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "No cards in the discard pile.";
+		notifier.notifyDisplayRequested(event);
 		return;
 	}
-	std::cout << "Choose a card from the discard pile:\n";
+
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose a card from the discard pile:";
+	notifier.notifyDisplayRequested(event);
+
+	std::vector<size_t> cardIndices;
 	for (size_t i = 0; i < discarded.size(); ++i) {
 		if (discarded[i]) {
-			std::cout << "[" << i << "] " << discarded[i]->getName() << "\n";
+			cardIndices.push_back(i);
+			event.context = "[" + std::to_string(i) + "] " + discarded[i]->getName();
+			notifier.notifyDisplayRequested(event);
 		}
 	}
- size_t choice = 0;
- if (!(std::cin >> choice) || choice >= discarded.size()) {
-   if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-   choice = 0;
- }
- if (!discarded[choice]) {
-   std::cout << "Invalid card selection.\n";
-   return;
- }
- auto card = std::move(discarded[choice]);
- discarded.erase(discarded.begin() + choice);
- if (!card) return;
- cp->m_player->addCard(std::move(card));
- cp->m_player->getOwnedCards().back()->onPlay();
- std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
+
+	size_t choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectCard(cardIndices);
+	}
+	
+	if (choice >= cardIndices.size()) choice = 0;
+	size_t selectedIdx = cardIndices[choice];
+
+	if (!discarded[selectedIdx]) {
+		event.context = "Invalid card selection.";
+		notifier.notifyDisplayRequested(event);
+		return;
+	}
+
+	auto card = std::move(discarded[selectedIdx]);
+	discarded.erase(discarded.begin() + selectedIdx);
+	if (!card) return;
+
+	cp->m_player->addCard(std::move(card));
+	cp->m_player->getOwnedCards().back()->onPlay();
+	
+	event.context = "Card \"" + std::string(cp->m_player->getOwnedCards().back()->getName()) + "\" constructed for free.";
+	notifier.notifyDisplayRequested(event);
 }

@@ -15,6 +15,7 @@ import Models.Card;
 import Models.AgeCard;
 import Models.Wonder;
 import Models.Token;
+import Core.IGameListener;
 namespace Core {
 size_t HumanDecisionMaker::selectCard(const std::vector<size_t>& available) {
     size_t choice = 0;
@@ -92,6 +93,25 @@ size_t HumanDecisionMaker::selectProgressToken(const std::vector<size_t>& availa
     }
     return choice;
 }
+size_t HumanDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availableCards) {
+    size_t choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (availableCards.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= availableCards.size()) {
+            std::cout << "ERROR: Invalid card choice! Please enter a number between 0 and " << (availableCards.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
+    }
+    return choice;
+}
 std::uint8_t HumanDecisionMaker::selectStartingPlayer() {
     int choice = 0;
     std::cin >> choice;
@@ -104,17 +124,6 @@ MCTSDecisionMaker::MCTSDecisionMaker(Playstyle playstyle, int iterations, double
     , m_maxDepth(maxDepth)
 {
     m_mcts = std::make_unique<MCTS>(iterations, explorationConstant, maxDepth, playstyle);
-    std::cout << "[AI] Initialized " << playstyleToString(playstyle) 
-              << " AI (iterations=" << iterations << ", weights: ";
-    AIWeights weights;
-    std::string styleStr = playstyleToString(playstyle);
-    std::string optimizedPath = "OptimizedWeights/" + styleStr + "_optimized.weights";
-    if (weights.loadFromFile(optimizedPath)) {
-        std::cout << "OPTIMIZED";
-    } else {
-        std::cout << "DEFAULT";
-    }
-    std::cout << ")\n";
 }
 MCTSDecisionMaker::~MCTSDecisionMaker() = default;
 void MCTSDecisionMaker::setPlaystyle(Playstyle style) {
@@ -139,7 +148,6 @@ Playstyle MCTSDecisionMaker::getPlaystyle() const {
 size_t MCTSDecisionMaker::selectCard(const std::vector<size_t>& available) {
     if (available.empty()) return 0;
     if (available.size() == 1) return 0;
-    std::cout << "[" << playstyleToString(m_playstyle) << " AI] Thinking...\n";
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
@@ -264,6 +272,48 @@ size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& availab
     }
     return ratings[0].first;
 }
+size_t MCTSDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availableCards) {
+    if (availableCards.empty()) return 0;
+    if (availableCards.size() == 1) return 0;
+    
+    auto* currentPlayer = getCurrentPlayer();
+    if (!currentPlayer || !currentPlayer->m_player) return 0;
+    
+    auto* opponent = getOpponentPlayer();
+    if (!opponent || !opponent->m_player) return 0;
+    
+    const auto& ownedCards = opponent->m_player->getOwnedCards();
+    
+    std::vector<std::pair<size_t, double>> ratings;
+    for (size_t i = 0; i < availableCards.size(); ++i) {
+        size_t cardIdx = availableCards[i];
+        if (cardIdx >= ownedCards.size() || !ownedCards[cardIdx]) continue;
+        
+        double score = 0.0;
+        const auto* card = ownedCards[cardIdx].get();
+        
+        if (m_playstyle == Playstyle::BRITNEY) {
+            score = card->getVictoryPoints() * 2.0;
+            if (auto* ageCard = dynamic_cast<Models::AgeCard*>(const_cast<Models::Card*>(card))) {
+                score += ageCard->getShieldPoints() * 0.5;
+            }
+        } else {
+            if (auto* ageCard = dynamic_cast<Models::AgeCard*>(const_cast<Models::Card*>(card))) {
+                score = ageCard->getShieldPoints() * 3.0;
+                score += card->getVictoryPoints() * 0.5;
+            }
+        }
+        
+        ratings.push_back({i, score});
+    }
+    
+    if (ratings.empty()) return 0;
+    
+    std::sort(ratings.begin(), ratings.end(),
+              [](const auto& a, const auto& b) { return a.second > b.second; });
+    
+    return ratings[0].first;
+}
 std::uint8_t MCTSDecisionMaker::selectStartingPlayer() {
     return (m_playstyle == Playstyle::SPEARS) ? 0 : 1;
 }
@@ -272,13 +322,11 @@ HumanAssistedDecisionMaker::HumanAssistedDecisionMaker(Playstyle suggestionStyle
     , m_iterations(iterations)
 {
     m_mcts = std::make_unique<MCTS>(iterations, 1.414, 20, suggestionStyle);
-    std::cout << "[Assistant] AI suggestions using " << playstyleToString(suggestionStyle) << " strategy\n";
 }
 HumanAssistedDecisionMaker::~HumanAssistedDecisionMaker() = default;
 void HumanAssistedDecisionMaker::setSuggestionStyle(Playstyle style) {
     m_suggestionStyle = style;
     m_mcts->setPlaystyle(style);
-    std::cout << "[Assistant] Switched to " << playstyleToString(style) << " suggestions\n";
 }
 Playstyle HumanAssistedDecisionMaker::getSuggestionStyle() const {
     return m_suggestionStyle;
@@ -286,7 +334,11 @@ Playstyle HumanAssistedDecisionMaker::getSuggestionStyle() const {
 void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& options, const std::string& context) {
     if (options.empty()) return;
     
-    std::cout << "\n[" << playstyleToString(m_suggestionStyle) << "]: AI Suggestions for " << context << ":\n";
+    auto& notifier = GameState::getInstance().getEventNotifier();
+    DisplayRequestEvent event;
+    event.displayType = DisplayRequestEvent::Type::MESSAGE;
+    event.context = "\n[" + playstyleToString(m_suggestionStyle) + "]: AI Suggestions for " + context + ":";
+    notifier.notifyDisplayRequested(event);
     
     std::vector<std::pair<size_t, double>> rankedOptions;
     
@@ -342,14 +394,17 @@ void HumanAssistedDecisionMaker::showSuggestions(const std::vector<size_t>& opti
     
     size_t topPicks = std::min(size_t(3), rankedOptions.size());
     for (size_t i = 0; i < topPicks; ++i) {
-        std::cout << "  [" << playstyleToString(m_suggestionStyle) << "]: ";
-        if (i == 0) std::cout << "BEST CHOICE -> ";
-        else if (i == 1) std::cout << "Good alternative -> ";
-        else std::cout << "Consider -> ";
-        std::cout << "Option " << rankedOptions[i].first 
-                  << " (score: " << std::fixed << std::setprecision(2) << rankedOptions[i].second << ")\n";
+        event.context = "  [" + playstyleToString(m_suggestionStyle) + "]: ";
+        if (i == 0) event.context += "BEST CHOICE -> ";
+        else if (i == 1) event.context += "Good alternative -> ";
+        else event.context += "Consider -> ";
+        event.context += "Option " + std::to_string(rankedOptions[i].first) 
+                      + " (score: " + std::to_string(rankedOptions[i].second) + ")";
+        notifier.notifyDisplayRequested(event);
     }
-    std::cout << "\n";
+    
+    event.context = "";
+    notifier.notifyDisplayRequested(event);
 }
 size_t HumanAssistedDecisionMaker::selectCard(const std::vector<size_t>& available) {
     showSuggestions(available, "card selection");
@@ -441,6 +496,27 @@ size_t HumanAssistedDecisionMaker::selectProgressToken(const std::vector<size_t>
     }
     return choice;
 }
+size_t HumanAssistedDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availableCards) {
+    showSuggestions(availableCards, "card discard selection");
+    std::cout << "Your choice (0-" << (availableCards.size() - 1) << "): ";
+    size_t choice = 0;
+    bool validInput = false;
+    while (!validInput) {
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "ERROR: Invalid input! Please enter a valid number (0-" << (availableCards.size() - 1) << "): ";
+            continue;
+        }
+        if (choice >= availableCards.size()) {
+            std::cout << "ERROR: Invalid card choice! Please enter a number between 0 and " << (availableCards.size() - 1) << ": ";
+            continue;
+        }
+        validInput = true;
+    }
+    return choice;
+}
 std::uint8_t HumanAssistedDecisionMaker::selectStartingPlayer() {
     std::cout << "\n[" << playstyleToString(m_suggestionStyle) << "]: AI Suggestion:\n";
     if (m_suggestionStyle == Playstyle::SPEARS) {
@@ -491,6 +567,13 @@ size_t AIDecisionMaker::selectProgressToken(const std::vector<size_t>& available
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
+    return dist(gen);
+}
+size_t AIDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availableCards) {
+    if (availableCards.empty()) return 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, availableCards.size() - 1);
     return dist(gen);
 }
 std::uint8_t AIDecisionMaker::selectStartingPlayer() {
