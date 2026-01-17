@@ -64,34 +64,6 @@ void Core::playTurnForCurrentPlayer()
 	if (!cp) return;
 	std::cout << "Playing an extra turn for player\n";
 }
-void Core::drawTokenForCurrentPlayer()
-{
-	Core::Player* cp = getCurrentPlayer();
-	if (!cp) return;
-	std::vector<std::unique_ptr<Models::Token>> combined;
-	auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
-	auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
-	for (auto& t : progressTokens) combined.push_back(std::move(t));
-	for (auto& t : militaryTokens) combined.push_back(std::move(t));
-	if (combined.empty()) return;
-	std::random_device rd; std::mt19937 gen(rd());
-	std::shuffle(combined.begin(), combined.end(), gen);
-	size_t pickCount = std::min<size_t>(3, combined.size());
-	std::cout << "Choose a token: \n";
-	for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
-	size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
-	auto chosen = std::move(combined[choice]);
-	if (chosen) cp->m_player->addToken(std::move(chosen));
-	std::vector<std::unique_ptr<Models::Token>> newProgress;
-	std::vector<std::unique_ptr<Models::Token>> newMilitary;
-	for (auto& tptr : combined) {
-		if (!tptr) continue;
-		if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
-		else newMilitary.push_back(std::move(tptr));
-	}
-	Board::getInstance().setProgressTokens(std::move(newProgress));
-	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
-}
 void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
 	Core::Player* cp = getCurrentPlayer();
@@ -943,11 +915,25 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 	auto chosenToken = std::move(availableTokens[choice]);
 	availableTokens.erase(availableTokens.begin() + choice);
 	if (chosenToken) {
+		std::string tokenName = chosenToken->getName();
+		std::string tokenDesc = chosenToken->getDescription();
+		
 		DisplayRequestEvent choiceEvent;
 		choiceEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-		choiceEvent.context = "You chose the token: " + std::string(chosenToken->getName()) + "\n";
+		choiceEvent.context = "You chose the token: " + tokenName + "\n";
 		notifier.notifyDisplayRequested(choiceEvent);
+		
+		// Add token to player
 		m_player->addToken(std::move(chosenToken));
+		
+		// Notify that a token was acquired
+		Core::TokenEvent tokenEvent;
+		tokenEvent.playerID = static_cast<int>(m_player->getkPlayerId());
+		tokenEvent.playerName = m_player->getPlayerUsername();
+		tokenEvent.tokenName = tokenName;
+		tokenEvent.tokenType = "PROGRESS";
+		tokenEvent.tokenDescription = tokenDesc;
+		Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
 	}
 }
 void Core::Player::takeNewCard()
@@ -981,4 +967,47 @@ void Core::Player::takeNewCard()
  cp->m_player->addCard(std::move(card));
  cp->m_player->getOwnedCards().back()->onPlay();
  std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
+}
+void Core::drawTokenForCurrentPlayer()
+{
+	Core::Player* cp = getCurrentPlayer();
+	if (!cp) return;
+	std::vector<std::unique_ptr<Models::Token>> combined;
+	auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
+	auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
+	for (auto& t : progressTokens) combined.push_back(std::move(t));
+	for (auto& t : militaryTokens) combined.push_back(std::move(t));
+	if (combined.empty()) return;
+	std::random_device rd; std::mt19937 gen(rd());
+	std::shuffle(combined.begin(), combined.end(), gen);
+	size_t pickCount = std::min<size_t>(3, combined.size());
+	std::cout << "Choose a token: \n";
+	for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
+	size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
+	auto chosen = std::move(combined[choice]);
+	if (chosen) {
+		std::string tokenName = chosen->getName();
+		std::string tokenDesc = chosen->getDescription();
+		Models::TokenType tokenType = chosen->getType();
+
+		cp->m_player->addToken(std::move(chosen));
+
+		// Notify that a token was acquired
+		Core::TokenEvent tokenEvent;
+		tokenEvent.playerID = static_cast<int>(cp->m_player->getkPlayerId());
+		tokenEvent.playerName = cp->m_player->getPlayerUsername();
+		tokenEvent.tokenName = tokenName;
+		tokenEvent.tokenType = (tokenType == Models::TokenType::PROGRESS) ? "PROGRESS" : "MILITARY";
+		tokenEvent.tokenDescription = tokenDesc;
+		Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+	}
+	std::vector<std::unique_ptr<Models::Token>> newProgress;
+	std::vector<std::unique_ptr<Models::Token>> newMilitary;
+	for (auto& tptr : combined) {
+		if (!tptr) continue;
+		if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
+		else newMilitary.push_back(std::move(tptr));
+	}
+	Board::getInstance().setProgressTokens(std::move(newProgress));
+	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
 }

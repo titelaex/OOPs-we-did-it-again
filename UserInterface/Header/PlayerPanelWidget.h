@@ -25,6 +25,7 @@ public:
 	void refreshStats();
 	void refreshWonders();
 	void refreshCards();
+	void refreshTokens(); // Add method to refresh tokens display
 
 private:
 	std::shared_ptr<Core::Player> m_player;
@@ -42,6 +43,8 @@ private:
 	QListWidget* m_cardsGreen = nullptr;
 	QListWidget* m_cardsBlue = nullptr;
 	QListWidget* m_cardsPurple = nullptr;
+	
+	QWidget* m_tokensSection = nullptr; // Store tokens section for refresh
 
 	void buildUi();
 	void addStatsRow();

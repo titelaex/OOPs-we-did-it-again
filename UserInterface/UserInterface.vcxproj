@@ -162,6 +162,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <QtMoc Include="DiscardedCardsWidget.h" />
     <QtMoc Include="GameListenerBridge.h" />
     <ClInclude Include="Header\AgeTreeWidget.h" />
@@ -172,6 +173,9 @@
     <QtMoc Include="Header\UserInterface.h" />
     <QtMoc Include="Header\WonderSelectionController.h" />
     <QtMoc Include="Header\WonderSelectionWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UserInterface.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

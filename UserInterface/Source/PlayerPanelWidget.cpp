@@ -10,28 +10,36 @@
 #include <QPalette>
 #include <QMap>
 #include <QResizeEvent>
+#include <QShowEvent>
+#include <QMetaObject>
+#include <QPixmap>
 
 class SpineList : public QListWidget {
 public:
-	explicit SpineList(QWidget* parent = nullptr, int spineWidth = 24)
+	explicit SpineList(QWidget* parent = nullptr, int spineWidth = 20)
 		: QListWidget(parent), m_spineWidth(spineWidth)
 	{
 		setViewMode(QListView::IconMode);
-		setResizeMode(QListView::Adjust);
-		setUniformItemSizes(false);
+		setResizeMode(QListView::Fixed);
+		setUniformItemSizes(true);
 	}
+	
+	void forceUpdateSizes() {
+		updateItemSizes();
+	}
+	
 protected:
 	void resizeEvent(QResizeEvent* event) override {
 		QListWidget::resizeEvent(event);
 		updateItemSizes();
 	}
+	void showEvent(QShowEvent* event) override {
+		QListWidget::showEvent(event);
+		updateItemSizes();
+	}
 private:
 	void updateItemSizes() {
-		int h = viewport()->height();
-		if (h <= 0) return;
-		int vpad = 8;
-		int itemH = std::max(24, h - vpad);
-		QSize sz(m_spineWidth, itemH);
+		QSize sz(m_spineWidth, 45);
 		for (int i = 0; i < count(); ++i) {
 			if (auto it = item(i)) it->setSizeHint(sz);
 		}
@@ -84,25 +92,28 @@ void PlayerPanelWidget::refreshWonders()
 	}
 
 	auto title = new QLabel("Wonders:", this);
-	title->setStyleSheet("font-weight: bold; margin-right:6px;");
+	title->setStyleSheet("font-weight: bold; margin-right:6px; font-size:12px;");
 	title->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
-	m_wondersGrid->addWidget(title, 0, 0, 1, 2);
+	m_wondersGrid->addWidget(title,0,0,1,2);
 
 	bool hasPlayer = (m_player && m_player->m_player);
 
-	for (int i = 0; i < 4; ++i) {
+	for (int i =0; i <4; ++i) {
 		auto slot = new QLabel(this);
 		slot->setAlignment(Qt::AlignCenter);
-		slot->setFixedSize(150, 70);
+		slot->setMinimumSize(110,60);
+		slot->setMaximumSize(130,70);
+		slot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		slot->setWordWrap(true);
 
-		int row = (i / 2) + 1;
-		int col = i % 2;
+		int row = (i /2) +1;
+		int col = i %2;
 
 		if (m_isLeftPanel) {
-			col = 1 - col;
+			col =1 - col;
 		}
 
-		QString emptyStyle = "background-color: rgba(255,255,255,0.04); border:1px solid #374151; border-radius:6px; color:#9CA3AF; font-style:italic;";
+		QString emptyStyle = "background-color: rgba(255,255,255,0.04); border:1px solid #374151; border-radius:6px; color:#9CA3AF; font-style:italic; font-size:10px; padding:2px;";
 
 		if (hasPlayer) {
 			auto& wonders = m_player->m_player->getOwnedWonders();
@@ -112,23 +123,23 @@ void PlayerPanelWidget::refreshWonders()
 				QString name = QStringBuilder(w->getName());
 				bool built = w->IsConstructed();
 
-				slot->setText(name + (built ? "\n(constructed)" : "\n(unbuilt)"));
+				slot->setText(name + (built ? "\n✓" : ""));
 
 				QString style;
 				if (built) {
 					// Gold highlight for constructed wonders
 					style = QString(
 						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 #FFD700, stop:1 #B8860B);"
-						"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700;")
-						.arg(m_isLeftPanel ? 1 : 0)
-						.arg(m_isLeftPanel ? 0 : 1);
+						"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700; font-size:10px; padding:2px;")
+						.arg(m_isLeftPanel ?1 :0)
+						.arg(m_isLeftPanel ?0 :1);
 				} else {
 					QString bg = ColorToCss(w->getColor());
 					style = QString(
 						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
-						"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600;")
-						.arg(m_isLeftPanel ? 1 : 0)
-						.arg(m_isLeftPanel ? 0 : 1)
+						"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600; font-size:10px; padding:2px;")
+						.arg(m_isLeftPanel ?1 :0)
+						.arg(m_isLeftPanel ?0 :1)
 						.arg(bg);
 				}
 
@@ -165,7 +176,7 @@ void PlayerPanelWidget::buildUi()
 	QString username = m_player && m_player->m_player ? QStringBuilder(m_player->m_player->getPlayerUsername()) : QString("<unknown>");
 
 	auto usernameLbl = new QLabel(username, this);
-	usernameLbl->setStyleSheet("font-size:18px; font-weight: bold; margin-bottom:6px;");
+	usernameLbl->setStyleSheet("font-size:18px; font-weight: bold; margin-bottom:3px;");
 	usernameLbl->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
 	m_layout->addWidget(usernameLbl);
 
@@ -173,8 +184,6 @@ void PlayerPanelWidget::buildUi()
 	addProgressTokensSection();
 	addCardSections();
 	addWonderSection();
-
-	m_layout->addStretch(1);
 }
 
 void PlayerPanelWidget::addWonderSection()
@@ -182,8 +191,8 @@ void PlayerPanelWidget::addWonderSection()
 	QWidget* wondersSection = new QWidget(this);
 
 	m_wondersGrid = new QGridLayout(wondersSection);
-	m_wondersGrid->setContentsMargins(4, 4, 4, 4);
-	m_wondersGrid->setSpacing(8);
+	m_wondersGrid->setContentsMargins(4,4,4,4);
+	m_wondersGrid->setSpacing(6);
 
 	m_layout->addWidget(wondersSection);
 
@@ -193,14 +202,20 @@ void PlayerPanelWidget::addWonderSection()
 
 void PlayerPanelWidget::addProgressTokensSection()
 {
-	QWidget* tokensSection = new QWidget(this);
-	auto* tokensLayout = new QHBoxLayout(tokensSection);
+	// If section already exists, remove it first
+	if (m_tokensSection) {
+		m_layout->removeWidget(m_tokensSection);
+		delete m_tokensSection;
+		m_tokensSection = nullptr;
+	}
+	
+	m_tokensSection = new QWidget(this);
+	auto* tokensLayout = new QHBoxLayout(m_tokensSection);
 	tokensLayout->setContentsMargins(4, 4, 4, 4);
 	tokensLayout->setSpacing(8);
 	tokensLayout->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
 
 	QString baseStyle = "color:#F9FAFB; font-size:11px; padding:0;";
-	QString circleStyleFilled = baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; width:36px; height:36px; background-color:#4B5563;";
 	QString circleStyleEmpty = baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; width:36px; height:36px; background-color:transparent;";
 
 	int rendered = 0;
@@ -208,29 +223,58 @@ void PlayerPanelWidget::addProgressTokensSection()
 		const auto& ownedTokens = m_player->m_player->getOwnedTokens();
 		for (const auto& t : ownedTokens) {
 			if (!t) continue;
-			auto tokenLbl = new QLabel(QString(), tokensSection);
+			
+			QString tokenName = QStringBuilder(t->getName());
+			
+			// Try to load token image
+			QString imagePath = QString("Resources/tokens/%1.png").arg(tokenName);
+			QPixmap tokenPixmap(imagePath);
+			
+			// If file system load fails, try from Qt resources
+			if (tokenPixmap.isNull()) {
+				imagePath = QString(":/tokens/%1.png").arg(tokenName);
+				tokenPixmap = QPixmap(imagePath);
+			}
+			
+			auto tokenLbl = new QLabel(QString(), m_tokensSection);
 			tokenLbl->setFixedSize(36, 36);
 			tokenLbl->setAlignment(Qt::AlignCenter);
-			tokenLbl->setStyleSheet(circleStyleFilled);
-			tokenLbl->setToolTip(QStringBuilder(t->getName()));
-
-			QString name = QStringBuilder(t->getName());
-			if (!name.isEmpty()) {
-				QString initials = name.section(' ', 0, 0).left(2).toUpper();
+			tokenLbl->setToolTip(tokenName);
+			
+			if (!tokenPixmap.isNull()) {
+				// Scale image to fit the circle
+				QPixmap scaledPixmap = tokenPixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				tokenLbl->setPixmap(scaledPixmap);
+				tokenLbl->setStyleSheet(baseStyle + "border:2px solid #0ea5e9; border-radius:18px; background-color:#0284c7; padding:2px;");
+			} else {
+				// Fallback to initials if image not found
+				QString initials = tokenName.section(' ', 0, 0).left(2).toUpper();
 				tokenLbl->setText(initials);
+				tokenLbl->setStyleSheet(baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; background-color:#4B5563;");
 			}
+			
 			tokensLayout->addWidget(tokenLbl);
 			if (++rendered >= 3) break;
 		}
 	}
+	
+	// Add empty placeholder slots
 	for (; rendered < 3; ++rendered) {
-		auto placeholder = new QLabel(QString(), tokensSection);
+		auto placeholder = new QLabel(QString(), m_tokensSection);
 		placeholder->setFixedSize(36, 36);
 		placeholder->setAlignment(Qt::AlignCenter);
 		placeholder->setStyleSheet(circleStyleEmpty);
 		tokensLayout->addWidget(placeholder);
 	}
-	m_layout->addWidget(tokensSection);
+	
+	// Insert after stats row (position 1, after username which is 0)
+	m_layout->insertWidget(2, m_tokensSection);
+}
+
+void PlayerPanelWidget::refreshTokens()
+{
+	// Simply rebuild the tokens section
+	addProgressTokensSection();
 }
 
 void PlayerPanelWidget::refreshStats()
@@ -256,7 +300,7 @@ void PlayerPanelWidget::addStatsRow()
 	}
 
 	auto statsRow = new QHBoxLayout();
-	statsRow->setSpacing(12);
+	statsRow->setSpacing(8);
 
 	m_coinsLabel = new QLabel(QString::number(coinsVal), this);
 	m_coinsLabel->setAlignment(Qt::AlignCenter);
@@ -308,9 +352,18 @@ void PlayerPanelWidget::refreshCards()
 		QString name = QStringBuilder(uptr->getName());
 		auto* item = new QListWidgetItem(name);
 		item->setToolTip(name);
-		item->setSizeHint(QSize(24, 120));
+		// Size will be set by SpineList::updateItemSizes()
 		item->setData(Qt::BackgroundRole, QColor(ColorToCss(uptr->getColor())));
 		list->addItem(item);
+	}
+	
+	// Force update of item sizes after adding items
+	for (auto* l : lists) {
+		if (l && l->count() > 0) {
+			if (auto* spine = dynamic_cast<SpineList*>(l)) {
+				spine->forceUpdateSizes();
+			}
+		}
 	}
 }
 
@@ -319,24 +372,28 @@ void PlayerPanelWidget::addCardSections()
 	auto makeSection = [&](Models::ColorType col, QListWidget*& outList) {
 		QWidget* section = new QWidget(this);
 		auto sectionLayout = new QVBoxLayout(section);
-		sectionLayout->setContentsMargins(8, 8, 8, 8);
-		sectionLayout->setSpacing(6);
+		sectionLayout->setContentsMargins(4,4,4,4);
+		sectionLayout->setSpacing(0);
+		section->setMinimumHeight(54);
+		section->setMaximumHeight(54);
+		section->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 		QString bg = this->palette().color(QPalette::Window).name();
 		QString sectionStyle = QString(
 			"background: qlineargradient(x1:%3, y1:0, x2:%4, y2:0, stop:0 %1,stop:0.05 %1, stop:0.2 %2);"
 			"border:1px solid #374151; border-radius:6px;"
-		).arg(ColorToCss(col)).arg(bg).arg(m_isLeftPanel ? 1 : 0).arg(m_isLeftPanel ? 0 : 1);
+		).arg(ColorToCss(col)).arg(bg).arg(m_isLeftPanel ?1 :0).arg(m_isLeftPanel ?0 :1);
 		section->setStyleSheet(sectionStyle);
 
-		outList = new SpineList(section);
+		outList = new SpineList(section, 20);
 		outList->setFlow(QListView::LeftToRight);
-		outList->setWrapping(true);
-		outList->setResizeMode(QListView::Adjust);
-		outList->setSpacing(4);
+		outList->setWrapping(false);
+		outList->setResizeMode(QListView::Fixed);
+		outList->setSpacing(3);
 		outList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		outList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		outList->setSelectionMode(QAbstractItemView::SingleSelection);
+		outList->setSelectionMode(QAbstractItemView::NoSelection);
+		outList->setFixedHeight(50);
 
 		outList->setLayoutDirection(m_isLeftPanel ? Qt::RightToLeft : Qt::LeftToRight);
 
@@ -349,7 +406,7 @@ void PlayerPanelWidget::addCardSections()
 
 		sectionLayout->addWidget(outList);
 		m_layout->addWidget(section);
-		};
+	};
 
 	makeSection(Models::ColorType::BROWN, m_cardsBrown);
 	makeSection(Models::ColorType::GREY, m_cardsGrey);

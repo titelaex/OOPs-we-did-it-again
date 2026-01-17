@@ -113,11 +113,13 @@ void AgeTreeWidget::refreshPanels()
 		m_leftPanel->refreshStats();
 		m_leftPanel->refreshCards();
 		m_leftPanel->refreshWonders();
+		m_leftPanel->refreshTokens();
 	}
 	if (m_rightPanel) {
 		m_rightPanel->refreshStats();
 		m_rightPanel->refreshCards();
 		m_rightPanel->refreshWonders();
+		m_rightPanel->refreshTokens();
 	}
 }
 
@@ -240,6 +242,79 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			card = node->getCard();
 			if (!card) return;
 			continue;
+		}
+
+		// success - check if player got matching scientific symbols
+		if (action == 0 && card) { // Only check after building a card
+			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
+			if (ageCard && ageCard->getScientificSymbols().has_value()) {
+				auto targetSymbol = ageCard->getScientificSymbols().value();
+				
+				// Count how many of this symbol the player now has
+				int symbolCount = 0;
+				const auto& inventory = cur->m_player->getOwnedCards();
+				for (const auto& ownedCardPtr : inventory) {
+					if (auto* ownedAgeCard = dynamic_cast<const Models::AgeCard*>(ownedCardPtr.get())) {
+						auto sym = ownedAgeCard->getScientificSymbols();
+						if (sym.has_value() && sym.value() == targetSymbol) {
+							symbolCount++;
+						}
+					}
+				}
+				
+				// If they now have exactly 2, show message and let them choose a token
+				if (symbolCount == 2) {
+					QString playerName = (m_currentPlayerIndex == 0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
+						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
+						: (gs.GetPlayer2() && gs.GetPlayer2()->m_player) 
+							? QString::fromStdString(gs.GetPlayer2()->m_player->getPlayerUsername()) 
+							: QString("Player");
+					
+					QMessageBox::information(this, 
+						"Simboluri Stiintifice!", 
+						QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
+					
+					// Enable token selection on the board
+					// We need access to BoardWidget - let's emit a signal or use a callback
+					if (onRequestTokenSelection) {
+						onRequestTokenSelection([cur, this](int tokenIndex) {
+							// Player clicked a token
+							auto& board = Core::Board::getInstance();
+							auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
+							
+							if (tokenIndex >= 0 && tokenIndex < static_cast<int>(availableTokens.size())) {
+								auto chosenToken = std::move(availableTokens[tokenIndex]);
+								availableTokens.erase(availableTokens.begin() + tokenIndex);
+								
+								if (chosenToken) {
+									std::string tokenName = chosenToken->getName();
+									std::string tokenDesc = chosenToken->getDescription();
+									
+									// Add token to player
+									cur->m_player->addToken(std::move(chosenToken));
+									
+									// Notify that a token was acquired
+									Core::TokenEvent tokenEvent;
+									tokenEvent.playerID = static_cast<int>(cur->m_player->getkPlayerId());
+									tokenEvent.playerName = cur->m_player->getPlayerUsername();
+									tokenEvent.tokenName = tokenName;
+									tokenEvent.tokenType = "PROGRESS";
+									tokenEvent.tokenDescription = tokenDesc;
+									Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+									
+									// Disable token selection
+									if (onDisableTokenSelection) {
+										onDisableTokenSelection();
+									}
+									
+									// Refresh panels to show the new token
+									refreshPanels();
+								}
+							}
+						});
+					}
+				}
+			}
 		}
 
 		// success
@@ -392,6 +467,13 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setFrameStyle(QFrame::NoFrame);
 	m_view->setAlignment(Qt::AlignCenter);
+
+	// Make background transparent
+	m_scene->setBackgroundBrush(Qt::NoBrush);
+	m_view->setStyleSheet("background: transparent;");
+	if (m_view->viewport()) {
+		m_view->viewport()->setStyleSheet("background: transparent;");
+	}
 
 	const int cardW = 180;
 	const int cardH = 110;

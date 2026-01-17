@@ -514,11 +514,55 @@ namespace Core {
 			std::bitset<19> pawnTrack;
 			pawnTrack.set(8);
 			board.setPawnTrack(pawnTrack);
-			auto allTokens = parseTokensFromCSV("Config/Tokens.csv");
+
+			auto& notifier = GameState::getInstance().getEventNotifier();
+			DisplayRequestEvent debugEvent;
+			debugEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+
+			// Find the tokens CSV file using the same logic as other CSV files
+			auto findExistingPath = [](const std::vector<std::string>& candidates) -> std::string {
+				for (const auto& p : candidates) {
+					try { if (std::filesystem::exists(p)) return p; }
+					catch (...) {}
+				}
+				return std::string{};
+				};
+
+			const std::vector<std::string> tokenCandidates = {
+				"Config/Tokens.csv", "../Config/Tokens.csv", "../../Config/Tokens.csv",
+				"Core/Config/Tokens.csv", "../Core/Config/Tokens.csv", "../../Core/Config/Tokens.csv",
+				"Tokens.csv", "Resources/Tokens.csv", "Core/Resources/Tokens.csv",
+				"../Core/Resources/Tokens.csv", "../ModelsDLL/Tokens.csv", "ModelsDLL/Tokens.csv"
+			};
+
+			std::string tokenPath = findExistingPath(tokenCandidates);
+			if (tokenPath.empty()) {
+				debugEvent.context = "[ERROR] Tokens.csv file not found in any candidate path!";
+				notifier.notifyDisplayRequested(debugEvent);
+				throw std::runtime_error("Tokens.csv not found");
+			}
+
+			debugEvent.context = "Loading tokens from: " + tokenPath;
+			notifier.notifyDisplayRequested(debugEvent);
+
+			auto allTokens = parseTokensFromCSV(tokenPath);
+
+			debugEvent.context = "Loaded " + std::to_string(allTokens.size()) + " tokens from CSV";
+			notifier.notifyDisplayRequested(debugEvent);
+
 			auto [progressSelected, military] = startGameTokens(std::move(allTokens));
+
+			debugEvent.context = "Selected " + std::to_string(progressSelected.size()) + " progress tokens and " +
+				std::to_string(military.size()) + " military tokens";
+			notifier.notifyDisplayRequested(debugEvent);
+
 			Core::Board::getInstance().setProgressTokens(std::move(progressSelected));
 			Core::Board::getInstance().setMilitaryTokens(std::move(military));
 			Core::Board::getInstance().setUnusedProgressTokens(std::move(*setupUnusedProgressTokens));
+
+			debugEvent.context = "Tokens setup complete - board should now have " +
+				std::to_string(board.getProgressTokens().size()) + " progress tokens";
+			notifier.notifyDisplayRequested(debugEvent);
 		}
 		catch (const std::exception& ex) {
 			auto& notifier = GameState::getInstance().getEventNotifier();
@@ -526,6 +570,7 @@ namespace Core {
 			event.displayType = DisplayRequestEvent::Type::ERROR;
 			event.context = std::string("Preparation exception: ") + ex.what();
 			notifier.notifyDisplayRequested(event);
+			throw;
 		}
 		catch (...) {
 			auto& notifier = GameState::getInstance().getEventNotifier();
@@ -533,6 +578,7 @@ namespace Core {
 			event.displayType = DisplayRequestEvent::Type::ERROR;
 			event.context = "Unknown exception during preparation";
 			notifier.notifyDisplayRequested(event);
+			throw;
 		}
 	}
 	void Game::PrepareBoardCardPools() {
@@ -1031,7 +1077,20 @@ namespace Core {
 					std::unique_ptr<Models::Token> t = std::move(military.back());
 					military.pop_back();
 					if (t) {
-						if (receiver.m_player) receiver.m_player->addToken(std::move(t));
+						std::string tokenName = t->getName();
+						std::string tokenDesc = t->getDescription();
+
+						if (receiver.m_player) {
+							receiver.m_player->addToken(std::move(t));
+
+							Core::TokenEvent tokenEvent;
+							tokenEvent.playerID = static_cast<int>(receiver.m_player->getkPlayerId());
+							tokenEvent.playerName = receiver.m_player->getPlayerUsername();
+							tokenEvent.tokenName = tokenName;
+							tokenEvent.tokenType = "MILITARY";
+							tokenEvent.tokenDescription = tokenDesc;
+							Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+						}
 					}
 				}
 				break;
@@ -1958,6 +2017,28 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 		if (cardPtr) {
 			node->setCard(std::move(cardPtr));
 			return false;
+		}
+
+		// Check for shields and move pawn if card was built
+		if (action == 0) {  // Build action
+			uint8_t shields = 0;
+			// Get shields from the card that was just built
+			if (cur->m_player) {
+				const auto& ownedCards = cur->m_player->getOwnedCards();
+				if (!ownedCards.empty()) {
+					const auto* lastCard = ownedCards.back().get();
+					if (auto ac = dynamic_cast<const Models::AgeCard*>(lastCard)) {
+						shields = static_cast<uint8_t>(ac->getShieldPoints());
+					}
+				}
+			}
+			
+			if (shields > 0) {
+				// Determine which player built the card
+				bool isPlayer1 = (cur == p1.get());
+				int steps = isPlayer1 ? static_cast<int>(shields) : -static_cast<int>(shields);
+				Game::movePawn(steps);
+			}
 		}
 
 		// Successful: tree updates + notifier.

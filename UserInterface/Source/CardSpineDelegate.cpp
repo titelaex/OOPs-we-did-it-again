@@ -15,8 +15,8 @@ QSize CardSpineDelegate::sizeHint(const QStyleOptionViewItem& option, const QMod
 {
 	Q_UNUSED(option);
 	Q_UNUSED(index);
-	// A thin vertical "book spine"
-	return QSize(24,120);
+	// Match the fixed section height (32px)
+	return QSize(20, 45);
 }
 
 void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -24,7 +24,7 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 	painter->save();
 	painter->setRenderHint(QPainter::Antialiasing, true);
 
-	const QRect r = option.rect.adjusted(2,2, -2, -2);
+	const QRect r = option.rect.adjusted(1,1,-1,-1);
 
 	QColor bg = index.data(Qt::BackgroundRole).value<QColor>();
 	if (!bg.isValid()) bg = QColor("#374151");
@@ -33,44 +33,36 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 	if (option.state & QStyle::State_Selected) border = QColor("#F59E0B");
 
 	QPainterPath path;
-	path.addRoundedRect(r,6,6);
+	path.addRoundedRect(r,4,4);
 	painter->fillPath(path, bg);
-	painter->setPen(QPen(border,2));
+	painter->setPen(QPen(border,1));
 	painter->drawPath(path);
 
-	painter->setPen(QPen(QColor(255,255,255,35),2));
-	painter->drawLine(r.topLeft() + QPoint(2,2), r.bottomLeft() + QPoint(2, -2));
+	painter->setPen(QPen(QColor(255,255,255,35),1));
+	painter->drawLine(r.topLeft() + QPoint(2,2), r.bottomLeft() + QPoint(2,-2));
 
 	const QString text = index.data(Qt::DisplayRole).toString();
 	if (text.isEmpty()) { painter->restore(); return; }
 
 	painter->setClipPath(path);
 
-	// We draw "vertical" text by rotating -90 degrees. In rotated coordinates:
-	// - X grows along original height (this is where the text lays out horizontally)
-	// - Y grows along original width (this is the limited dimension)
-	const int padX =6; // padding along text direction (in rotated coords)
+	// Rotated text: draw vertically by rotating -90 degrees
+	const int padX =4; // padding along text direction
 	const int padY =2; // padding perpendicular to text
 	const int availableX = r.height() -2 * padX; // available width in rotated coords
 	const int availableY = r.width() -2 * padY; // available height in rotated coords
 
 	QFont f = option.font;
 	f.setBold(true);
-	// Make the font as large as possible while still allowing at least1 line.
-	int pt = f.pointSize();
-	if (pt <=0) pt =10;
-	f.setPointSize(pt);
+	f.setPointSize(7); // Start with smaller font for compact spines
 
-	// Helper to wrap into N lines without breaking words unless needed.
+	// Helper to wrap into lines
 	auto wrapIntoLines = [](const QString& s, int maxWidth, const QFontMetrics& fm) {
-		QString t = s;
-		// normalize whitespace
-		t = t.simplified();
+		QString t = s.simplified();
 		QStringList words = t.split(' ', Qt::SkipEmptyParts);
 		QStringList lines;
 
 		auto pushWordWrapped = [&](const QString& w) {
-			// If a single word is too long, hard-wrap by characters.
 			QString cur;
 			for (int i =0; i < w.size(); ++i) {
 				QString next = cur + w.at(i);
@@ -106,18 +98,18 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 		return lines;
 	};
 
-	// Find a font size that allows the wrapped lines to fit into availableY.
+	// Find a font size that fits
 	QStringList bestLines;
-	for (int attempt =0; attempt <20; ++attempt) {
+	for (int attempt =0; attempt <15; ++attempt) {
 		QFontMetrics fm(f);
 		QStringList lines = wrapIntoLines(text, availableX, fm);
 		int lineH = fm.height();
 		int totalH = lineH * lines.size();
-		if (totalH <= availableY || f.pointSize() <=6) {
+		if (totalH <= availableY || f.pointSize() <=5) {
 			bestLines = lines;
 			break;
 		}
-		f.setPointSize(std::max(6, f.pointSize() -1));
+		f.setPointSize(std::max(5, f.pointSize() -1));
 	}
 	if (bestLines.isEmpty()) bestLines = QStringList{ text };
 

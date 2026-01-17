@@ -2,8 +2,10 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsEllipseItem>
 #include <vector>
 #include <memory>
+#include <functional>
 
 class QResizeEvent;
 
@@ -17,15 +19,25 @@ public:
 	explicit BoardWidget(QWidget* parent = nullptr);
 	void refresh();
 	void setPawnPosition(int position);
+	
+	// Enable/disable token selection mode
+	void enableTokenSelection(std::function<void(int)> onTokenClicked);
+	void disableTokenSelection();
+
+signals:
+	void tokenClicked(int tokenIndex);
 
 protected:
 	void resizeEvent(QResizeEvent* event) override;
 
 private:
-	int m_pawnPosition = 0;
+	int m_pawnPosition = -1; // -1 means use board position, >= 0 means override
 	QGraphicsView* m_view{ nullptr };
 	QGraphicsScene* m_scene{ nullptr };
+	bool m_tokenSelectionEnabled = false;
+	std::function<void(int)> m_onTokenClicked;
+	std::vector<QGraphicsEllipseItem*> m_tokenItems;
+	
 	void drawBoard();
 	void drawPawn(int position, int minPos, int maxPos);
-	void drawProgressTokens(const std::vector<std::unique_ptr<Models::Token>>& tokens);
 };

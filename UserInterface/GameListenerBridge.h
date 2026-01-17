@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <QObject>
 #include <memory>
+#include <QDebug> // Include qdebug for debug output
 
 import Models.Player;
 import Core.Player;
@@ -30,7 +31,13 @@ public:
     void onResourceGained(const Core::ResourceEvent& e) override {}
     void onResourceLost(const Core::ResourceEvent& e) override {}
     void onCoinsChanged(const Core::CoinEvent& e) override {}
-    void onTokenAcquired(const Core::TokenEvent& e) override {}
+    void onTokenAcquired(const Core::TokenEvent& e) override {
+        qDebug() << "[GameListenerBridge] onTokenAcquired called for player" << e.playerName.c_str() << "- token:" << e.tokenName.c_str();
+        qDebug() << "[GameListenerBridge] Emitting boardRefreshRequested signal";
+        // When a player acquires a token, refresh the board to show updated token list
+        emit boardRefreshRequested();
+        qDebug() << "[GameListenerBridge] Signal emitted";
+    }
     void onTurnStarted(const Core::TurnEvent& e) override {}
     void onTurnEnded(const Core::TurnEvent& e) override {}
     void onPhaseChanged(const Core::PhaseEvent& e) override {}
@@ -48,14 +55,20 @@ public:
     void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& w) override {}
     void displayPlayerHands(const Core::Player& p1, const Core::Player& p2) override {}
     void displayTurnStatus(const Core::Player& p1, const Core::Player& p2) override {}
-    void displayBoard() override {}
+    void displayBoard() override {
+        // Trigger board refresh when backend calls displayBoard()
+        emit boardRefreshRequested();
+    }
     void displayMessage(const std::string& m) override {}
     void displayError(const std::string& e) override {}
     void displayWarning(const std::string& w) override {}
+    
 private:
     std::shared_ptr<GameListenerBridge> m_gameListener;
+    
 signals:
     void pawnMovedSignal(int newPosition);
     void treeNodeChangedSignal(int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty);
     void treeNodeEmptiedSignal(int ageIndex, int nodeIndex);
+    void boardRefreshRequested();
 };

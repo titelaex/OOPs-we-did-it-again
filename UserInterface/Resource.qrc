@@ -1,0 +1,16 @@
+﻿<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource>
+		<file>Resources/tokens/Agriculture.png</file>
+		<file>Resources/tokens/Architecture.png</file>
+		<file>Resources/tokens/Economy.png</file>
+		<file>Resources/tokens/Law.png</file>
+		<file>Resources/tokens/Masonry.png</file>
+		<file>Resources/tokens/Mathematics.png</file>
+		<file>Resources/tokens/Philosophy.png</file>
+		<file>Resources/tokens/Strategy.png</file>
+		<file>Resources/tokens/Theology.png</file>
+		<file>Resources/tokens/Urbanism.png</file>
+		<file>Resources/images/background.jpg</file>
+	</qresource>
+</RCC>

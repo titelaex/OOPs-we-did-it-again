@@ -32,6 +32,10 @@ public:
     std::function<void(int nodeIndex, int age)> onLeafClicked; // Called when user clicks a card
     std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; // Called after successful action
 
+    // Callback for requesting token selection from the board
+    std::function<void(std::function<void(int)>)> onRequestTokenSelection;
+    std::function<void()> onDisableTokenSelection;
+
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 

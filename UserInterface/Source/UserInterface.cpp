@@ -35,12 +35,37 @@ UserInterface::UserInterface(QWidget* parent)
 {
 	ui.setupUi(this);
 	
-	initializePlayers();
-	setupLayout();
-	initializeGame();
+	// Set background image - using Qt Resource system (preferred)
+	setStyleSheet(
+		"QMainWindow {"
+		"  background-image: url(:/images/background.jpg);"
+		"  background-position: center;"
+		"  background-repeat: no-repeat;"
+		"}"
+		// Make widgets transparent so background shows through
+		"QWidget#centerContainer {"
+		"  background: transparent;"
+		"}"
+		"QScrollArea {"
+		"  background: transparent;"
+		"  border: none;"
+		"}"
+		"QSplitter {"
+		"  background: transparent;"
+		"}"
+	);
+	
+	setupLayout();     // Create widgets first (but don't populate yet)
+	initializeGame();  // Register listener BEFORE preparing game
+	initializePlayers();     // This calls Core::Game::preparation() which sets up tokens
 	startWonderSelection();
 
-	if (m_boardWidget) m_boardWidget->refresh();
+	// Force refresh after all initialization is complete
+	if (m_boardWidget) {
+		qDebug() << "Initial board refresh with token count:" 
+		  << Core::Board::getInstance().getProgressTokens().size();
+		m_boardWidget->refresh();
+	}
 }
 
 UserInterface::~UserInterface()
@@ -78,37 +103,46 @@ void UserInterface::initializePlayers()
 void UserInterface::setupLayout()
 {
 	auto splitter = new QSplitter(this);
+	splitter->setAttribute(Qt::WA_TranslucentBackground); // Make splitter transparent
 	auto& gameState = Core::GameState::getInstance();
 
-	// Left panel
-	m_leftPanel = new PlayerPanelWidget(gameState.GetPlayer1(), splitter, true);
+	// Left panel with scroll area
+	m_leftPanel = new PlayerPanelWidget(gameState.GetPlayer1(), nullptr, true);
 	auto leftScroll = new QScrollArea(splitter);
 	leftScroll->setWidgetResizable(true);
 	leftScroll->setWidget(m_leftPanel);
-	leftScroll->setMinimumWidth(260);
-	leftScroll->setMaximumWidth(320);
+	leftScroll->setMinimumWidth(280);
+	leftScroll->setMaximumWidth(280);
 	leftScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+	leftScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	leftScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	leftScroll->setStyleSheet("QScrollArea { background: transparent; border: none; }");
+	leftScroll->viewport()->setStyleSheet("background: transparent;"); // Important!
 	splitter->addWidget(leftScroll);
 
 	// Center container
 	setupCenterPanel(splitter);
 
-	// Right panel
-	m_rightPanel = new PlayerPanelWidget(gameState.GetPlayer2(), splitter, false);
+	// Right panel with scroll area
+	m_rightPanel = new PlayerPanelWidget(gameState.GetPlayer2(), nullptr, false);
 	auto rightScroll = new QScrollArea(splitter);
 	rightScroll->setWidgetResizable(true);
 	rightScroll->setWidget(m_rightPanel);
-	rightScroll->setMinimumWidth(260);
-	rightScroll->setMaximumWidth(320);
+	rightScroll->setMinimumWidth(280);
+	rightScroll->setMaximumWidth(280);
 	rightScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+	rightScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	rightScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	rightScroll->setStyleSheet("QScrollArea { background: transparent; border: none; }");
+	rightScroll->viewport()->setStyleSheet("background: transparent;"); // Important!
 	splitter->addWidget(rightScroll);
 
 	// Splitter configuration
 	splitter->setStretchFactor(0,0);
 	splitter->setStretchFactor(1,1);
 	splitter->setStretchFactor(2,0);
-	splitter->setCollapsible(0, true);
-	splitter->setCollapsible(2, true);
+	splitter->setCollapsible(0, false);
+	splitter->setCollapsible(2, false);
 
 	setCentralWidget(splitter);
 }
@@ -116,6 +150,9 @@ void UserInterface::setupLayout()
 void UserInterface::setupCenterPanel(QSplitter* splitter)
 {
 	m_centerContainer = new QWidget(splitter);
+	m_centerContainer->setObjectName("centerContainer"); // Set object name for stylesheet
+	m_centerContainer->setAttribute(Qt::WA_TranslucentBackground); // Make transparent
+	
 	auto* centerLayout = new QVBoxLayout(m_centerContainer);
 	centerLayout->setContentsMargins(0,0,0,0);
 	centerLayout->setSpacing(0);
@@ -140,6 +177,7 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 
 	// Middle: Wonder selection / Age tree
 	m_centerMiddle = new QWidget(m_centerContainer);
+	m_centerMiddle->setAttribute(Qt::WA_TranslucentBackground); // Transparent
 	auto* middleLayout = new QVBoxLayout(m_centerMiddle);
 	middleLayout->setContentsMargins(8,8,8,8);
 	middleLayout->setSpacing(8);
@@ -148,6 +186,7 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 
 	// Bottom: Board
 	m_centerBottom = new QWidget(m_centerContainer);
+	m_centerBottom->setAttribute(Qt::WA_TranslucentBackground); // Transparent
 	m_centerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_centerBottom->setMinimumHeight(250);
 	auto* bottomLayout = new QVBoxLayout(m_centerBottom);
@@ -246,6 +285,20 @@ void UserInterface::showAgeTree(int age)
 	// Create age tree widget and insert it into the middle panel
 	m_ageTreeWidget = new AgeTreeWidget(m_centerMiddle);
 	m_ageTreeWidget->setPlayerPanels(m_leftPanel, m_rightPanel);
+	
+	// Connect token selection requests from AgeTreeWidget to BoardWidget
+	m_ageTreeWidget->onRequestTokenSelection = [this](std::function<void(int)> onTokenClicked) {
+		if (m_boardWidget) {
+			m_boardWidget->enableTokenSelection(onTokenClicked);
+		}
+	};
+	
+	m_ageTreeWidget->onDisableTokenSelection = [this]() {
+		if (m_boardWidget) {
+			m_boardWidget->disableTokenSelection();
+		}
+	};
+	
 	if (m_centerMiddle && m_centerMiddle->layout()) {
 		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
 	}
@@ -516,7 +569,39 @@ void UserInterface::initializeGame() {
 		connect(m_gameListener.get(), &GameListenerBridge::pawnMovedSignal,
 			m_boardWidget, &BoardWidget::setPawnPosition,
 			Qt::QueuedConnection);
+		
+		// Also refresh board when pawn moves (to ensure UI updates)
+		connect(m_gameListener.get(), &GameListenerBridge::pawnMovedSignal,
+			this, [this](int newPosition) {
+				qDebug() << "[UserInterface] Pawn moved to position:" << newPosition;
+				if (m_boardWidget) {
+					m_boardWidget->refresh();
+				}
+			}, Qt::QueuedConnection);
+		
+		// Refresh board when tokens change or displayBoard is called
+		connect(m_gameListener.get(), &GameListenerBridge::boardRefreshRequested,
+			m_boardWidget, &BoardWidget::refresh,
+			Qt::QueuedConnection);
 	}
+	
+	// Refresh player panels when tokens are acquired
+	connect(m_gameListener.get(), &GameListenerBridge::boardRefreshRequested,
+		this, [this]() {
+			qDebug() << "[UserInterface] boardRefreshRequested slot triggered";
+			qDebug() << "Token acquired - refreshing player panels";
+			if (m_leftPanel) {
+				m_leftPanel->refreshTokens();
+				m_leftPanel->update();
+				m_leftPanel->repaint();
+			}
+			if (m_rightPanel) {
+				m_rightPanel->refreshTokens();
+				m_rightPanel->update();
+				m_rightPanel->repaint();
+			}
+			qDebug() << "[UserInterface] Player panels refreshed";
+		}, Qt::QueuedConnection);
 
 	// Register listener to backend notifier (observer pattern)
 	Core::Game::getNotifier().addListener(m_gameListener);
@@ -537,5 +622,11 @@ void UserInterface::initializeGame() {
 
 	// Initial sync (in case the pawn already has a non-zero position)
 	auto& board = Core::Board::getInstance();
-	if (m_boardWidget) m_boardWidget->setPawnPosition(static_cast<int>(board.getPawnPos()));
+	if (m_boardWidget) {
+		m_boardWidget->setPawnPosition(static_cast<int>(board.getPawnPos()));
+		// Also do an initial refresh to show tokens
+		m_boardWidget->refresh();
+	}
+	
+	qDebug() << "Game listener initialized and connected";
 }

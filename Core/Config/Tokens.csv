@@ -1,6 +1,6 @@
 type,name,description,coins,victory,shield,onPlayActions
 "PROGRESS","Agriculture,Take 6 coins from the bank",6,4,,"getVictoryPoints, getCoins, applyToken"
-"PROGRESS","Arhchitecture,Any furure Wonders built by you will cost 2 fewer resources.At each construction you are free to choose which resources this rebate affects.",,,,"applyToken"
+"PROGRESS","Architecture,Any furure Wonders built by you will cost 2 fewer resources.At each construction you are free to choose which resources this rebate affects.",,,,"applyToken"
 "PROGRESS","Economy,You get the money spent by your opponent when they trade for resources",,,,"applyToken"
 "PROGRESS","Law,Is worth a scientific symbol",,,,"lawTokenEffect, applyToken"
 "PROGRESS","Masonry,Any future blue cards constructed by you will cost 2 fewer resources.",,,,"applyToken"
