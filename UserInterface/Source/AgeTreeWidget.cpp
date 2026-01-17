@@ -344,12 +344,11 @@ void AgeTreeWidget::showAgeTree(int age)
 	qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
 		<< " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
 
-	// Phase 2 transition message (centered). Show once.
+	// Phase transitions (centered). Show once per phase.
 	static bool s_phase2Shown = false;
-	if (age == 2 && !s_phase2Shown) {
-		s_phase2Shown = true;
+	static bool s_phase3Shown = false;
 
-		// remove everything currently in this widget
+	auto clearWidgetSurface = [&]() {
 		if (auto oldLayout = this->layout()) {
 			while (auto item = oldLayout->takeAt(0)) {
 				if (auto w = item->widget()) w->deleteLater();
@@ -368,13 +367,17 @@ void AgeTreeWidget::showAgeTree(int age)
 			m_scene = nullptr;
 		}
 		m_proxyMap.clear();
+	};
+
+	auto showPhaseMessage = [&](const QString& text, int phaseToShowTree) {
+		clearWidgetSurface();
 
 		auto* msgLayout = new QVBoxLayout(this);
 		msgLayout->setContentsMargins(0, 0, 0, 0);
 		msgLayout->setSpacing(0);
 		msgLayout->setAlignment(Qt::AlignCenter);
 
-		QLabel* phaseMsg = new QLabel("Phase 2 incepe", this);
+		QLabel* phaseMsg = new QLabel(text, this);
 		phaseMsg->setAlignment(Qt::AlignCenter);
 		phaseMsg->setStyleSheet("color: white;");
 		QFont f = phaseMsg->font();
@@ -387,33 +390,63 @@ void AgeTreeWidget::showAgeTree(int age)
 		setLayout(msgLayout);
 
 		QPointer<AgeTreeWidget> guard(this);
-		QTimer::singleShot(1800, this, [guard]() {
-			if (guard) guard->showAgeTree(2);
+		QTimer::singleShot(1800, this, [guard, phaseToShowTree]() {
+			if (guard) guard->showAgeTree(phaseToShowTree);
 		});
+	};
+
+	if (age == 2 && !s_phase2Shown) {
+		s_phase2Shown = true;
+		showPhaseMessage("Phase 2 incepe", 2);
+		return;
+	}
+	if (age == 3 && !s_phase3Shown) {
+		s_phase3Shown = true;
+		showPhaseMessage("Phase 3 incepe", 3);
 		return;
 	}
 
-	// If we are about to render any tree (including age 2 after the message),
-	// ensure any temporary "phase" layout is removed completely.
-	if (auto oldLayout = this->layout()) {
-		while (auto item = oldLayout->takeAt(0)) {
-			if (auto w = item->widget()) w->deleteLater();
-			delete item;
-		}
-		delete oldLayout;
-	}
+	// Normal render path
+	clearWidgetSurface();
 
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
 	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
+	// Auto-advance: when Phase 2 has no more available cards, start Phase 3.
+	if (age == 2) {
+		bool anyAvailable = false;
+		for (const auto& n : nodes) {
+			if (!n) continue;
+			auto* c = n->getCard();
+			if (!c) continue;
+			if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+		}
+		if (!anyAvailable) {
+			QPointer<AgeTreeWidget> guard(this);
+			QTimer::singleShot(0, this, [guard]() {
+				if (guard) guard->showAgeTree(3);
+			});
+			return;
+		}
+	}
+
 	std::vector<int> rows;
-	// Keep per-age arrangements aligned with backend AgeTree wiring
-	if (age == 1) rows = { 2,3,4,5,6 };
-	else if (age == 2) rows = { 6,5,4,3,2 };
-	else rows = { 2,3,4,2,4,3,2 };
-	const bool flipVertical = false;
+	bool flipVertical = false;
+	if (age == 1) {
+		rows = { 2,3,4,5,6 };
+	}
+	else if (age == 2) {
+		rows = { 6,5,4,3,2 };
+	}
+	else {
+		// Backend creates 20 nodes for Age III; use the same 7-row layout.
+		rows = { 2,3,4,2,4,3,2 };
+		flipVertical = false;
+		// If you ever switch backend Age III nodes to a 12-node diamond, enable this:
+		// if (nodes.size() == 12) { rows = { 2,3,2,3,2 }; flipVertical = true; }
+	}
 
 	// Choose palette depending on age
 	QColor invisibleBorderColor = QColor("#CCCCCC");
