@@ -22,9 +22,11 @@ public:
     void onCardDiscarded(const Core::CardEvent& e) override {}
     void onWonderBuilt(const Core::WonderEvent& e) override {}
     void onTreeNodeChanged(const Core::TreeNodeEvent& e) override {
-    
-}
-    void onTreeNodeEmptied(const Core::TreeNodeEvent& e) override {}
+        emit treeNodeChangedSignal(e.ageIndex, e.nodeIndex, e.isAvailable, e.isEmpty);
+    }
+    void onTreeNodeEmptied(const Core::TreeNodeEvent& e) override {
+        emit treeNodeEmptiedSignal(e.ageIndex, e.nodeIndex);
+    }
     void onResourceGained(const Core::ResourceEvent& e) override {}
     void onResourceLost(const Core::ResourceEvent& e) override {}
     void onCoinsChanged(const Core::CoinEvent& e) override {}
@@ -54,4 +56,6 @@ private:
     std::shared_ptr<GameListenerBridge> m_gameListener;
 signals:
     void pawnMovedSignal(int newPosition);
+    void treeNodeChangedSignal(int ageIndex, int nodeIndex, bool isAvailable, bool isEmpty);
+    void treeNodeEmptiedSignal(int ageIndex, int nodeIndex);
 };

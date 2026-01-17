@@ -104,9 +104,9 @@ void UserInterface::setupLayout()
 	splitter->addWidget(rightScroll);
 
 	// Splitter configuration
-	splitter->setStretchFactor(0, 0);
-	splitter->setStretchFactor(1, 1);
-	splitter->setStretchFactor(2, 0);
+	splitter->setStretchFactor(0,0);
+	splitter->setStretchFactor(1,1);
+	splitter->setStretchFactor(2,0);
 	splitter->setCollapsible(0, true);
 	splitter->setCollapsible(2, true);
 
@@ -117,23 +117,23 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 {
 	m_centerContainer = new QWidget(splitter);
 	auto* centerLayout = new QVBoxLayout(m_centerContainer);
-	centerLayout->setContentsMargins(0, 0, 0, 0);
+	centerLayout->setContentsMargins(0,0,0,0);
 	centerLayout->setSpacing(0);
 
 	// Top: Phase banner
 	m_centerTop = new QWidget(m_centerContainer);
 	auto* topLayout = new QHBoxLayout(m_centerTop);
-	topLayout->setContentsMargins(0, 0, 0, 0);
+	topLayout->setContentsMargins(0,0,0,0);
 	m_phaseBanner = new QLabel("", m_centerTop);
 	m_phaseBanner->setAlignment(Qt::AlignCenter);
 	m_phaseBanner->setStyleSheet(
 		"QLabel {"
-		"  background-color: rgba(245,158,11,180);"
-		"  color: #111827;"
-		"  padding:6px10px;"
-		"  border-radius:8px;"
-		"  font-weight: bold;"
-		"  font-size:16px;"
+		" background-color: rgba(245,158,11,180);"
+		" color: #111827;"
+		" padding:6px10px;"
+		" border-radius:8px;"
+		" font-weight: bold;"
+		" font-size:16px;"
 		"}");
 	m_phaseBanner->hide();
 	topLayout->addWidget(m_phaseBanner);
@@ -141,7 +141,7 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	// Middle: Wonder selection / Age tree
 	m_centerMiddle = new QWidget(m_centerContainer);
 	auto* middleLayout = new QVBoxLayout(m_centerMiddle);
-	middleLayout->setContentsMargins(8, 8, 8, 8);
+	middleLayout->setContentsMargins(8,8,8,8);
 	middleLayout->setSpacing(8);
 	m_centerWidget = new WonderSelectionWidget(m_centerMiddle);
 	middleLayout->addWidget(m_centerWidget);
@@ -151,17 +151,17 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	m_centerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_centerBottom->setMinimumHeight(250);
 	auto* bottomLayout = new QVBoxLayout(m_centerBottom);
-	bottomLayout->setContentsMargins(8, 8, 8, 8);
+	bottomLayout->setContentsMargins(8,8,8,8);
 	m_boardWidget = new BoardWidget(m_centerBottom);
 	bottomLayout->addWidget(m_boardWidget);
 
 	auto* discardWidget = new DiscardedCardsWidget(m_centerBottom);
-	bottomLayout->addWidget(discardWidget, 0);
+	bottomLayout->addWidget(discardWidget,0);
 	Core::Game::getNotifier().addListener(discardWidget->getListener());
 
-	centerLayout->addWidget(m_centerTop, 0);
-	centerLayout->addWidget(m_centerMiddle, 1);
-	centerLayout->addWidget(m_centerBottom, 1);
+	centerLayout->addWidget(m_centerTop,0);
+	centerLayout->addWidget(m_centerMiddle,1);
+	centerLayout->addWidget(m_centerBottom,1);
 
 	splitter->addWidget(m_centerContainer);
 }
@@ -193,11 +193,11 @@ void UserInterface::showPhaseTransitionMessage()
 		delete m_centerMiddle->layout();
 	}
 
-	// Show "Phase 1 incepe" message
+	// Show "Phase1 incepe" message
 	auto* msgLayout = new QVBoxLayout(m_centerMiddle);
-	msgLayout->setContentsMargins(8, 8, 8, 8);
+	msgLayout->setContentsMargins(8,8,8,8);
 
-	QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
+	QLabel* phaseMsg = new QLabel("Phase1 incepe", m_centerMiddle);
 	phaseMsg->setAlignment(Qt::AlignCenter);
 	phaseMsg->setStyleSheet("color: white;");
 	QFont f = phaseMsg->font();
@@ -257,9 +257,9 @@ void UserInterface::showAgeTree(int age)
 	auto p2 = gs.GetPlayer2().get();
 	
 	if (coreCur) {
-		m_currentPlayerIndex = (coreCur == p1) ? 0 : 1;
+		m_currentPlayerIndex = (coreCur == p1) ?0 :1;
 	} else {
-		m_currentPlayerIndex = 0;
+		m_currentPlayerIndex =0;
 		if (p1) Core::setCurrentPlayer(p1);
 	}
 	
@@ -278,9 +278,9 @@ void UserInterface::showAgeTree(int age)
 	// Update banner
 	if (m_phaseBanner) {
 		QString curName = "<unknown>";
-		if (m_currentPlayerIndex == 0 && p1 && p1->m_player)
+		if (m_currentPlayerIndex ==0 && p1 && p1->m_player)
 			curName = QString::fromStdString(p1->m_player->getPlayerUsername());
-		else if (m_currentPlayerIndex == 1 && p2 && p2->m_player)
+		else if (m_currentPlayerIndex ==1 && p2 && p2->m_player)
 			curName = QString::fromStdString(p2->m_player->getPlayerUsername());
 		m_phaseBanner->setText("Turn: " + curName);
 		m_phaseBanner->show();
@@ -291,7 +291,7 @@ void UserInterface::showAgeTree(int age)
 
 void UserInterface::onWonderSelected(int index)
 {
-	if (index < 0 || static_cast<size_t>(index) >= m_currentBatch.size()) return;
+	if (index <0 || static_cast<size_t>(index) >= m_currentBatch.size()) return;
 
 	auto& gameState = Core::GameState::getInstance();
 	auto p1 = gameState.GetPlayer1();
@@ -300,16 +300,16 @@ void UserInterface::onWonderSelected(int index)
 
 	std::shared_ptr<Core::Player> currentPlayer;
 
-	if (m_selectionPhase == 0) {
-		if (m_cardsPickedInPhase == 0) currentPlayer = p1;
-		else if (m_cardsPickedInPhase == 1) currentPlayer = p2;
-		else if (m_cardsPickedInPhase == 2) currentPlayer = p2;
+	if (m_selectionPhase ==0) {
+		if (m_cardsPickedInPhase ==0) currentPlayer = p1;
+		else if (m_cardsPickedInPhase ==1) currentPlayer = p2;
+		else if (m_cardsPickedInPhase ==2) currentPlayer = p2;
 		else currentPlayer = p1;
 	}
 	else {
-		if (m_cardsPickedInPhase == 0) currentPlayer = p2;
-		else if (m_cardsPickedInPhase == 1) currentPlayer = p1;
-		else if (m_cardsPickedInPhase == 2) currentPlayer = p1;
+		if (m_cardsPickedInPhase ==0) currentPlayer = p2;
+		else if (m_cardsPickedInPhase ==1) currentPlayer = p1;
+		else if (m_cardsPickedInPhase ==2) currentPlayer = p1;
 		else currentPlayer = p2;
 	}
 
@@ -339,8 +339,8 @@ void UserInterface::onWonderSelected(int index)
 	m_leftPanel->refreshWonders();
 	m_rightPanel->refreshWonders();
 
-	if (m_currentBatch.size() == 1) {
-		if (m_selectionPhase == 0) currentPlayer = p1;
+	if (m_currentBatch.size() ==1) {
+		if (m_selectionPhase ==0) currentPlayer = p1;
 		else currentPlayer = p2;
 
 		Models::Wonder* lastRawPtr = m_currentBatch[0];
@@ -364,9 +364,9 @@ void UserInterface::onWonderSelected(int index)
 		m_centerWidget->loadWonders(m_currentBatch);
 
 		m_selectionPhase++;
-		m_cardsPickedInPhase = 0;
+		m_cardsPickedInPhase =0;
 
-		if (m_selectionPhase < 2) {
+		if (m_selectionPhase <2) {
 			// next batch is handled by the controller
 			if (m_wonderController) m_wonderController->loadNextBatch();
 		} 
@@ -391,7 +391,7 @@ void UserInterface::onWonderSelected(int index)
 					m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
 				}
 				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
-				msgLayout->setContentsMargins(8, 8, 8, 8);
+				msgLayout->setContentsMargins(8,8,8,8);
 				msgLayout->setSpacing(0);
 
 				QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
@@ -412,7 +412,7 @@ void UserInterface::onWonderSelected(int index)
 			// Optionally start phase I automatically (console version) in background - not starting here to keep UI responsive
 		}
 	}
-	if (m_currentBatch.size() > 1)
+	if (m_currentBatch.size() >1)
 	{
 		updateTurnLabel();
 	}
@@ -429,16 +429,16 @@ void UserInterface::updateTurnLabel()
 
 	QString currentPlayerName;
 
-	if (m_selectionPhase == 0) {
-		if (m_cardsPickedInPhase == 0) currentPlayerName = p1Name;
-		else if (m_cardsPickedInPhase == 1) currentPlayerName = p2Name;
-		else if (m_cardsPickedInPhase == 2) currentPlayerName = p2Name;
+	if (m_selectionPhase ==0) {
+		if (m_cardsPickedInPhase ==0) currentPlayerName = p1Name;
+		else if (m_cardsPickedInPhase ==1) currentPlayerName = p2Name;
+		else if (m_cardsPickedInPhase ==2) currentPlayerName = p2Name;
 		else currentPlayerName = p1Name;
 	}
 	else {
-		if (m_cardsPickedInPhase == 0) currentPlayerName = p2Name;
-		else if (m_cardsPickedInPhase == 1) currentPlayerName = p1Name;
-		else if (m_cardsPickedInPhase == 2) currentPlayerName = p1Name;
+		if (m_cardsPickedInPhase ==0) currentPlayerName = p2Name;
+		else if (m_cardsPickedInPhase ==1) currentPlayerName = p1Name;
+		else if (m_cardsPickedInPhase ==2) currentPlayerName = p1Name;
 		else currentPlayerName = p2Name;
 	}
 
@@ -454,7 +454,7 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 		m_ageTreeWidget->showAgeTree(age);
 	}
 	// if age1 finished, schedule phase2 transition
-	if (age == 1) {
+	if (age ==1) {
 		auto& board = Core::Board::getInstance();
 		const auto& nodes = board.getAge1Nodes();
 		bool anyAvailable = false;
@@ -502,6 +502,18 @@ void UserInterface::initializeGame() {
 
 	// Register listener to backend notifier (observer pattern)
 	Core::Game::getNotifier().addListener(m_gameListener);
+
+	// React to tree-node changes/empties by refreshing age tree
+	connect(m_gameListener.get(), &GameListenerBridge::treeNodeEmptiedSignal, this, [this](int ageIndex, int nodeIndex){
+		Q_UNUSED(nodeIndex);
+		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
+	});
+	connect(m_gameListener.get(), &GameListenerBridge::treeNodeChangedSignal, this, [this](int ageIndex, int nodeIndex, bool isAvailable, bool isEmpty){
+		Q_UNUSED(nodeIndex);
+		Q_UNUSED(isAvailable);
+		Q_UNUSED(isEmpty);
+		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
+	});
 
 	// Initial sync (in case the pawn already has a non-zero position)
 	auto& board = Core::Board::getInstance();
