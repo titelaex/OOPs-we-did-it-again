@@ -10,6 +10,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QApplication>
 #include <QtGui/QPen>
 #include <QtGui/QBrush>
@@ -137,30 +138,110 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	auto* card = node->getCard();
 	if (!card) return;
 
-	QMessageBox msg(this);
-	msg.setWindowTitle("Choose action");
-	msg.setText(QString::fromStdString(card->getName()));
-	QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
-	QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
-	QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
-	msg.addButton(QMessageBox::Cancel);
-	msg.exec();
+	// Allow retrying a different action if the first choice fails.
+	while (true) {
+		QMessageBox msg(this);
+		msg.setWindowTitle("Choose action");
+		msg.setText(QString::fromStdString(card->getName()));
+		QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
+		QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
+		QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
+		msg.addButton(QMessageBox::Cancel);
+		msg.exec();
 
-	QPushButton* clicked = qobject_cast<QPushButton*>(msg.clickedButton());
-	if (!clicked) return;
+		QPushButton* clicked = qobject_cast<QPushButton*>(msg.clickedButton());
+		if (!clicked) return;
 
-	int action = -1;
-	if (clicked == buildBtn) action = 0;
-	else if (clicked == sellBtn) action = 1;
-	else if (clicked == wonderBtn) action = 2;
-	else return;
+		int action = -1;
+		if (clicked == buildBtn) action = 0;
+		else if (clicked == sellBtn) action = 1;
+		else if (clicked == wonderBtn) action = 2;
+		else return;
 
-	// Delegate to Core. For wonder selection, we pass no index for now (Core will choose first available).
-	bool ok = Core::Game::applyTreeCardAction(age, nodeIndex, action);
-	if (!ok) {
-		refreshPanels();
-		QTimer::singleShot(0, this, [this, age]() { this->showAgeTree(age); });
-		return;
+		std::optional<size_t> wonderChoice;
+		if (action == 2) {
+			if (!cur->m_player) return;
+			auto& owned = cur->m_player->getOwnedWonders();
+			QStringList options;
+			std::vector<size_t> candidates;
+			for (size_t i = 0; i < owned.size(); ++i) {
+				if (owned[i] && !owned[i]->IsConstructed()) {
+					candidates.push_back(i);
+					options << QString::fromStdString(owned[i]->getName());
+				}
+			}
+			if (candidates.empty()) {
+				QMessageBox::information(this, "Use as Wonder", "No unbuilt wonders available.");
+				continue;
+			}
+
+			bool ok = false;
+			QString picked = QInputDialog::getItem(this, "Choose wonder", "Select wonder to build:", options, 0, false, &ok);
+			if (!ok) {
+				continue;
+			}
+
+			int pickedIdx = options.indexOf(picked);
+			if (pickedIdx < 0 || pickedIdx >= static_cast<int>(candidates.size())) {
+				continue;
+			}
+			wonderChoice = candidates[static_cast<size_t>(pickedIdx)];
+
+			// Show cost breakdown before attempting the action
+			auto& gs2 = Core::GameState::getInstance();
+			Core::Player* opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
+			if (opp && opp->m_player) {
+				const Models::Wonder* selectedWonder = (wonderChoice.has_value() && wonderChoice.value() < owned.size())
+					? owned[wonderChoice.value()].get()
+					: nullptr;
+				if (selectedWonder) {
+					const auto breakdown = Core::Game::computeWonderTradeCost(*cur, *selectedWonder, *opp);
+					QString details;
+					details += QString("Available coins: %1\n").arg(breakdown.availableCoins);
+					details += QString("Total cost: %1\n").arg(breakdown.totalCost);
+					if (breakdown.architectureTokenApplied) {
+						details += "Architecture token applied (up to 2 units free).\n";
+					}
+					if (!breakdown.lines.empty()) {
+						details += "\nMissing resources to trade:\n";
+						for (const auto& line : breakdown.lines) {
+							details += QString("- %1 x%2 @ %3 each = %4\n")
+								.arg(QString::fromStdString(Models::ResourceTypeToString(line.resource)))
+								.arg(line.amount)
+								.arg(line.costPerUnit)
+								.arg(line.totalCost);
+						}
+					} else {
+						details += "\nNo trading needed (resources covered).\n";
+					}
+
+					if (!breakdown.canAfford) {
+						QMessageBox::warning(this, "Wonder cost", "You cannot afford this wonder.\n\n" + details);
+						continue;
+					}
+
+					auto reply = QMessageBox::question(this,
+						"Confirm wonder build",
+						"Build this wonder by paying the trade cost?\n\n" + details,
+						QMessageBox::Yes | QMessageBox::No);
+					if (reply != QMessageBox::Yes) {
+						continue;
+					}
+				}
+			}
+		}
+
+		bool ok = Core::Game::applyTreeCardAction(age, nodeIndex, action, wonderChoice);
+		if (!ok) {
+			QMessageBox::warning(this, "Action failed", "Action failed (insufficient resources or invalid choice). Please choose another action.");
+			// Refresh local pointers in case UI state changed (card is returned to the node on failure)
+			card = node->getCard();
+			if (!card) return;
+			continue;
+		}
+
+		// success
+		break;
 	}
 
 	refreshPanels();

@@ -114,15 +114,24 @@ void PlayerPanelWidget::refreshWonders()
 
 				slot->setText(name + (built ? "\n(constructed)" : "\n(unbuilt)"));
 
-				QString bg = ColorToCss(w->getColor());
-				QString style = QString(
-					"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
-					"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600;")
-					.arg(m_isLeftPanel ? 1 : 0)
-					.arg(m_isLeftPanel ? 0 : 1)
-					.arg(bg);
+				QString style;
+				if (built) {
+					// Gold highlight for constructed wonders
+					style = QString(
+						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 #FFD700, stop:1 #B8860B);"
+						"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700;")
+						.arg(m_isLeftPanel ? 1 : 0)
+						.arg(m_isLeftPanel ? 0 : 1);
+				} else {
+					QString bg = ColorToCss(w->getColor());
+					style = QString(
+						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
+						"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600;")
+						.arg(m_isLeftPanel ? 1 : 0)
+						.arg(m_isLeftPanel ? 0 : 1)
+						.arg(bg);
+				}
 
-				if (built) style += "opacity:0.8;";
 				slot->setStyleSheet(style);
 				slot->setToolTip(name);
 			}

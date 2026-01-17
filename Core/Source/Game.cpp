@@ -447,6 +447,57 @@ namespace Core {
 			notifier.notifyDisplayRequested(event);
 		}
 
+		bool hasTokenByName(const Models::Player& player, const std::string& tokenName)
+		{
+			for (const auto& t : player.getOwnedTokens()) {
+				if (t && t->getName() == tokenName) return true;
+			}
+			return false;
+		}
+
+		int tradeDiscountForResource(const Models::Player& player, Models::ResourceType resource)
+		{
+			const auto& tradeRules = player.getTradeRules();
+			Models::TradeRuleType ruleType;
+			switch (resource) {
+			case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
+			case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
+			case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
+			case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
+			case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
+			default: return -1;
+			}
+			auto it = tradeRules.find(ruleType);
+			if (it != tradeRules.end() && it->second) return 1;
+			return -1;
+		}
+
+		std::unordered_map<Models::ResourceType, uint8_t> computeOpponentBrownGreyProductionFor(
+			const Models::Player& cur,
+			const Models::Player& opp,
+			const std::unordered_map<Models::ResourceType, uint8_t>& missingResources)
+		{
+			std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+			if (missingResources.empty()) return opponentBrownGreyProduction;
+
+			for (const auto& card : opp.getOwnedCards()) {
+				if (!card) continue;
+				if (card->getColor() != Models::ColorType::BROWN && card->getColor() != Models::ColorType::GREY) continue;
+
+				const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get());
+				if (!ageCard) continue;
+
+				for (const auto& pair : ageCard->getResourcesProduction()) {
+					auto res = pair.first;
+					auto amt = pair.second;
+					if (missingResources.find(res) == missingResources.end()) continue;
+					if (tradeDiscountForResource(cur, res) != -1) continue;
+					opponentBrownGreyProduction[res] = static_cast<uint8_t>(opponentBrownGreyProduction[res] + amt);
+				}
+			}
+
+			return opponentBrownGreyProduction;
+		}
 	}
 
 	GameEventNotifier& Game::getNotifier()
@@ -690,7 +741,7 @@ namespace Core {
 		{
 			std::vector<std::unique_ptr<Models::Card>> selected;
 			auto& pool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeTwoCards());
-			size_t take = std::min<size_t>(20, pool.size());
+		 size_t take = std::min<size_t>(20, pool.size());
 		 size_t i = 0;
 		 while (i < pool.size() && selected.size() < take) {
 			 if (!pool[i]) { ++i; continue; }
@@ -1705,8 +1756,8 @@ void Game::initGame() {
 
 	DisplayRequestEvent prepEvent;
 	prepEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-	prepEvent.context = "Starting preparation...";
-	notifier.notifyDisplayRequested(prepEvent);
+ prepEvent.context = "Starting preparation...";
+		notifier.notifyDisplayRequested(prepEvent);
 
 	preparation();
 
@@ -1745,7 +1796,7 @@ void Game::initGame() {
 	if (logger) delete logger;
 }
 void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
-{
+	{
 		auto& board = Board::getInstance();
 		const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
 		if (emptiedNodeIndex < 0 || static_cast<size_t>(emptiedNodeIndex) >= nodes.size()) return;
@@ -1822,9 +1873,21 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 		std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
 		if (!cardPtr) return false;
 
+		auto notifyError = [&](const std::string& msg) {
+			auto& notifier = GameState::getInstance().getEventNotifier();
+			DisplayRequestEvent ev;
+			ev.displayType = DisplayRequestEvent::Type::ERROR;
+			ev.context = msg;
+			notifier.notifyDisplayRequested(ev);
+		};
+
 		// Perform action, reusing existing rules from Player.
 		switch (action) {
 		case 0: {
+			if (!cur->canAffordCard(cardPtr.get(), opp->m_player)) {
+				notifyError("You cannot afford to build this card.");
+				break;
+			}
 			cur->playCardBuilding(cardPtr, opp->m_player);
 			break;
 		}
@@ -1834,15 +1897,18 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 			break;
 		}
 		case 2: {
+			if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders) {
+				notifyError("Cannot build a wonder: maximum of 7 wonders have already been built.");
+				break;
+			}
+
 			auto& owned = cur->m_player->getOwnedWonders();
 			std::vector<size_t> candidates;
 			for (size_t i = 0; i < owned.size(); ++i) {
 				if (owned[i] && !owned[i]->IsConstructed()) candidates.push_back(i);
 			}
 			if (candidates.empty()) {
-				// No wonders: treat as discard
-				auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-				discarded.push_back(std::move(cardPtr));
+				notifyError("No unbuilt wonders available.");
 				break;
 			}
 
@@ -1856,6 +1922,15 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 			}
 
 			std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[chosenIdx];
+			if (!chosenWonderPtr) {
+				notifyError("Selected wonder is invalid.");
+				break;
+			}
+			if (!cur->canAffordWonder(chosenWonderPtr, opp->m_player)) {
+				notifyError("You cannot afford to build this wonder.");
+				break;
+			}
+
 			std::vector<Models::Token> discardedTokens;
 			auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
 			cur->playCardWonder(chosenWonderPtr, cardPtr, opp->m_player, discardedTokens, discardedCards);
@@ -1877,6 +1952,97 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 		// Successful: tree updates + notifier.
 		Game::updateTreeAfterPick(age, nodeIndex);
 		return true;
+	}
+
+	WonderTradeCostBreakdown Game::computeWonderTradeCost(const Player& cur, const Models::Wonder& wonder, const Player& opp)
+	{
+		WonderTradeCostBreakdown out;
+		if (!cur.m_player || !opp.m_player) return out;
+
+		const auto& cost = wonder.getResourceCost();
+		const auto& ownPermanent = cur.m_player->getOwnedPermanentResources();
+		const auto& ownTrading = cur.m_player->getOwnedTradingResources();
+
+		out.availableCoins = cur.m_player->totalCoins(cur.m_player->getRemainingCoins());
+
+		std::unordered_map<Models::ResourceType, uint8_t> missingResources;
+		int totalMissingUnits = 0;
+
+		for (const auto& kv : cost) {
+			auto resource = kv.first;
+			auto requiredAmount = kv.second;
+			uint8_t produced = 0;
+			if (auto it = ownPermanent.find(resource); it != ownPermanent.end()) produced = static_cast<uint8_t>(produced + it->second);
+			if (auto it = ownTrading.find(resource); it != ownTrading.end()) produced = static_cast<uint8_t>(produced + it->second);
+			if (produced < requiredAmount) {
+				uint8_t missing = static_cast<uint8_t>(requiredAmount - produced);
+				missingResources[resource] = missing;
+				totalMissingUnits += missing;
+			}
+		}
+
+		if (missingResources.empty()) {
+			out.canAfford = true;
+			out.totalCost = 0;
+			return out;
+		}
+
+		bool hasArchitecture = hasTokenByName(*cur.m_player, "Architecture");
+
+		if (hasArchitecture && totalMissingUnits > 0) {
+			out.architectureTokenApplied = true;
+
+			struct CostCandidate { uint8_t costPerUnit; Models::ResourceType resource; };
+			std::vector<CostCandidate> candidates;
+			candidates.reserve(missingResources.size());
+
+			auto opponentProdPre = computeOpponentBrownGreyProductionFor(*cur.m_player, *opp.m_player, missingResources);
+			for (const auto& kv : missingResources) {
+				auto res = kv.first;
+				int discount = tradeDiscountForResource(*cur.m_player, res);
+				uint8_t oppAmt = opponentProdPre.count(res) ? opponentProdPre.at(res) : 0;
+				uint8_t cpu = (discount != -1) ? static_cast<uint8_t>(discount) : static_cast<uint8_t>(2 + oppAmt);
+				candidates.push_back(CostCandidate{ cpu, res });
+			}
+
+			std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) {
+				return a.costPerUnit > b.costPerUnit;
+				});
+
+			int discountUnits = 2;
+			for (const auto& cand : candidates) {
+				if (discountUnits <= 0) break;
+				uint8_t needed = missingResources[cand.resource];
+				uint8_t used = static_cast<uint8_t>(std::min<int>(needed, discountUnits));
+				missingResources[cand.resource] = static_cast<uint8_t>(missingResources[cand.resource] - used);
+				discountUnits -= used;
+			}
+		}
+
+		auto opponentProd = computeOpponentBrownGreyProductionFor(*cur.m_player, *opp.m_player, missingResources);
+
+		uint8_t totalCost = 0;
+		out.lines.clear();
+		out.lines.reserve(missingResources.size());
+
+		for (const auto& kv : missingResources) {
+			auto res = kv.first;
+			auto amt = kv.second;
+			if (amt == 0) continue;
+
+			int discount = tradeDiscountForResource(*cur.m_player, res);
+			bool discounted = (discount != -1);
+			uint8_t oppAmt = opponentProd.count(res) ? opponentProd.at(res) : 0;
+			uint8_t cpu = discounted ? static_cast<uint8_t>(discount) : static_cast<uint8_t>(2 + oppAmt);
+			uint8_t lineTotal = static_cast<uint8_t>(cpu * amt);
+
+			totalCost = static_cast<uint8_t>(totalCost + lineTotal);
+			out.lines.push_back(WonderTradeCostLine{ res, amt, cpu, lineTotal, discounted });
+		}
+
+		out.totalCost = totalCost;
+		out.canAfford = (out.availableCoins >= out.totalCost);
+		return out;
 	}
 
 } // namespace Core

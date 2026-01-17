@@ -3,15 +3,35 @@ import <memory>;
 import <vector>;
 import <string>;
 import <optional>;
+import <unordered_map>;
 import Core.Board;
 import Core.Node;
 import Core.Player;
 import Models.Card;
+import Models.Wonder;
+import Models.ResourceType;
 import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
 import Core.AIConfig;
 import Core.IGameListener;
+
 export namespace Core {
+    export struct WonderTradeCostLine {
+        Models::ResourceType resource = Models::ResourceType::NO_RESOURCE;
+        uint8_t amount = 0;
+        uint8_t costPerUnit = 0;
+        uint8_t totalCost = 0;
+        bool discounted = false;
+    };
+
+    export struct WonderTradeCostBreakdown {
+        bool canAfford = false;
+        uint8_t availableCoins = 0;
+        uint8_t totalCost = 0;
+        bool architectureTokenApplied = false;
+        std::vector<WonderTradeCostLine> lines;
+    };
+
     class Game {
     public:
         static GameEventNotifier& getNotifier();
@@ -41,5 +61,11 @@ export namespace Core {
         // wonderIndex: used only when action==2; otherwise ignored.
         // Returns true if the action succeeds and the node is emptied.
         static bool applyTreeCardAction(int age, int nodeIndex, int action, std::optional<size_t> wonderIndex = std::nullopt);
+
+        // Computes how many coins the current player would need to pay (trade) to build `wonder`.
+        // Mirrors the rule logic used by `Player::canAffordWonder/payForWonder`.
+        static WonderTradeCostBreakdown computeWonderTradeCost(const Player& cur,
+            const Models::Wonder& wonder,
+            const Player& opp);
     };
 }
