@@ -124,6 +124,11 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 {
 	qDebug() << "AgeTreeWidget::handleLeafClicked called. currentPlayerIndex=" << m_currentPlayerIndex;
 
+	auto& gs = Core::GameState::getInstance();
+	Core::Player* cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	if (!cur) return;
+	Core::setCurrentPlayer(cur);
+
 	auto& board = Core::Board::getInstance();
 	const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
 	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
@@ -132,7 +137,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	auto* card = node->getCard();
 	if (!card) return;
 
-	// show choices: Build, Sell, Use as Wonder
 	QMessageBox msg(this);
 	msg.setWindowTitle("Choose action");
 	msg.setText(QString::fromStdString(card->getName()));
@@ -140,7 +144,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
 	QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
 	msg.addButton(QMessageBox::Cancel);
-
 	msg.exec();
 
 	QPushButton* clicked = qobject_cast<QPushButton*>(msg.clickedButton());
@@ -152,137 +155,20 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	else if (clicked == wonderBtn) action = 2;
 	else return;
 
-	auto& gs = Core::GameState::getInstance();
-	Core::Player* cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
-	Core::Player* opp = (m_currentPlayerIndex == 0) ? gs.GetPlayer2().get() : gs.GetPlayer1().get();
-	if (!cur || !opp) return;
-
-	Core::setCurrentPlayer(cur);
-
-	std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
-	if (!cardPtr) {
-		qDebug() << "releaseCard returned null";
-		return;
-	}
-	qDebug() << "Card released:" << QString::fromStdString(cardPtr->getName());
-
-	// Execute chosen action
-	if (action == 0) {
-		qDebug() << "Attempting to build card";
-		cur->playCardBuilding(cardPtr, opp->m_player);
-		qDebug() << "playCardBuilding returned";
-	}
-	else if (action == 1) {
-		qDebug() << "Selling card";
-		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-		cur->sellCard(cardPtr, discarded);
-		qDebug() << "sellCard returned";
-	}
-	else if (action == 2) {
-		qDebug() << "Use as wonder selected - not implemented";
-		QMessageBox::information(this, "Use as Wonder", "Selectia de minune trebuie implementata. Actiunea este ignorata momentan.");
-	}
-
-	// If the action failed (cardPtr still holds), return card to node and do not advance turn
-	if (cardPtr) {
-		node->setCard(std::move(cardPtr));
+	// Delegate to Core. For wonder selection, we pass no index for now (Core will choose first available).
+	bool ok = Core::Game::applyTreeCardAction(age, nodeIndex, action);
+	if (!ok) {
 		refreshPanels();
-		qDebug() << "Action failed; card returned to tree; panels refreshed";
-		QTimer::singleShot(0, this, [this, age]() {
-			this->showAgeTree(age);
-			});
+		QTimer::singleShot(0, this, [this, age]() { this->showAgeTree(age); });
 		return;
 	}
 
-	// Action succeeded: refresh UI and advance current player
 	refreshPanels();
-
-	// Reveal parents that just became available (backend rule): if both children are empty -> parent becomes available + visible
-	{
-		auto revealIfUnlocked = [&](const std::shared_ptr<Core::Node>& parent) {
-			if (!parent) return;
-			auto c1 = parent->getChild1();
-			auto c2 = parent->getChild2();
-			bool empty1 = (!c1 || c1->getCard() == nullptr);
-			bool empty2 = (!c2 || c2->getCard() == nullptr);
-			if (empty1 && empty2) {
-				if (auto* pc = parent->getCard()) {
-					pc->setIsAvailable(true);
-					pc->setIsVisible(true);
-				}
-			}
-		};
-
-		revealIfUnlocked(node->getParent1());
-		revealIfUnlocked(node->getParent2());
-	}
-
-	// Military pawn movement for red cards with shields (use original card info)
-	if (card) {
-		const Models::AgeCard* ageBuilt = dynamic_cast<const Models::AgeCard*>(card);
-		if (ageBuilt && card->getColor() == Models::ColorType::RED) {
-			int shields = static_cast<int>(ageBuilt->getShieldPoints());
-			if (shields > 0) {
-				auto& boardRef = Core::Board::getInstance();
-				int prevPos = static_cast<int>(boardRef.getPawnPos());
-				int steps = (m_currentPlayerIndex == 0) ? shields : -shields;
-				Core::Game::movePawn(steps);
-				int newPos = static_cast<int>(boardRef.getPawnPos());
-				Core::PawnEvent pevt;
-				pevt.steps = steps;
-				pevt.previousPosition = prevPos;
-				pevt.newPosition = newPos;
-				pevt.reason = std::string("Built ") + card->getName();
-				Core::Game::getNotifier().notifyPawnMoved(pevt);
-			}
-		}
-	}
-
-	// Notify backend observers about tree updates
-	{
-		Core::TreeNodeEvent emptiedEvt;
-		emptiedEvt.ageIndex = age;
-		emptiedEvt.nodeIndex = nodeIndex;
-		emptiedEvt.cardName = "";
-		emptiedEvt.isEmpty = true;
-		Core::Game::getNotifier().notifyTreeNodeEmptied(emptiedEvt);
-
-		auto p1 = node->getParent1();
-		auto p2 = node->getParent2();
-		auto& boardRef = Core::Board::getInstance();
-		const auto& nodesVec = (age == 1) ? boardRef.getAge1Nodes() : (age == 2) ? boardRef.getAge2Nodes() : boardRef.getAge3Nodes();
-		auto findIndex = [&](std::shared_ptr<Core::Node> target) -> int {
-			if (!target) return -1;
-			for (size_t i = 0; i < nodesVec.size(); ++i) {
-				if (nodesVec[i] && nodesVec[i].get() == target.get()) return static_cast<int>(i);
-			}
-			return -1;
-			};
-		auto notifyParent = [&](std::shared_ptr<Core::Node> parent) {
-			if (!parent) return;
-			int pi = findIndex(parent);
-			Core::TreeNodeEvent changedEvt;
-			changedEvt.ageIndex = age;
-			changedEvt.nodeIndex = pi;
-			changedEvt.cardName = parent->getCard() ? parent->getCard()->getName() : std::string();
-			changedEvt.isEmpty = (parent->getCard() == nullptr);
-			changedEvt.isAvailable = parent->isAvailable();
-			changedEvt.isVisible = parent->getCard() ? parent->getCard()->isVisible() : false;
-			// Sync card availability for backend build checks
-			if (parent->getCard()) {
-				parent->getCard()->setIsAvailable(changedEvt.isAvailable);
-			}
-			Core::Game::getNotifier().notifyTreeNodeChanged(changedEvt);
-			};
-		notifyParent(p1);
-		notifyParent(p2);
-	}
 
 	m_currentPlayerIndex = (m_currentPlayerIndex == 0) ? 1 : 0;
 	auto newCur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
 	Core::setCurrentPlayer(newCur);
 
-	// Notify parent UI about player turn change
 	if (onPlayerTurnChanged) {
 		auto p1 = gs.GetPlayer1();
 		auto p2 = gs.GetPlayer2();
@@ -292,10 +178,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		onPlayerTurnChanged(m_currentPlayerIndex, curName);
 	}
 
-	qDebug() << "Action succeeded; refreshed panels and advanced turn. newIndex=" << m_currentPlayerIndex;
-	QTimer::singleShot(0, this, [this, age]() {
-		this->showAgeTree(age);
-		});
+	QTimer::singleShot(0, this, [this, age]() { this->showAgeTree(age); });
 }
 
 void AgeTreeWidget::showAgeTree(int age)
@@ -415,10 +298,7 @@ void AgeTreeWidget::showAgeTree(int age)
 			bool isAvailable = nodes[idx]->isAvailable();
 			Models::Card* cardPtr = nodes[idx]->getCard();
 
-			// Ensure the card's availability reflects the node state for backend checks
-			if (cardPtr) {
-				cardPtr->setIsAvailable(isAvailable);
-			}
+			// availability/visibility are backend state; UI should not mutate them here
 
 			const bool isVisible = (cardPtr && cardPtr->isVisible());
 

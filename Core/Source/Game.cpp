@@ -1186,22 +1186,8 @@ namespace Core {
 				continue;
 			}
 
-			if (auto takenNode = (*nodes)[chosenNodeIndex]) {
-				auto checkParent = [](const std::shared_ptr<Node>& p) {
-					if (p) {
-						auto c1 = p->getChild1();
-						auto c2 = p->getChild2();
-						bool empty1 = (!c1 || c1->getCard() == nullptr);
-						bool empty2 = (!c2 || c2->getCard() == nullptr);
-						if (empty1 && empty2 && p->getCard()) {
-							p->getCard()->setIsAvailable(true);
-							p->getCard()->setIsVisible(true);
-						}
-					}
-				};
-				checkParent(takenNode->getParent1());
-				checkParent(takenNode->getParent2());
-			}
+			// Centralized backend rule+notifier updates (shared with UI)
+			Game::updateTreeAfterPick(currentPhase, static_cast<int>(chosenNodeIndex));
 
 			if (logger) {
 				MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
@@ -1758,4 +1744,139 @@ void Game::initGame() {
 	if (p2Decisions) delete p2Decisions;
 	if (logger) delete logger;
 }
-}
+void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
+{
+		auto& board = Board::getInstance();
+		const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
+		if (emptiedNodeIndex < 0 || static_cast<size_t>(emptiedNodeIndex) >= nodes.size()) return;
+		auto emptiedNode = nodes[static_cast<size_t>(emptiedNodeIndex)];
+		if (!emptiedNode) return;
+
+		Core::TreeNodeEvent emptiedEvt;
+		emptiedEvt.ageIndex = age;
+		emptiedEvt.nodeIndex = emptiedNodeIndex;
+		emptiedEvt.cardName = "";
+		emptiedEvt.isEmpty = true;
+		Core::Game::getNotifier().notifyTreeNodeEmptied(emptiedEvt);
+
+		auto findIndex = [&](const std::shared_ptr<Node>& target) -> int {
+			if (!target) return -1;
+			for (size_t i = 0; i < nodes.size(); ++i) {
+				if (nodes[i] && nodes[i].get() == target.get()) return static_cast<int>(i);
+			}
+			return -1;
+		};
+
+		auto updateAndNotifyParent = [&](const std::shared_ptr<Node>& parent) {
+			if (!parent) return;
+
+			// Rule: if both children empty -> parent becomes available+visible
+			auto c1 = parent->getChild1();
+			auto c2 = parent->getChild2();
+			bool empty1 = (!c1 || c1->getCard() == nullptr);
+			bool empty2 = (!c2 || c2->getCard() == nullptr);
+			if (empty1 && empty2) {
+				if (auto* pc = parent->getCard()) {
+					pc->setIsAvailable(true);
+					pc->setIsVisible(true);
+				}
+			}
+
+			int pi = findIndex(parent);
+			Core::TreeNodeEvent changedEvt;
+			changedEvt.ageIndex = age;
+			changedEvt.nodeIndex = pi;
+			changedEvt.cardName = parent->getCard() ? parent->getCard()->getName() : std::string();
+			changedEvt.isEmpty = (parent->getCard() == nullptr);
+			changedEvt.isAvailable = parent->isAvailable();
+			changedEvt.isVisible = parent->getCard() ? parent->getCard()->isVisible() : false;
+			Core::Game::getNotifier().notifyTreeNodeChanged(changedEvt);
+		};
+
+		updateAndNotifyParent(emptiedNode->getParent1());
+		updateAndNotifyParent(emptiedNode->getParent2());
+	}
+	bool Game::applyTreeCardAction(int age, int nodeIndex, int action, std::optional<size_t> wonderIndex)
+	{
+		auto& gs = GameState::getInstance();
+		auto p1 = gs.GetPlayer1();
+		auto p2 = gs.GetPlayer2();
+		Core::Player* cur = Core::getCurrentPlayer();
+		if (!cur) {
+			// fallback to state turn flag
+			cur = gs.isPlayer1Turn() ? p1.get() : p2.get();
+			Core::setCurrentPlayer(cur);
+		}
+		if (!cur || !cur->m_player) return false;
+		Core::Player* opp = (cur == p1.get()) ? p2.get() : p1.get();
+		if (!opp || !opp->m_player) return false;
+
+		auto& board = Board::getInstance();
+		const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
+		if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return false;
+		auto node = nodes[static_cast<size_t>(nodeIndex)];
+		if (!node) return false;
+		if (!node->isAvailable()) return false;
+		if (!node->getCard()) return false;
+
+		std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
+		if (!cardPtr) return false;
+
+		// Perform action, reusing existing rules from Player.
+		switch (action) {
+		case 0: {
+			cur->playCardBuilding(cardPtr, opp->m_player);
+			break;
+		}
+		case 1: {
+			auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+			cur->sellCard(cardPtr, discarded);
+			break;
+		}
+		case 2: {
+			auto& owned = cur->m_player->getOwnedWonders();
+			std::vector<size_t> candidates;
+			for (size_t i = 0; i < owned.size(); ++i) {
+				if (owned[i] && !owned[i]->IsConstructed()) candidates.push_back(i);
+			}
+			if (candidates.empty()) {
+				// No wonders: treat as discard
+				auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+				discarded.push_back(std::move(cardPtr));
+				break;
+			}
+
+			size_t chosenIdx = candidates.front();
+			if (wonderIndex.has_value()) {
+				// If UI provided an index into candidates, use it.
+				size_t wi = wonderIndex.value();
+				if (wi < candidates.size()) chosenIdx = candidates[wi];
+				// If UI provided an absolute index into owned, accept it too.
+				else if (wi < owned.size()) chosenIdx = wi;
+			}
+
+			std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[chosenIdx];
+			std::vector<Models::Token> discardedTokens;
+			auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+			cur->playCardWonder(chosenWonderPtr, cardPtr, opp->m_player, discardedTokens, discardedCards);
+			break;
+		}
+		default: {
+			auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+			discarded.push_back(std::move(cardPtr));
+			break;
+		}
+		}
+
+		// If action failed, put card back.
+		if (cardPtr) {
+			node->setCard(std::move(cardPtr));
+			return false;
+		}
+
+		// Successful: tree updates + notifier.
+		Game::updateTreeAfterPick(age, nodeIndex);
+		return true;
+	}
+
+} // namespace Core
