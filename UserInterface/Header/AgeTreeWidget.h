@@ -19,6 +19,8 @@ public:
     void showAgeTree(int age);
     void fitAgeTree();
 
+    int getCurrentAge() const { return m_currentAge; }
+
     // Set player panels for refreshing after actions
     void setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right);
 

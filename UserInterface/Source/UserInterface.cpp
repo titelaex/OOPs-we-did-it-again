@@ -273,8 +273,26 @@ void UserInterface::showAgeTree(int age)
 			m_phaseBanner->show();
 		}
 		if (m_boardWidget) m_boardWidget->refresh();
+
+		// Auto-advance when Phase 1 ends (no more available cards)
+		if (m_ageTreeWidget && m_ageTreeWidget->getCurrentAge() == 1) {
+			QTimer::singleShot(0, this, [this]() {
+				auto& board = Core::Board::getInstance();
+				const auto& nodes = board.getAge1Nodes();
+				bool anyAvailable = false;
+				for (const auto& n : nodes) {
+					if (!n) continue;
+					auto* c = n->getCard();
+					if (!c) continue;
+					if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+				}
+				if (!anyAvailable) {
+					this->showAgeTree(2);
+				}
+			});
+		}
 	};
-	
+
 	// Update banner
 	if (m_phaseBanner) {
 		QString curName = "<unknown>";

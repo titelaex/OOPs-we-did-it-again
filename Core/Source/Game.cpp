@@ -941,7 +941,7 @@ namespace Core {
 				if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
 			}
 			if (!found) break;
-			std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+		 std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
 			wondersPool.erase(wondersPool.begin() + idx);
 			Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
 			availableWonders.emplace_back(raw);
@@ -1297,9 +1297,20 @@ namespace Core {
 
 	void Game::movePawn(int steps) {
 		auto& board = Core::Board::getInstance();
-		auto position = board.getPawnPos();
-		position = std::clamp(position + steps, 0, 18);
-		board.setPawnPos(position);
+		int previous = static_cast<int>(board.getPawnPos());
+		int next = std::clamp(previous + steps, 0, 18);
+		if (next == previous) {
+			return;
+		}
+
+		board.setPawnPos(static_cast<uint8_t>(next));
+
+		Core::PawnEvent evt;
+		evt.previousPosition = previous;
+		evt.newPosition = next;
+		evt.steps = steps;
+		evt.reason = "Military track updated";
+		Core::Game::getNotifier().notifyPawnMoved(evt);
 	}
 	void Game::displayPlayerHands(const Player& p1, const Player& p2) {
 		auto& notifier = GameState::getInstance().getEventNotifier();
@@ -1536,7 +1547,7 @@ void Game::announceVictory(int winner, const std::string& victoryType, const Pla
 		winnerName = p1.m_player->getPlayerUsername();
 	}
 	else if (winner == 1 && p2.m_player) {
-		winnerName = p2.m_player->getPlayerUsername();
+ 		winnerName = p2.m_player->getPlayerUsername();
 	}
 	else if (winner == 2) {
 		winnerName = "TIE";

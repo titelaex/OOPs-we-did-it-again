@@ -216,7 +216,9 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 					}
 
 					if (!breakdown.canAfford) {
-						QMessageBox::warning(this, "Wonder cost", "You cannot afford this wonder.\n\n" + details);
+						QMessageBox::warning(this,
+							"Insufficient coins",
+							"You do not have enough coins to buy the missing resources for this wonder.\n\n" + details);
 						continue;
 					}
 
@@ -266,15 +268,77 @@ void AgeTreeWidget::showAgeTree(int age)
 {
 	qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
 		<< " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
+
+	// Phase 2 transition message (centered). Show once.
+	static bool s_phase2Shown = false;
+	if (age == 2 && !s_phase2Shown) {
+		s_phase2Shown = true;
+
+		// remove everything currently in this widget
+		if (auto oldLayout = this->layout()) {
+			while (auto item = oldLayout->takeAt(0)) {
+				if (auto w = item->widget()) w->deleteLater();
+				delete item;
+			}
+			delete oldLayout;
+		}
+
+		if (m_view) {
+			m_view->setScene(nullptr);
+			m_view->deleteLater();
+			m_view = nullptr;
+		}
+		if (m_scene) {
+			m_scene->deleteLater();
+			m_scene = nullptr;
+		}
+		m_proxyMap.clear();
+
+		auto* msgLayout = new QVBoxLayout(this);
+		msgLayout->setContentsMargins(0, 0, 0, 0);
+		msgLayout->setSpacing(0);
+		msgLayout->setAlignment(Qt::AlignCenter);
+
+		QLabel* phaseMsg = new QLabel("Phase 2 incepe", this);
+		phaseMsg->setAlignment(Qt::AlignCenter);
+		phaseMsg->setStyleSheet("color: white;");
+		QFont f = phaseMsg->font();
+		f.setPointSize(24);
+		f.setBold(true);
+		phaseMsg->setFont(f);
+		phaseMsg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+		msgLayout->addWidget(phaseMsg);
+		setLayout(msgLayout);
+
+		QPointer<AgeTreeWidget> guard(this);
+		QTimer::singleShot(1800, this, [guard]() {
+			if (guard) guard->showAgeTree(2);
+		});
+		return;
+	}
+
+	// If we are about to render any tree (including age 2 after the message),
+	// ensure any temporary "phase" layout is removed completely.
+	if (auto oldLayout = this->layout()) {
+		while (auto item = oldLayout->takeAt(0)) {
+			if (auto w = item->widget()) w->deleteLater();
+			delete item;
+		}
+		delete oldLayout;
+	}
+
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
 	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
 	std::vector<int> rows;
+	// Keep per-age arrangements aligned with backend AgeTree wiring
 	if (age == 1) rows = { 2,3,4,5,6 };
 	else if (age == 2) rows = { 6,5,4,3,2 };
 	else rows = { 2,3,4,2,4,3,2 };
+	const bool flipVertical = false;
 
 	// Choose palette depending on age
 	QColor invisibleBorderColor = QColor("#CCCCCC");
@@ -298,7 +362,7 @@ void AgeTreeWidget::showAgeTree(int age)
 	if (auto oldLayout = this->layout()) {
 		while (auto item = oldLayout->takeAt(0)) {
 			if (auto w = item->widget()) {
-			w->removeEventFilter(this);
+				w->removeEventFilter(this);
 			}
 			delete item;
 		}
@@ -313,7 +377,6 @@ void AgeTreeWidget::showAgeTree(int age)
 		m_view = nullptr;
 	}
 	if (m_scene) {
-		// avoid calling clear() here (can crash when called during event processing)
 		qDebug() << "AgeTreeWidget: scheduling deleteLater on old scene";
 		m_scene->deleteLater();
 		m_scene = nullptr;
@@ -335,6 +398,29 @@ void AgeTreeWidget::showAgeTree(int age)
 	const int hgap = 28;
 	const int vgap = 30;
 
+	if (nodes.empty()) {
+		m_scene->setSceneRect(0, 0, 800, 400);
+		QGraphicsTextItem* t = m_scene->addText("No cards to display.");
+		QFont f = t->font();
+		f.setPointSize(18);
+		f.setBold(true);
+		t->setFont(f);
+		t->setDefaultTextColor(QColor("#FFFFFF"));
+		QRectF tb = t->boundingRect();
+		t->setPos((800 - tb.width()) / 2.0, (400 - tb.height()) / 2.0);
+
+		auto* vlayout = new QVBoxLayout(this);
+		vlayout->setContentsMargins(8, 8, 8, 8);
+		vlayout->setSpacing(0);
+		vlayout->addWidget(m_view);
+		setLayout(vlayout);
+
+		QPointer<AgeTreeWidget> guard(this);
+		QTimer::singleShot(0, [guard]() { if (guard) guard->fitAgeTree(); });
+		if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
+		return;
+	}
+
 	std::vector<QPointF> positions(nodes.size());
 
 	int totalRows = static_cast<int>(rows.size());
@@ -346,21 +432,29 @@ void AgeTreeWidget::showAgeTree(int age)
 		sceneWidth = std::max(sceneWidth, rowWidth);
 	}
 
+	const int totalHeight = totalRows * cardH + (totalRows - 1) * vgap;
+
 	int y = 0;
 	for (int r = 0; r < totalRows; ++r) {
 		int cols = rows[r];
 		int rowWidth = cols * cardW + (cols - 1) * hgap;
 		int x0 = (sceneWidth - rowWidth) / 2;
+		int rowY = y;
+		if (flipVertical) {
+			rowY = (totalHeight - cardH) - y;
+		}
 		for (int c = 0; c < cols; ++c) {
 			if (idx >= static_cast<int>(nodes.size())) break;
 			int x = x0 + c * (cardW + hgap);
-			positions[idx] = QPointF(x, y);
+			positions[idx] = QPointF(x, rowY);
 			++idx;
 		}
 		y += cardH + vgap;
 	}
 
-	m_scene->setSceneRect(0, 0, std::max(sceneWidth, 800), std::max(y, 400));
+	// Fixed rect so view doesn't zoom/resize when cards disappear
+	// (also handle when computed sizes are 0)
+	m_scene->setSceneRect(0, 0, std::max(sceneWidth, 800), std::max(totalHeight + vgap, 400));
 
 	std::unordered_map<Core::Node*, int> ptrToIndex;
 	for (size_t i = 0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
@@ -372,29 +466,32 @@ void AgeTreeWidget::showAgeTree(int age)
 		for (int c = 0; c < cols; ++c) {
 			if (idx >= static_cast<int>(nodes.size())) break;
 			QPointF pos = positions[idx];
+			QRectF rrect(pos, QSizeF(cardW, cardH));
 
-			// if node has no card, skip drawing anything (disappear from tree)
-			if (!nodes[idx] || !nodes[idx]->getCard()) { ++idx; continue; }
+			// No placeholders: if a node/card is missing (picked), draw nothing.
+			if (!nodes[idx] || !nodes[idx]->getCard()) {
+				rects[idx] = nullptr;
+				++idx;
+				continue;
+			}
 
-			bool isAvailable = nodes[idx]->isAvailable();
 			Models::Card* cardPtr = nodes[idx]->getCard();
 
-			// availability/visibility are backend state; UI should not mutate them here
+			// Use backend rule for leaf-availability and backend card flags for UI.
+			const bool leafAvailable = nodes[idx]->isAvailable();
+			const bool isVisible = cardPtr->isVisible();
+			const bool isSelectable = leafAvailable && cardPtr->isAvailable();
 
-			const bool isVisible = (cardPtr && cardPtr->isVisible());
-
-			QRectF rrect(pos, QSizeF(cardW, cardH));
 			QGraphicsRectItem* baseItem = nullptr;
 
-			if (isAvailable) {
+			if (isSelectable) {
 				// Clickable leaf
 				auto* item = new ClickableRect(rrect);
 				item->setZValue(1);
 				m_scene->addItem(item);
 				baseItem = item;
 
-				// Available cards always use their color (even if face-down)
-				auto [top, bottom, border, text] = paletteForCardColor(cardPtr ? cardPtr->getColor() : Models::ColorType::NO_COLOR);
+				auto [top, bottom, border, text] = paletteForCardColor(cardPtr->getColor());
 				item->setGradientColors(top, bottom);
 				item->setBorderColor(border);
 
@@ -409,20 +506,20 @@ void AgeTreeWidget::showAgeTree(int age)
 					t->setZValue(2);
 				}
 
-				int nodeIndex = idx;
-				item->onClicked = [this, nodeIndex]() {
-					this->handleLeafClicked(nodeIndex, m_currentAge);
-					};
+				int nodeIndexToUse = idx;
+				item->onClicked = [this, nodeIndexToUse]() {
+					this->handleLeafClicked(nodeIndexToUse, m_currentAge);
+				};
 			}
 			else {
-				// Non-leaf: not clickable, but should still be colored when visible
+				// Non-leaf or not available: not clickable.
 				if (isVisible) {
 					auto* item = new ClickableRect(rrect);
 					item->setZValue(1);
 					m_scene->addItem(item);
 					baseItem = item;
 
-					auto [top, bottom, border, text] = paletteForCardColor(cardPtr ? cardPtr->getColor() : Models::ColorType::NO_COLOR);
+					auto [top, bottom, border, text] = paletteForCardColor(cardPtr->getColor());
 					item->setGradientColors(top, bottom);
 					item->setBorderColor(border);
 
@@ -436,7 +533,6 @@ void AgeTreeWidget::showAgeTree(int age)
 					t->setZValue(2);
 				}
 				else {
-					// Face-down and not available => neutral card back
 					QColor bg = QColor("#EDE7E0");
 					QGraphicsRectItem* ritem = m_scene->addRect(rrect, QPen(QColor("#374151"), 3), QBrush(bg));
 					ritem->setZValue(1);
@@ -490,7 +586,7 @@ void AgeTreeWidget::showAgeTree(int age)
 	QPointer<AgeTreeWidget> guard(this);
 	QTimer::singleShot(0, [guard]() {
 		if (guard) guard->fitAgeTree();
-		});
+	});
 
 	if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
 }
@@ -498,13 +594,8 @@ void AgeTreeWidget::showAgeTree(int age)
 void AgeTreeWidget::fitAgeTree()
 {
 	if (!m_view || !m_scene) return;
-	QRectF sb = m_scene->itemsBoundingRect();
-	if (sb.isEmpty()) {
-		m_view->fitInView(m_scene->sceneRect(), Qt::KeepAspectRatio);
-		return;
-	}
 	m_view->resetTransform();
-	m_view->fitInView(sb, Qt::KeepAspectRatio);
+	m_view->fitInView(m_scene->sceneRect(), Qt::KeepAspectRatio);
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
