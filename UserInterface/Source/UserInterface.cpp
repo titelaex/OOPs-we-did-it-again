@@ -6,6 +6,7 @@
 #include "Preparation.h"
 #include "AgeTreeWidget.h"
 #include "DiscardedCardsWidget.h"
+#include "GameListenerBridge.h"
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QVBoxLayout>
@@ -36,6 +37,7 @@ UserInterface::UserInterface(QWidget* parent)
 	
 	initializePlayers();
 	setupLayout();
+	initializeGame();
 	startWonderSelection();
 
 	if (m_boardWidget) m_boardWidget->refresh();
@@ -485,4 +487,23 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 			}
 		}
 	}
+}
+
+void UserInterface::initializeGame() {
+	// Bridge (QObject + Core::IGameListener)
+	m_gameListener = std::make_shared<GameListenerBridge>(this);
+
+	// Backend -> Qt -> BoardWidget
+	if (m_boardWidget) {
+		connect(m_gameListener.get(), &GameListenerBridge::pawnMovedSignal,
+			m_boardWidget, &BoardWidget::setPawnPosition,
+			Qt::QueuedConnection);
+	}
+
+	// Register listener to backend notifier (observer pattern)
+	Core::Game::getNotifier().addListener(m_gameListener);
+
+	// Initial sync (in case the pawn already has a non-zero position)
+	auto& board = Core::Board::getInstance();
+	if (m_boardWidget) m_boardWidget->setPawnPosition(static_cast<int>(board.getPawnPos()));
 }

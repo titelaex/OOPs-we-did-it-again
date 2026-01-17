@@ -163,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DiscardedCardsWidget.h" />
+    <QtMoc Include="GameListenerBridge.h" />
     <ClInclude Include="Header\AgeTreeWidget.h" />
     <QtMoc Include="Header\BoardWidget.h" />
     <ClInclude Include="Header\CardSpineDelegate.h" />

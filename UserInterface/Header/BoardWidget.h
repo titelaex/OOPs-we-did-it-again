@@ -16,11 +16,13 @@ class BoardWidget : public QWidget {
 public:
 	explicit BoardWidget(QWidget* parent = nullptr);
 	void refresh();
+	void setPawnPosition(int position);
 
 protected:
 	void resizeEvent(QResizeEvent* event) override;
 
 private:
+	int m_pawnPosition = 0;
 	QGraphicsView* m_view{ nullptr };
 	QGraphicsScene* m_scene{ nullptr };
 	void drawBoard();

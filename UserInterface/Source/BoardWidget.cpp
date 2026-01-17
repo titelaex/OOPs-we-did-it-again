@@ -1,4 +1,4 @@
-#include "Header/BoardWidget.h"
+﻿#include "Header/BoardWidget.h"
 #include <QtWidgets/QGraphicsPixmapItem>
 #include <QtWidgets/QGraphicsEllipseItem>
 #include <QtWidgets/QGraphicsTextItem>
@@ -135,7 +135,7 @@ void BoardWidget::drawBoard()
 	}
 
 	// Pawn
-	int pawnPos = static_cast<int>(board.getPawnPos());
+	int pawnPos = (m_pawnPosition >=0) ? m_pawnPosition : static_cast<int>(board.getPawnPos());
 	drawPawn(pawnPos, 0, kTrackSlots - 1);
 
 	// Progress tokens
@@ -197,4 +197,11 @@ void BoardWidget::drawPawn(int position, int minPos, int maxPos)
 	shadow->setOffset(5, 5);
 	shadow->setColor(QColor(0, 0, 0, 120));
 	pawn->setGraphicsEffect(shadow);
+}
+
+
+void BoardWidget::setPawnPosition(int position)
+{
+	m_pawnPosition = position;
+	refresh();
 }
