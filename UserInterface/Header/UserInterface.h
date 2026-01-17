@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include "ui_UserInterface.h"
+#include <QtWidgets/QDialog>
 
 class QSplitter;
 class QLabel;
@@ -17,6 +18,7 @@ class BoardWidget;
 class AgeTreeWidget;
 class GameListenerBridge;
 
+
 namespace Models { class Wonder; }
 
 class UserInterface : public QMainWindow
@@ -24,10 +26,19 @@ class UserInterface : public QMainWindow
 	Q_OBJECT
 
 public:
+
+	enum class GameMode {
+		PvP,    // Player vs Player
+		PvAI,   // Player vs AI
+		AIvAI   // AI vs AI
+	};
+
 	explicit  UserInterface(QWidget* parent = nullptr);
 	~UserInterface();
 
 private:
+	void showGameModeSelection();
+
 	void initializePlayers();
 	void setupLayout();
 	void setupCenterPanel(QSplitter* splitter);
@@ -39,6 +50,8 @@ private:
 	void initializeGame();
 
 	Ui::UserInterfaceClass ui;
+
+	GameMode m_gameMode = GameMode::PvP;
 
 	PlayerPanelWidget* m_leftPanel{ nullptr };
 	PlayerPanelWidget* m_rightPanel{ nullptr };

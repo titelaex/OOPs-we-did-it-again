@@ -43,6 +43,8 @@ UserInterface::UserInterface(QWidget* parent)
 		"  background-color: #1e1e1e;" // Very dark gray
 		"}"
 	);
+
+	showGameModeSelection(); 
 	
 	setupLayout();     // Create widgets first (but don't populate yet)
 	initializeGame();  // Register listener BEFORE preparing game
@@ -60,6 +62,63 @@ UserInterface::UserInterface(QWidget* parent)
 UserInterface::~UserInterface()
 {
 	delete m_wonderController;
+}
+
+void UserInterface::showGameModeSelection()
+{
+	QDialog selectionDialog(this);
+	selectionDialog.setWindowTitle("Select Game Mode");
+	selectionDialog.setModal(true);
+	selectionDialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); // Fara buton de inchidere X
+	selectionDialog.setStyleSheet("background-color: #1e1e1e; color: white;");
+
+	QVBoxLayout* layout = new QVBoxLayout(&selectionDialog);
+
+	QLabel* label = new QLabel("Choose your game mode:", &selectionDialog);
+	label->setAlignment(Qt::AlignCenter);
+	label->setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;");
+	layout->addWidget(label);
+
+	// Stil comun pentru butoane
+	QString btnStyle =
+		"QPushButton {"
+		"  background-color: #4b5563;"
+		"  color: white;"
+		"  padding: 10px;"
+		"  border-radius: 5px;"
+		"  font-size: 14px;"
+		"}"
+		"QPushButton:hover { background-color: #374151; }";
+
+	// Buton Player vs Player
+	QPushButton* btnPvP = new QPushButton("Player vs Player", &selectionDialog);
+	btnPvP->setStyleSheet(btnStyle);
+	QObject::connect(btnPvP, &QPushButton::clicked, [&]() {
+		m_gameMode = GameMode::PvP;
+		selectionDialog.accept();
+		});
+	layout->addWidget(btnPvP);
+
+	// Buton Player vs AI
+	QPushButton* btnPvAI = new QPushButton("Player vs AI", &selectionDialog);
+	btnPvAI->setStyleSheet(btnStyle);
+	QObject::connect(btnPvAI, &QPushButton::clicked, [&]() {
+		m_gameMode = GameMode::PvAI;
+		selectionDialog.accept();
+		});
+	layout->addWidget(btnPvAI);
+
+	// Buton AI vs AI
+	QPushButton* btnAIvAI = new QPushButton("AI vs AI", &selectionDialog);
+	btnAIvAI->setStyleSheet(btnStyle);
+	QObject::connect(btnAIvAI, &QPushButton::clicked, [&]() {
+		m_gameMode = GameMode::AIvAI;
+		selectionDialog.accept();
+		});
+	layout->addWidget(btnAIvAI);
+
+	// Afiseaza dialogul si blocheaza executia pana se alege ceva
+	selectionDialog.exec();
 }
 
 void UserInterface::initializePlayers()
