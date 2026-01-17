@@ -119,7 +119,7 @@ void BoardWidget::drawBoard()
 	double y = boardY + boardHeight /2;
 	for (int i =0; i < kTrackSlots; ++i) track.emplace_back(startX + i * step, y);
 
-	// Main board - now light blue!
+	// Main board - brown/tan color!
 	QPainterPath boardPath;
 	boardPath.moveTo(centerX - boardWidth /2 + endAngleWidth, boardY);
 	boardPath.lineTo(centerX + boardWidth /2 - endAngleWidth, boardY);
@@ -129,21 +129,21 @@ void BoardWidget::drawBoard()
 	boardPath.lineTo(centerX - boardWidth /2, boardY + boardHeight /2);
 	boardPath.closeSubpath();
 
-	// Light blue gradient for the board
+	// Brown gradient for the board
 	QLinearGradient baseGrad(0, boardY,0, boardY + boardHeight);
-	baseGrad.setColorAt(0, QColor("#7dd3fc")); // Light blue
-	baseGrad.setColorAt(1, QColor("#38bdf8")); // Slightly darker light blue
-	m_scene->addPath(boardPath, QPen(QColor("#0ea5e9"),8), QBrush(baseGrad));
+	baseGrad.setColorAt(0, QColor("#d4a574")); // Light tan/brown
+	baseGrad.setColorAt(1, QColor("#a67c52")); // Darker brown
+	m_scene->addPath(boardPath, QPen(QColor("#8b6f47"),8), QBrush(baseGrad));
 
-	// Token bar - matching light blue theme
+	// Token bar - matching brown theme
 	qreal tokenBarWidth =1000;
 	qreal tokenBarHeight =140;
 	QPainterPath tokenPath;
 	tokenPath.addRoundedRect(centerX - tokenBarWidth /2, boardY - tokenBarHeight +20, tokenBarWidth, tokenBarHeight,25,25);
 	QLinearGradient topGrad(0, boardY - tokenBarHeight,0, boardY);
-	topGrad.setColorAt(0, QColor("#bae6fd"));
-	topGrad.setColorAt(1, QColor("#7dd3fc"));
-	m_scene->addPath(tokenPath, QPen(QColor("#0ea5e9"),6), QBrush(topGrad));
+	topGrad.setColorAt(0, QColor("#e8c9a3"));
+	topGrad.setColorAt(1, QColor("#d4a574"));
+	m_scene->addPath(tokenPath, QPen(QColor("#8b6f47"),6), QBrush(topGrad));
 
 	int pawnPos = (m_pawnPosition >= 0) ? m_pawnPosition : static_cast<int>(board.getPawnPos());
 
@@ -152,7 +152,7 @@ void BoardWidget::drawBoard()
 		auto& p = track[i];
 		bool hasPawn = (i == pawnPos);
 		QColor fillColor = hasPawn ? QColor("#fbbf24") : QColor(255,255,255,40);
-		QColor borderColor = hasPawn ? QColor("#f59e0b") : QColor("#e6e6e6");
+		QColor borderColor = hasPawn ? QColor("#f59e0b") : QColor("#8b6f47");
 		int borderWidth = hasPawn ? 5 : 4;
 		QGraphicsEllipseItem* e = m_scene->addEllipse(
 			QRectF(p.x() -30, p.y() -30,60,60), 
@@ -163,7 +163,7 @@ void BoardWidget::drawBoard()
 	}
 
 	// Dotted delimiters
-	QPen dottedPen(QColor("#e9c46a"),3, Qt::DotLine);
+	QPen dottedPen(QColor("#8b6f47"),3, Qt::DotLine);
 	for (int i : {0,3,6,8,9,11,14,17}) {
 		qreal x_pos = track[i].x() + step /2.0;
 		m_scene->addLine(x_pos, y -40, x_pos, y +40, dottedPen);
@@ -197,8 +197,8 @@ void BoardWidget::drawBoard()
 			if (m_tokenSelectionEnabled && m_onTokenClicked) {
 				// Create a clickable item
 				auto* clickableRing = new ClickableTokenItem(cRect, i, m_onTokenClicked);
-				clickableRing->setPen(QPen(QColor("#0ea5e9"),5));
-				clickableRing->setBrush(QBrush(QColor("#0284c7")));
+				clickableRing->setPen(QPen(QColor("#8b6f47"),5));
+				clickableRing->setBrush(QBrush(QColor("#a67c52")));
 				clickableRing->setZValue(3);
 				m_scene->addItem(clickableRing);
 				ring = clickableRing;
@@ -210,7 +210,7 @@ void BoardWidget::drawBoard()
 				clickableRing->setGraphicsEffect(shadow);
 			} else {
 				// Non-clickable ring
-				auto* pathRing = m_scene->addPath(circle, QPen(QColor("#0ea5e9"),5), QBrush(QColor("#0284c7")));
+				auto* pathRing = m_scene->addPath(circle, QPen(QColor("#8b6f47"),5), QBrush(QColor("#a67c52")));
 				pathRing->setZValue(3);
 				ring = pathRing;
 				
@@ -270,7 +270,7 @@ void BoardWidget::drawBoard()
 			
 			// Add token name label below
 			QGraphicsTextItem* t = m_scene->addText(tokenName, QFont("Segoe UI",11, QFont::Bold));
-			t->setDefaultTextColor(QColor("#1e1b4b"));
+			t->setDefaultTextColor(QColor("#3d2817"));
 			QRectF tb = t->boundingRect();
 			t->setPos(cRect.center().x() - tb.width() /2.0, cRect.bottom() +5);
 			t->setZValue(4);
@@ -279,7 +279,7 @@ void BoardWidget::drawBoard()
 			QPainterPath emptyCircle;
 			emptyCircle.addEllipse(cRect);
 			auto* placeholder = m_scene->addPath(emptyCircle, 
-				QPen(QColor("#0ea5e9"),2), 
+				QPen(QColor("#8b6f47"),2), 
 				QBrush(QColor(255,255,255,10)));
 			placeholder->setZValue(2);
 		}

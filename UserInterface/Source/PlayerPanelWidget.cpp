@@ -92,17 +92,17 @@ void PlayerPanelWidget::refreshWonders()
 	}
 
 	auto title = new QLabel("Wonders:", this);
-	title->setStyleSheet("font-weight: bold; margin-right:6px; font-size:12px;");
-	title->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
-	m_wondersGrid->addWidget(title,0,0,1,2);
+title->setStyleSheet("font-weight: bold; margin-right:6px; font-size:12px;");
+title->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
+m_wondersGrid->addWidget(title,0,0,1,2);
 
 	bool hasPlayer = (m_player && m_player->m_player);
 
 	for (int i =0; i <4; ++i) {
 		auto slot = new QLabel(this);
 		slot->setAlignment(Qt::AlignCenter);
-		slot->setMinimumSize(110,60);
-		slot->setMaximumSize(130,70);
+		slot->setMinimumSize(110,80);
+		slot->setMaximumSize(130,90);
 		slot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		slot->setWordWrap(true);
 
@@ -123,27 +123,55 @@ void PlayerPanelWidget::refreshWonders()
 				QString name = QStringBuilder(w->getName());
 				bool built = w->IsConstructed();
 
-				slot->setText(name + (built ? "\n✓" : ""));
-
-				QString style;
-				if (built) {
-					// Gold highlight for constructed wonders
-					style = QString(
-						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 #FFD700, stop:1 #B8860B);"
-						"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700; font-size:10px; padding:2px;")
-						.arg(m_isLeftPanel ?1 :0)
-						.arg(m_isLeftPanel ?0 :1);
-				} else {
-					QString bg = ColorToCss(w->getColor());
-					style = QString(
-						"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
-						"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600; font-size:10px; padding:2px;")
-						.arg(m_isLeftPanel ?1 :0)
-						.arg(m_isLeftPanel ?0 :1)
-						.arg(bg);
+				// Try to load wonder image
+				QString imagePath = QString("Resources/wonders/%1.png").arg(name);
+				QPixmap wonderPixmap(imagePath);
+				
+				// If file system load fails, try from Qt resources
+				if (wonderPixmap.isNull()) {
+					imagePath = QString(":/wonders/%1.png").arg(name);
+					wonderPixmap = QPixmap(imagePath);
 				}
+				
+				if (!wonderPixmap.isNull()) {
+					// Scale image to fit the slot
+					QPixmap scaledPixmap = wonderPixmap.scaled(110, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+					slot->setPixmap(scaledPixmap);
+					slot->setText(""); // Clear text when showing image
+					
+					QString style;
+					if (built) {
+						// Gold border for constructed wonders
+						style = "border:3px solid #FFD700; border-radius:6px; padding:2px; background: transparent;";
+					} else {
+						// Brown border for unconstructed wonders
+						style = "1px solid #374151; border-radius:6px; padding:2px; background: transparent;";
+					}
+					slot->setStyleSheet(style);
+				} else {
+					// Fallback to text if no image
+					slot->setText(name + (built ? "\n✓" : ""));
 
-				slot->setStyleSheet(style);
+					QString style;
+					if (built) {
+						// Gold highlight for constructed wonders
+						style = QString(
+							"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 #FFD700, stop:1 #B8860B);"
+							"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700; font-size:10px; padding:2px;")
+							.arg(m_isLeftPanel ?1 :0)
+							.arg(m_isLeftPanel ?0 :1);
+					} else {
+						QString bg = ColorToCss(w->getColor());
+						style = QString(
+							"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 %3, stop:1 rgba(0,0,0,0.15));"
+							"border:1px solid #111; border-radius:6px; color:#fff; font-weight:600; font-size:10px; padding:2px;")
+							.arg(m_isLeftPanel ?1 :0)
+							.arg(m_isLeftPanel ?0 :1)
+							.arg(bg);
+					}
+					slot->setStyleSheet(style);
+				}
+				
 				slot->setToolTip(name);
 			}
 			else {
@@ -164,6 +192,15 @@ PlayerPanelWidget::PlayerPanelWidget(std::shared_ptr<Core::Player> player, QWidg
 	: QWidget(parent), m_player(player)
 {
 	m_isLeftPanel = isLeftPanel;
+	
+	setStyleSheet(
+		"PlayerPanelWidget {"
+		"  background-color: #1e1e1e;" 
+		"  border-radius: 12px;"
+		"  border: 2px solid #374151;"
+		"}"
+	);
+	
 	m_layout = new QVBoxLayout(this);
 	m_layout->setContentsMargins(8, 8, 8, 8);
 	m_layout->setSpacing(10);
@@ -172,18 +209,50 @@ PlayerPanelWidget::PlayerPanelWidget(std::shared_ptr<Core::Player> player, QWidg
 
 void PlayerPanelWidget::buildUi()
 {
+	QString username;
+	
+	if (m_player && m_player->m_player) {
+		QString playerUsername = QStringBuilder(m_player->m_player->getPlayerUsername());
+		// If username is empty or whitespace, use default
+		if (playerUsername.trimmed().isEmpty()) {
+			username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
+		} else {
+			username = playerUsername;
+		}
+	} else {
+		username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
+	}
 
-	QString username = m_player && m_player->m_player ? QStringBuilder(m_player->m_player->getPlayerUsername()) : QString("<unknown>");
-
-	auto usernameLbl = new QLabel(username, this);
-	usernameLbl->setStyleSheet("font-size:18px; font-weight: bold; margin-bottom:3px;");
-	usernameLbl->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
-	m_layout->addWidget(usernameLbl);
+	m_usernameLabel = new QLabel(username, this); // Store the label!
+	m_usernameLabel->setStyleSheet("font-size:18px; font-weight: bold; margin-bottom:3px;");
+	m_usernameLabel->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
+	m_layout->addWidget(m_usernameLabel);
 
 	addStatsRow();
 	addProgressTokensSection();
 	addCardSections();
 	addWonderSection();
+}
+
+void PlayerPanelWidget::refreshUsername()
+{
+	if (!m_usernameLabel) return;
+	
+	QString username;
+	
+	if (m_player && m_player->m_player) {
+		QString playerUsername = QStringBuilder(m_player->m_player->getPlayerUsername());
+		// If username is empty or whitespace, use default
+		if (playerUsername.trimmed().isEmpty()) {
+			username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
+		} else {
+			username = playerUsername;
+		}
+	} else {
+		username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
+	}
+	
+	m_usernameLabel->setText(username);
 }
 
 void PlayerPanelWidget::addWonderSection()

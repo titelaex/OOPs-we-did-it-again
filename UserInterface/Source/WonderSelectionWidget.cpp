@@ -4,18 +4,25 @@
 #include <QCursor>
 #include <QString>
 #include <QEvent>
+#include <QPixmap>
+#include <QVBoxLayout>
+#include <QLabel>
 import Models.ResourceType;
 import Models.Wonder;
 
 WonderSelectionWidget::WonderSelectionWidget(QWidget* parent): QWidget(parent)
 {
+	// Make widget transparent to show background
+	setAttribute(Qt::WA_TranslucentBackground);
+	setStyleSheet("WonderSelectionWidget { background: transparent; }");
+	
 	m_mainLayout = new QVBoxLayout(this);
 	m_mainLayout->setAlignment(Qt::AlignCenter);
 	m_mainLayout->setSpacing(20);
 
 	m_infoLabel = new QLabel("Se pregateste jocul...", this);
 	m_infoLabel->setAlignment(Qt::AlignCenter);
-	m_infoLabel->setStyleSheet("font-size:24px; font-weight: bold; color: white; margin-bottom:10px;");
+	m_infoLabel->setStyleSheet("font-size:24px; font-weight: bold; color: white; margin-bottom:10px; background: transparent;");
 	m_mainLayout->addWidget(m_infoLabel);
 
 	m_cardsLayout = new QHBoxLayout();
@@ -92,21 +99,54 @@ void WonderSelectionWidget::loadWonders(std::vector<Models::Wonder*> wonders)
 		m_wonders.push_back(w);
 
 		QPushButton* btn = new QPushButton(this);
-		btn->setFixedSize(180, 110);
+		btn->setFixedSize(170, 120);
 
 		if (w) {
-			btn->setText(QString::fromStdString(w->getName()));
-			btn->setStyleSheet(
-				"QPushButton {"
-				" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4B5563, stop:1 #1F2937);"
-				" border:2px solid #9CA3AF;"
-				" border-radius:8px;"
-				" color: white;"
-				" font-weight: bold;"
-				" font-size:15px;"
-				"}"
-				"QPushButton:hover { border:2px solid #F59E0B; }"
-			);
+			QString wonderName = QString::fromStdString(w->getName());
+			
+		
+			QString imagePath = QString("Resources/wonders/%1.png").arg(wonderName);
+			QPixmap wonderPixmap(imagePath);
+			
+			if (wonderPixmap.isNull()) {
+				imagePath = QString(":/wonders/%1.png").arg(wonderName);
+				wonderPixmap = QPixmap(imagePath);
+			}
+			
+			if (!wonderPixmap.isNull()) {
+				QPixmap scaledPixmap = wonderPixmap.scaled(160, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				btn->setIcon(QIcon(scaledPixmap));
+				btn->setIconSize(QSize(160, 120));
+				btn->setText(""); 
+				
+				btn->setStyleSheet(
+					"QPushButton {"
+					" background: transparent;"
+					" border: 3px solid #8b6f47;"
+					" border-radius: 12px;"
+					" padding: 5px;"
+					"}"
+					"QPushButton:hover {"
+					" border: 3px solid #F59E0B;" 
+					" background: rgba(245, 158, 11, 0.1);"
+					"}"
+				);
+			} else {
+			
+				btn->setText(wonderName);
+				btn->setStyleSheet(
+					"QPushButton {"
+					" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4B5563, stop:1 #1F2937);"
+					" border:2px solid #9CA3AF;"
+					" border-radius:8px;"
+					" color: white;"
+					" font-weight: bold;"
+					" font-size:15px;"
+					" padding: 5px;"
+					"}"
+					"QPushButton:hover { border:2px solid #F59E0B; }"
+				);
+			}
 
 			btn->setProperty("index", static_cast<int>(i));
 			connect(btn, &QPushButton::clicked, this, &WonderSelectionWidget::handleButtonClick);

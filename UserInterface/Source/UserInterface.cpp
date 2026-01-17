@@ -14,7 +14,9 @@
 #include <QtCore/QTimer>
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QFile>
 #include <QtGui/QTransform>
+#include <QtGui/QPixmap>
 #include <algorithm> 
 #include <vector> 
 #include <memory> 
@@ -35,23 +37,10 @@ UserInterface::UserInterface(QWidget* parent)
 {
 	ui.setupUi(this);
 	
-	// Set background image - using Qt Resource system (preferred)
+	// Set solid #1e1e1e background for main window
 	setStyleSheet(
 		"QMainWindow {"
-		"  background-image: url(:/images/background.jpg);"
-		"  background-position: center;"
-		"  background-repeat: no-repeat;"
-		"}"
-		// Make widgets transparent so background shows through
-		"QWidget#centerContainer {"
-		"  background: transparent;"
-		"}"
-		"QScrollArea {"
-		"  background: transparent;"
-		"  border: none;"
-		"}"
-		"QSplitter {"
-		"  background: transparent;"
+		"  background-color: #1e1e1e;" // Very dark gray
 		"}"
 	);
 	
@@ -95,6 +84,14 @@ void UserInterface::initializePlayers()
 			p1->m_player->setPlayerUsername(n1.toStdString());
 		if (p2 && p2->m_player && !n2.isEmpty())
 			p2->m_player->setPlayerUsername(n2.toStdString());
+		
+		// Refresh the username labels after setting the names!
+		if (m_leftPanel) {
+			m_leftPanel->refreshUsername();
+		}
+		if (m_rightPanel) {
+			m_rightPanel->refreshUsername();
+		}
 	}
 
 	Core::Game::preparation();
@@ -116,8 +113,9 @@ void UserInterface::setupLayout()
 	leftScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	leftScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	leftScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	leftScroll->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-	leftScroll->viewport()->setStyleSheet("background: transparent;"); // Important!
+	// Use #1e1e1e to match panel
+	leftScroll->setStyleSheet("QScrollArea { background: #1e1e1e; border: none; }");
+	leftScroll->viewport()->setStyleSheet("background: #1e1e1e;");
 	splitter->addWidget(leftScroll);
 
 	// Center container
@@ -133,8 +131,9 @@ void UserInterface::setupLayout()
 	rightScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	rightScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	rightScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	rightScroll->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-	rightScroll->viewport()->setStyleSheet("background: transparent;"); // Important!
+	// Use #1e1e1e to match panel
+	rightScroll->setStyleSheet("QScrollArea { background: #1e1e1e; border: none; }");
+	rightScroll->viewport()->setStyleSheet("background: #1e1e1e;");
 	splitter->addWidget(rightScroll);
 
 	// Splitter configuration
@@ -151,7 +150,26 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 {
 	m_centerContainer = new QWidget(splitter);
 	m_centerContainer->setObjectName("centerContainer"); // Set object name for stylesheet
-	m_centerContainer->setAttribute(Qt::WA_TranslucentBackground); // Make transparent
+	
+	// Apply background image ONLY to center container
+	QPixmap bgImage(":/images/background.jpg");
+	if (bgImage.isNull()) {
+		bgImage = QPixmap("C:/Users/catal/Documents/FMI/modern_c++/OOPs-we-did-it-again/UserInterface/Resources/images/background.jpg");
+	}
+	
+	QString bgPath = bgImage.isNull() 
+		? "" 
+		: (QFile::exists(":/images/background.jpg") ? ":/images/background.jpg" : "C:/Users/catal/Documents/FMI/modern_c++/OOPs-we-did-it-again/UserInterface/Resources/images/background.jpg");
+	
+	if (!bgPath.isEmpty()) {
+		m_centerContainer->setStyleSheet(
+			QString("QWidget#centerContainer {"
+			"  background-image: url(%1);"
+			"  background-position: center;"
+			"  background-repeat: no-repeat;"
+			"}").arg(bgPath)
+		);
+	}
 	
 	auto* centerLayout = new QVBoxLayout(m_centerContainer);
 	centerLayout->setContentsMargins(0,0,0,0);
@@ -159,6 +177,7 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 
 	// Top: Phase banner
 	m_centerTop = new QWidget(m_centerContainer);
+	m_centerTop->setAttribute(Qt::WA_TranslucentBackground); // Transparent to show background
 	auto* topLayout = new QHBoxLayout(m_centerTop);
 	topLayout->setContentsMargins(0,0,0,0);
 	m_phaseBanner = new QLabel("", m_centerTop);
@@ -609,7 +628,14 @@ void UserInterface::initializeGame() {
 	// React to tree-node changes/empties by refreshing age tree
 	connect(m_gameListener.get(), &GameListenerBridge::treeNodeEmptiedSignal, this, [this](int ageIndex, int nodeIndex){
 		Q_UNUSED(nodeIndex);
+		#if 1
 		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
+		#else
+		// delayed to avoid duplicates
+		QTimer::singleShot(0,this,[this,ageIndex](){
+			if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
+		});
+		#endif
 	});
 	connect(m_gameListener.get(), &GameListenerBridge::treeNodeChangedSignal, this,
 		[this](int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty){

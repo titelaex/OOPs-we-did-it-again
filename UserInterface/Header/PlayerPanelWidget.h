@@ -26,6 +26,7 @@ public:
 	void refreshWonders();
 	void refreshCards();
 	void refreshTokens(); // Add method to refresh tokens display
+	void refreshUsername(); // Add method to refresh username display
 
 private:
 	std::shared_ptr<Core::Player> m_player;
@@ -35,6 +36,7 @@ private:
 	QGridLayout* m_wondersGrid = nullptr;
 	QLabel* m_coinsLabel = nullptr;
 	QLabel* m_vpLabel = nullptr;
+	QLabel* m_usernameLabel = nullptr; // Store username label for updates
 
 	QListWidget* m_cardsBrown = nullptr;
 	QListWidget* m_cardsGrey = nullptr;

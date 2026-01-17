@@ -12,5 +12,18 @@
 		<file>Resources/tokens/Theology.png</file>
 		<file>Resources/tokens/Urbanism.png</file>
 		<file>Resources/images/background.jpg</file>
+		<!-- Wonder images -->
+		<file>Resources/wonders/The Statue of Zeus.png</file>
+		<file>Resources/wonders/The Great Library.png</file>
+		<file>Resources/wonders/The Mausoleum.png</file>
+		<file>Resources/wonders/The Great Lighthouse.png</file>
+		<file>Resources/wonders/The Colossus.png</file>
+		<file>Resources/wonders/The Pyramids.png</file>
+		<file>Resources/wonders/Circus Maximus.png</file>
+		<file>Resources/wonders/The Sphinx.png</file>
+		<file>Resources/wonders/The Hanging Gardens.png</file>
+		<file>Resources/wonders/Piraeus.png</file>
+		<file>Resources/wonders/The Temple of Artemis.png</file>
+		<file>Resources/wonders/The Appian Way.png</file>
 	</qresource>
 </RCC>
