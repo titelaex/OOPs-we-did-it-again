@@ -1,7 +1,6 @@
 module Models.Player;
 
 import Models.Player;
-import Models.ColorType;
 import <iostream>;
 import <algorithm>;
 import <memory>;
@@ -10,42 +9,16 @@ using namespace Models;
 
 uint8_t Player::totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins) { return std::get<0>(coins) + std::get<1>(coins) *3 + std::get<2>(coins) *6; }
 
-uint8_t Player::Points::totalVictoryPoints() const { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints + m_coinVictoryPoints; }
+uint8_t Player::Points::totalVictoryPoints() const { return m_militaryVictoryPoints + m_buildingVictoryPoints + m_wonderVictoryPoints + m_progressVictoryPoints; }
 
 Player::Player(const uint8_t& id, const std::string& username) : playerId(id), m_playerUsername(username)
 {
 	m_playerPoints = {0,0,0,0 };
 }
 
-void Player::addCard(std::unique_ptr<Card> card) { 
-	if (!card) return;
-	uint8_t cardVP = card->getVictoryPoints();
-	if (cardVP > 0) {
-		Models::ColorType color = card->getColor();
-		if (color == Models::ColorType::BLUE || 
-		    color == Models::ColorType::GREEN || 
-		    color == Models::ColorType::YELLOW || 
-		    color == Models::ColorType::PURPLE) {
-			m_playerPoints.m_buildingVictoryPoints += cardVP;
-		}
-	}
-	m_ownedCards.push_back(std::move(card)); 
-}
-
-void Player::addWonder(std::unique_ptr<Wonder> wonder) { 
-	if (!wonder) return;
-	m_ownedWonders.push_back(std::move(wonder)); 
-}
-
-void Player::addToken(std::unique_ptr<Token> token) { 
-	if (!token) return;
-	uint8_t tokenVP = token->getVictoryPoints();
-	if (tokenVP > 0) {
-		m_playerPoints.m_progressVictoryPoints += tokenVP;
-	}
-	m_ownedTokens.push_back(std::move(token)); 
-}
-
+void Player::addCard(std::unique_ptr<Card> card) { m_ownedCards.push_back(std::move(card)); }
+void Player::addWonder(std::unique_ptr<Wonder> wonder) { m_ownedWonders.push_back(std::move(wonder)); }
+void Player::addToken(std::unique_ptr<Token> token) { m_ownedTokens.push_back(std::move(token)); } 
 void Player::addPermanentResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedPermanentResources[resourceType] += quantity; }
 void Player::addTradingResource(const ResourceType& resourceType, const uint8_t& quantity) { m_ownedTradingResources[resourceType] += quantity; }
 void Models::Player::setPlayerUsername(const std::string& username) { m_playerUsername = username; }
@@ -87,30 +60,4 @@ std::unique_ptr<Card> Player::removeOwnedCardAt(size_t idx) {
 
 uint8_t Player::getTotalVictoryPoints() const {
  return m_playerPoints.totalVictoryPoints();
-}
-
-uint8_t Player::getBlueBuildingVictoryPoints() const {
- uint8_t blueVP = 0;
- for (const auto& card : m_ownedCards) {
- if (card && card->getColor() == ColorType::BLUE) {
- blueVP += card->getVictoryPoints();
- }
- }
- return blueVP;
-}
-
-bool Player::hasToken(TokenIndex tokenIndex) const {
- return m_tokensOwned[static_cast<size_t>(tokenIndex)];
-}
-
-uint8_t Player::getTokenVictoryBonus() const {
- uint8_t bonus = 0;
- if (hasToken(TokenIndex::PHILOSOPHY)) {
- bonus += 7;
- }
- if (hasToken(TokenIndex::MATHEMATICS)) {
- const auto& tokens = getOwnedTokens();
- bonus += 3 * static_cast<uint8_t>(tokens.size());
- }
- return bonus;
 }

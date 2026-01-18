@@ -109,7 +109,13 @@ void Wonder::setShieldPoints(uint8_t pts) { m_shieldPoints = pts; }
 void Wonder::setResourceProduction(ResourceType r) { m_resourceProduction = r; }
 void Wonder::setConstructed(bool constructed) { isConstructed = constructed; }
 
- 
+void Wonder::displayCardInfo()
+{
+	Card::displayCardInfo();
+	std::cout << " Resource Production: " << ResourceTypeToString(m_resourceProduction) << "\n";
+	std::cout << " Shield Points: " << static_cast<int>(m_shieldPoints) << "\n";
+	std::cout << " Constructed: " << (isConstructed ? "Yes" : "No") << "\n";
+}
 
 WonderBuilder& WonderBuilder::setName(const std::string& name) { m_card.setName(name); return *this; }
 WonderBuilder& WonderBuilder::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_card.setResourceCost(resourceCost); return *this; }

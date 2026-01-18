@@ -1,7 +1,6 @@
 #include "Header/AgeTreeWidget.h"
 #include <QtCore/QDebug>
 #include "Header/PlayerPanelWidget.h"
-#include "GameListenerBridge.h"
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsRectItem>
@@ -138,13 +137,14 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
 	auto node = nodes[static_cast<size_t>(nodeIndex)];
 	if (!node) return;
-	auto* cardPtr = node->getCard();
-	if (!cardPtr) return;
+	auto* card = node->getCard();
+	if (!card) return;
 
+	// Allow retrying a different action if the first choice fails.
 	while (true) {
 		QMessageBox msg(this);
 		msg.setWindowTitle("Choose action");
-		msg.setText(QString::fromStdString(cardPtr->getName()));
+		msg.setText(QString::fromStdString(card->getName()));
 		QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
 		QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
 		QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
@@ -160,39 +160,8 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		else if (clicked == wonderBtn) action = 2;
 		else return;
 
-		bool actionSucceeded = false;
-		auto& gs2 = Core::GameState::getInstance();
-		Core::Player* opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
-
-		if (action == 0) {
-			if (!cur->canAffordCard(cardPtr, opp->m_player)) {
-				QMessageBox::warning(this, "Build Failed", "Cannot afford this card.");
-				cardPtr = node->getCard();
-				if (!cardPtr) return;
-				continue;
-			}
-			try {
-				auto card = node->releaseCard();
-				if (card) {
-					cur->playCardBuilding(card, opp->m_player);
-					actionSucceeded = true;
-				}
-			} catch (const std::exception& ex) {
-				QMessageBox::warning(this, "Build Failed", "Exception: " + QString::fromStdString(ex.what()));
-				cardPtr = node->getCard();
-				if (!cardPtr) return;
-				continue;
-			}
-		}
-		else if (action == 1) {
-			auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-			auto card = node->releaseCard();
-			if (card) {
-				cur->sellCard(card, discarded);
-				actionSucceeded = true;
-			}
-		}
-		else if (action == 2) {
+		std::optional<size_t> wonderChoice;
+		if (action == 2) {
 			if (!cur->m_player) return;
 			auto& owned = cur->m_player->getOwnedWonders();
 			QStringList options;
@@ -218,39 +187,70 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			if (pickedIdx < 0 || pickedIdx >= static_cast<int>(candidates.size())) {
 				continue;
 			}
-			size_t wonderIdx = candidates[static_cast<size_t>(pickedIdx)];
-			auto& chosenWonder = owned[wonderIdx];
+			wonderChoice = candidates[static_cast<size_t>(pickedIdx)];
 
-			if (!cur->canAffordWonder(chosenWonder, opp->m_player)) {
-				QMessageBox::warning(this, "Wonder Build Failed", "Cannot afford this wonder.");
-				continue;
-			}
+			// Show cost breakdown before attempting the action
+			auto& gs2 = Core::GameState::getInstance();
+			Core::Player* opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
+			if (opp && opp->m_player) {
+				const Models::Wonder* selectedWonder = (wonderChoice.has_value() && wonderChoice.value() < owned.size())
+					? owned[wonderChoice.value()].get()
+					: nullptr;
+				if (selectedWonder) {
+					const auto breakdown = Core::Game::computeWonderTradeCost(*cur, *selectedWonder, *opp);
+					QString details;
+					details += QString("Available coins: %1\n").arg(breakdown.availableCoins);
+					details += QString("Total cost: %1\n").arg(breakdown.totalCost);
+					if (breakdown.architectureTokenApplied) {
+						details += "Architecture token applied (up to 2 units free).\n";
+					}
+					if (!breakdown.lines.empty()) {
+						details += "\nMissing resources to trade:\n";
+						for (const auto& line : breakdown.lines) {
+							details += QString("- %1 x%2 @ %3 each = %4\n")
+								.arg(QString::fromStdString(Models::ResourceTypeToString(line.resource)))
+								.arg(line.amount)
+								.arg(line.costPerUnit)
+								.arg(line.totalCost);
+						}
+					} else {
+						details += "\nNo trading needed (resources covered).\n";
+					}
 
-			try {
-				auto card = node->releaseCard();
-				if (card) {
-					std::vector<Models::Token> discardedTokens;
-					auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
-					cur->playCardWonder(chosenWonder, card, opp->m_player, discardedTokens, discardedCards);
-					actionSucceeded = true;
+					if (!breakdown.canAfford) {
+						QMessageBox::warning(this,
+							"Insufficient coins",
+							"You do not have enough coins to buy the missing resources for this wonder.\n\n" + details);
+						continue;
+					}
+
+					auto reply = QMessageBox::question(this,
+						"Confirm wonder build",
+						"Build this wonder by paying the trade cost?\n\n" + details,
+						QMessageBox::Yes | QMessageBox::No);
+					if (reply != QMessageBox::Yes) {
+						continue;
+					}
 				}
-			} catch (const std::exception& ex) {
-				QMessageBox::warning(this, "Wonder Build Failed", "Exception: " + QString::fromStdString(ex.what()));
-				cardPtr = node->getCard();
-				if (!cardPtr) return;
-				continue;
 			}
 		}
 
-		if (!actionSucceeded) {
+		bool ok = Core::Game::applyTreeCardAction(age, nodeIndex, action, wonderChoice);
+		if (!ok) {
+			QMessageBox::warning(this, "Action failed", "Action failed (insufficient resources or invalid choice). Please choose another action.");
+			// Refresh local pointers in case UI state changed (card is returned to the node on failure)
+			card = node->getCard();
+			if (!card) return;
 			continue;
 		}
 
-		if (action == 0 && cardPtr) {
-			auto* ageCard = dynamic_cast<const Models::AgeCard*>(cardPtr);
+		// success - check if player got matching scientific symbols
+		if (action == 0 && card) { // Only check after building a card
+			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
 			if (ageCard && ageCard->getScientificSymbols().has_value()) {
 				auto targetSymbol = ageCard->getScientificSymbols().value();
 				
+				// Count how many of this symbol the player now has
 				int symbolCount = 0;
 				const auto& inventory = cur->m_player->getOwnedCards();
 				for (const auto& ownedCardPtr : inventory) {
@@ -262,6 +262,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 					}
 				}
 				
+				// If they now have exactly 2, show message and let them choose a token
 				if (symbolCount == 2) {
 					QString playerName = (m_currentPlayerIndex == 0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
 						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
@@ -273,8 +274,11 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 						"Simboluri Stiintifice!", 
 						QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
 					
+					// Enable token selection on the board
+					// We need access to BoardWidget - let's emit a signal or use a callback
 					if (onRequestTokenSelection) {
 						onRequestTokenSelection([cur, this](int tokenIndex) {
+							// Player clicked a token
 							auto& board = Core::Board::getInstance();
 							auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
 							
@@ -282,22 +286,38 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 								auto chosenToken = std::move(availableTokens[tokenIndex]);
 								availableTokens.erase(availableTokens.begin() + tokenIndex);
 								
-								if (chosenToken && cur && cur->m_player) {
+								if (chosenToken) {
+									std::string tokenName = chosenToken->getName();
+									std::string tokenDesc = chosenToken->getDescription();
+									
+									// Add token to player
 									cur->m_player->addToken(std::move(chosenToken));
+									
+									// Notify that a token was acquired
+									Core::TokenEvent tokenEvent;
+									tokenEvent.playerID = static_cast<int>(cur->m_player->getkPlayerId());
+									tokenEvent.playerName = cur->m_player->getPlayerUsername();
+									tokenEvent.tokenName = tokenName;
+									tokenEvent.tokenType = "PROGRESS";
+									tokenEvent.tokenDescription = tokenDesc;
+									Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+									
+									// Disable token selection
+									if (onDisableTokenSelection) {
+										onDisableTokenSelection();
+									}
+									
+									// Refresh panels to show the new token
+									refreshPanels();
 								}
 							}
-							
-							if (onDisableTokenSelection) {
-								onDisableTokenSelection();
-							}
-							
-							refreshPanels();
 						});
 					}
 				}
 			}
 		}
 
+		// success
 		break;
 	}
 
@@ -732,26 +752,4 @@ bool AgeTreeWidget::eventFilter(QObject* obj, QEvent* event)
 	}
 
 	return QWidget::eventFilter(obj, event);
-}
-
-void AgeTreeWidget::onTreeNodeEmptied(int ageIndex, int nodeIndex)
-{
-	if (ageIndex == m_currentAge) {
-		showAgeTree(m_currentAge);
-	}
-}
-
-void AgeTreeWidget::onBoardRefreshRequested()
-{
-	refreshPanels();
-}
-
-void AgeTreeWidget::setGameListener(GameListenerBridge* listener)
-{
-	if (listener) {
-		connect(listener, QOverload<int, int>::of(&GameListenerBridge::treeNodeEmptiedSignal),
-				this, [this](int ageIndex, int nodeIndex) { onTreeNodeEmptied(ageIndex, nodeIndex); });
-		connect(listener, &GameListenerBridge::boardRefreshRequested,
-				this, [this]() { onBoardRefreshRequested(); });
-	}
 }

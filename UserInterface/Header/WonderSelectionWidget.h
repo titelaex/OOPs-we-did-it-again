@@ -11,7 +11,7 @@
 import Models.Wonder; 
 import Core.Player;
 
-class WonderSelectionWidget : public QWidget
+class  WonderSelectionWidget : public QWidget
 {
     Q_OBJECT
 

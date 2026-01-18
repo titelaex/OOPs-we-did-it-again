@@ -25,10 +25,10 @@ export namespace Core
 		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
 		void sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 		void setHasAnotherTurn(bool has);
-		void discardCard(Models::ColorType color, IPlayerDecisionMaker* decisionMaker = nullptr);
-		void drawToken(IPlayerDecisionMaker* decisionMaker = nullptr);
+		void discardCard(Models::ColorType color);
+		void drawToken();
 		void chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker = nullptr);
-		void takeNewCard(IPlayerDecisionMaker* decisionMaker = nullptr);
+		void takeNewCard();
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(const Models::Card* card, std::unique_ptr<Models::Player>& opponent);
 	private:
@@ -44,6 +44,6 @@ export namespace Core
 	export Player* getCurrentPlayer();
 	export Player* getOpponentPlayer();
 	export void playTurnForCurrentPlayer();
-	export void drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker = nullptr);
-	export void discardOpponentCardOfColor(Models::ColorType color, IPlayerDecisionMaker* decisionMaker = nullptr);
+	export void drawTokenForCurrentPlayer();
+	export void discardOpponentCardOfColor(Models::ColorType color);
 }

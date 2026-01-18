@@ -36,7 +36,7 @@ namespace Core {
         m_lastAction.round = m_currentRound;
         m_lastAction.phase = m_currentPhase;
         
-        GameStateSerializer::recordLastAction(playerName, actionType, cardName, effects, m_currentRound, m_currentPhase);
+        GameStateSerializer::recordLastAction(playerName, actionType, cardName, effects);
     }
     
     void GameState::incrementRound() {
@@ -105,7 +105,6 @@ namespace Core {
     void GameState::setGameMode(int mode, bool training) {
         m_gameMode = mode;
         m_trainingMode = training;
-        GameStateSerializer::setGameMode(mode, training);
     }
 
     bool GameState::isTrainingMode() const {
@@ -135,7 +134,6 @@ namespace Core {
     void GameState::setPlayerPlaystyles(Playstyle p1Style, Playstyle p2Style) {
         m_player1Playstyle = p1Style;
         m_player2Playstyle = p2Style;
-        GameStateSerializer::setPlayerPlaystyles(p1Style, p2Style);
     }
 
     const LastAction& GameState::getLastAction() const {

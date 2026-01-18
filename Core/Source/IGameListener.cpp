@@ -139,22 +139,4 @@ namespace Core {
             listener->onDisplayRequested(event);
         }
     }
-
-    void GameEventNotifier::notifyDisplayCardInfo(const Models::Card& card) {
-        for (auto& listener : listeners) {
-            listener->displayCardInfo(card);
-        }
-    }
-
-    void GameEventNotifier::notifyDisplayWonderInfo(const Models::Wonder& wonder) {
-        for (auto& listener : listeners) {
-            listener->displayWonderInfo(wonder);
-        }
-    }
-
-    void GameEventNotifier::notifyDisplayAgeCardInfo(const Models::AgeCard& ageCard) {
-        for (auto& listener : listeners) {
-            listener->displayAgeCardInfo(ageCard);
-        }
-    }
 }

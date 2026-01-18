@@ -50,6 +50,7 @@ export namespace Models
 		virtual const ResourceType& getResourceProduction() const;
 		virtual bool IsConstructed() const;
 
+		 void displayCardInfo() override;
 		 void onDiscard() override;
 	};
 

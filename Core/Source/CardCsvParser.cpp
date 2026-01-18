@@ -221,9 +221,9 @@ auto drawToken = []() {
     cp->drawToken();
 };
 auto takeNewCard = []() {
-	Core::Player* cp = Core::getCurrentPlayer();
-	if (!cp) return;
-	cp->takeNewCard(nullptr);
+    Core::Player* cp = Core::getCurrentPlayer();
+    if (!cp) return;
+    cp->takeNewCard();
 };
 auto lawTokenEffect = []() {
     Core::Player* cp = Core::getCurrentPlayer();

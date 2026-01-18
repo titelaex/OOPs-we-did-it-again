@@ -1,6 +1,5 @@
 ﻿module Core.Board;
 import Core.Node;
-import Core.GameState;
 import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;
@@ -116,45 +115,45 @@ static void displayUnusedPools(const std::vector<std::unique_ptr<Models::Card>>&
 	const std::vector<std::unique_ptr<Models::Card>>& wonders)
 {
 	std::cout << "Age I unused: " << age1.size() << " cards\n";
-    for (size_t i = 0; i < age1.size(); ++i) {
-        auto& p = age1[i];
-        if (p) {
-            GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*p);
-        }
-    }
+	for (size_t i = 0; i < age1.size(); ++i) {
+		auto& p = age1[i];
+		if (p) {
+			p->displayCardInfo();
+		}
+	}
 	std::cout << "\n";
 	std::cout << "Age II unused: " << age2.size() << " cards\n";
-    for (size_t i = 0; i < age2.size(); ++i) {
-        auto& p = age2[i];
-        if (p) {
-            GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*p);
-        }
-    }
+	for (size_t i = 0; i < age2.size(); ++i) {
+		auto& p = age2[i];
+		if (p) {
+			p->displayCardInfo();
+		}
+	}
 	std::cout << "\n";
 	std::cout << "Age III unused: " << age3.size() << " cards\n";
-    for (size_t i = 0; i < age3.size(); ++i) {
-        auto& p = age3[i];
-        if (p) {
-         GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*p);
-        }
-    }
+	for (size_t i = 0; i < age3.size(); ++i) {
+		auto& p = age3[i];
+		if (p) {
+		 p->displayCardInfo();
+		}
+	}
 	std::cout << "\n";
 	std::cout << "Guild unused: " << guilds.size() << " cards\n";
-    for (size_t i = 0; i < guilds.size(); ++i) {
-        auto& p = guilds[i];
-        if (p) {
-            GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*p);
-        }
-    }
+	for (size_t i = 0; i < guilds.size(); ++i) {
+		auto& p = guilds[i];
+		if (p) {
+			p->displayCardInfo();
+		}
+	}
 	std::cout << "\n";
 	std::cout << "Wonders unused: " << wonders.size() << " cards\n";
-    for (size_t i = 0; i < wonders.size(); ++i) {
-        auto& p = wonders[i];
-        if (p) {
-            std::cout << "\n";
-            GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*p);
-        }
-    }
+	for (size_t i = 0; i < wonders.size(); ++i) {
+		auto& p = wonders[i];
+		if (p) {
+			std::cout << "\n";
+			p->displayCardInfo();
+		}
+	}
 }
 static void displayAgeCards(const char* title, const std::vector<std::shared_ptr<Node>>& nodes)
 {
@@ -163,8 +162,8 @@ static void displayAgeCards(const char* title, const std::vector<std::shared_ptr
 		auto& n = nodes[i];
 		if (!n) continue;
 		auto c = n->getCard();
-        if (!c) continue;
-        GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*c);
+		if (!c) continue;
+		c->displayCardInfo();
 	}
 }
 void Board::displayEntireBoard()

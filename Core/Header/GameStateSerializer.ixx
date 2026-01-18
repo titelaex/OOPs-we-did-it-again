@@ -48,8 +48,7 @@ export namespace Core {
         static void setPlayerPlaystyles(Playstyle p1, Playstyle p2);
         static void setCurrentPhase(int phase, int round, bool isP1Turn);
         static void recordLastAction(const std::string& playerName, const std::string& actionType,
-                                     const std::string& cardName, const std::vector<std::string>& effects,
-                                     int round, int phase);
+                                     const std::string& cardName, const std::vector<std::string>& effects);
         
         static void saveVictoryToJson(const GameState& state, std::string& json);
         static void loadVictoryFromJson(GameState& state, const std::string& json);
