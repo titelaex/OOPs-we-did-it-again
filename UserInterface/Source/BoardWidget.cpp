@@ -9,6 +9,7 @@
 #include <QtGui/QBrush>
 #include <QtGui/QPixmap>
 #include <QtWidgets/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QToolTip>
 
 import Core.Board;
 import Models.Token;
@@ -22,19 +23,19 @@ public:
 		setAcceptHoverEvents(true);
 		setCursor(Qt::PointingHandCursor);
 		m_normalPen = pen();
-		m_hoverPen = QPen(QColor("#fbbf24"), 6); // Gold hover
+		m_hoverPen = QPen(QColor("#fbbf24"),6); // Gold hover
 	}
 
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override {
 		setPen(m_hoverPen);
-		setZValue(zValue() + 10);
+		setZValue(zValue() +10);
 		QGraphicsEllipseItem::hoverEnterEvent(event);
 	}
 
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override {
 		setPen(m_normalPen);
-		setZValue(zValue() - 10);
+		setZValue(zValue() -10);
 		QGraphicsEllipseItem::hoverLeaveEvent(event);
 	}
 
@@ -99,7 +100,7 @@ void BoardWidget::refresh()
 
 void BoardWidget::drawBoard()
 {
-	auto& board = Core::Board::getInstance();	
+	auto& board = Core::Board::getInstance();
 	m_scene->clear();
 	m_tokenItems.clear();
 	m_scene->setBackgroundBrush(Qt::NoBrush);
@@ -145,7 +146,7 @@ void BoardWidget::drawBoard()
 	topGrad.setColorAt(1, QColor("#d4a574"));
 	m_scene->addPath(tokenPath, QPen(QColor("#8b6f47"),6), QBrush(topGrad));
 
-	int pawnPos = (m_pawnPosition >= 0) ? m_pawnPosition : static_cast<int>(board.getPawnPos());
+	int pawnPos = (m_pawnPosition >=0) ? m_pawnPosition : static_cast<int>(board.getPawnPos());
 
 	// Pawn track circles
 	for (int i =0; i < kTrackSlots; ++i) {
@@ -153,7 +154,7 @@ void BoardWidget::drawBoard()
 		bool hasPawn = (i == pawnPos);
 		QColor fillColor = hasPawn ? QColor("#fbbf24") : QColor(255,255,255,40);
 		QColor borderColor = hasPawn ? QColor("#f59e0b") : QColor("#8b6f47");
-		int borderWidth = hasPawn ? 5 : 4;
+		int borderWidth = hasPawn ?5 :4;
 		QGraphicsEllipseItem* e = m_scene->addEllipse(
 			QRectF(p.x() -30, p.y() -30,60,60), 
 			QPen(borderColor, borderWidth), 
@@ -187,11 +188,32 @@ void BoardWidget::drawBoard()
 			// Token exists - draw filled circle with image
 			const Models::Token* tok = tokens[i].get();
 			QString tokenName = QString::fromStdString(tok->getName());
-			
-			// Create circular clipping path for the image
-			QPainterPath circle;
-			circle.addEllipse(cRect);
-			
+			QString tokenDesc = QString::fromStdString(tok->getDescription());
+			auto coins = tok->getCoins();
+			int ones = static_cast<int>(std::get<0>(coins));
+			int threes = static_cast<int>(std::get<1>(coins));
+			int sixes = static_cast<int>(std::get<2>(coins));
+
+			// Build detailed tooltip HTML
+			QString tooltip = "<b>" + tokenName + "</b>";
+			if (!tokenDesc.isEmpty()) tooltip += "<br>" + tokenDesc;
+			QString coinsText;
+			if (sixes >0) coinsText = QString::number(sixes) + ":6";
+			else if (threes >0) coinsText = QString::number(threes) + ":3";
+			else if (ones >0) coinsText = QString::number(ones);
+			if (!coinsText.isEmpty()) tooltip += "<br><i>Coins:</i> " + coinsText;
+			if (tok->getVictoryPoints() >0) tooltip += "<br><i>Victory:</i> " + QString::number(tok->getVictoryPoints());
+			if (tok->getShieldPoints() >0) tooltip += "<br><i>Shield:</i> " + QString::number(tok->getShieldPoints());
+			const auto& actions = tok->getOnPlayActions();
+			if (!actions.empty()) {
+				tooltip += "<br><i>On play:</i> ";
+				QStringList acts;
+				for (const auto& a : actions) {
+					acts << QString::fromStdString(a.second);
+				}
+				tooltip += acts.join(", ");
+			}
+
 			// Add background circle with border - make it clickable if selection is enabled
 			QGraphicsItem* ring = nullptr;
 			if (m_tokenSelectionEnabled && m_onTokenClicked) {
@@ -202,6 +224,8 @@ void BoardWidget::drawBoard()
 				clickableRing->setZValue(3);
 				m_scene->addItem(clickableRing);
 				ring = clickableRing;
+				// set tooltip on clickable item
+				clickableRing->setToolTip(tooltip);
 				
 				auto* shadow = new QGraphicsDropShadowEffect();
 				shadow->setBlurRadius(18);
@@ -210,9 +234,12 @@ void BoardWidget::drawBoard()
 				clickableRing->setGraphicsEffect(shadow);
 			} else {
 				// Non-clickable ring
-				auto* pathRing = m_scene->addPath(circle, QPen(QColor("#8b6f47"),5), QBrush(QColor("#a67c52")));
+				QPainterPath ringPath;
+				ringPath.addEllipse(cRect);
+				auto* pathRing = m_scene->addPath(ringPath, QPen(QColor("#8b6f47"),5), QBrush(QColor("#a67c52")));
 				pathRing->setZValue(3);
 				ring = pathRing;
+				pathRing->setToolTip(tooltip);
 				
 				auto* shadow = new QGraphicsDropShadowEffect();
 				shadow->setBlurRadius(18);
@@ -246,10 +273,12 @@ void BoardWidget::drawBoard()
 				// Center the image in the circle
 				auto* pixmapItem = m_scene->addPixmap(scaledPixmap);
 				pixmapItem->setPos(
-					cRect.center().x() - scaledPixmap.width() / 2.0,
-					cRect.center().y() - scaledPixmap.height() / 2.0
+					cRect.center().x() - scaledPixmap.width() /2.0,
+					cRect.center().y() - scaledPixmap.height() /2.0
 				);
 				pixmapItem->setZValue(4);
+				// set tooltip on pixmap too
+				pixmapItem->setToolTip(tooltip);
 				
 				// Make image clickable too if selection is enabled
 				if (m_tokenSelectionEnabled && m_onTokenClicked) {
@@ -266,6 +295,7 @@ void BoardWidget::drawBoard()
 				QRectF ib = iconText->boundingRect();
 				iconText->setPos(cRect.center().x() - ib.width() /2.0, cRect.center().y() - ib.height() /2.0);
 				iconText->setZValue(4);
+				iconText->setToolTip(tooltip);
 			}
 			
 			// Add token name label below
@@ -274,6 +304,7 @@ void BoardWidget::drawBoard()
 			QRectF tb = t->boundingRect();
 			t->setPos(cRect.center().x() - tb.width() /2.0, cRect.bottom() +5);
 			t->setZValue(4);
+			t->setToolTip(tooltip);
 		} else {
 			// Empty slot - draw placeholder like player panel
 			QPainterPath emptyCircle;

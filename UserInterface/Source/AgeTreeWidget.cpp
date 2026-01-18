@@ -41,11 +41,11 @@ import Models.ResourceType;
 static QString resourceTypeToString(Models::ResourceType r)
 {
 	switch (r) {
-	case Models::ResourceType::WOOD:    return "Wood";
-	case Models::ResourceType::STONE:   return "Stone";
-	case Models::ResourceType::CLAY:    return "Clay";
+	case Models::ResourceType::WOOD: return "Wood";
+	case Models::ResourceType::STONE: return "Stone";
+	case Models::ResourceType::CLAY: return "Clay";
 	case Models::ResourceType::PAPYRUS: return "Papyrus";
-	case Models::ResourceType::GLASS:   return "Glass";
+	case Models::ResourceType::GLASS: return "Glass";
 	default: return "Unknown";
 	}
 }
@@ -62,25 +62,23 @@ static QString buildCardText(const Models::Card* card)
 		// Display Cost
 		text += "Cost: <br>";
 		const auto& resourceCost = ageCard->getResourceCost();
-		if (resourceCost.empty() && ageCard->getCoinCost() == 0) {
-			text += "  Free<br>";
+		if (resourceCost.empty() && ageCard->getCoinCost() ==0) {
+			text += " Free<br>";
 		}
 		else {
 			for (const auto& cost : resourceCost) {
-				text += QString("  - %1 x%2<br>").arg(resourceTypeToString(cost.first)).arg(cost.second);
+				text += QString(" - %1 x%2<br>").arg(resourceTypeToString(cost.first)).arg(cost.second);
 			}
-			if (ageCard->getCoinCost() > 0) {
-				text += QString("  - %1 Coins<br>").arg(ageCard->getCoinCost());
+			if (ageCard->getCoinCost() >0) {
+				text += QString(" - %1 Coins<br>").arg(ageCard->getCoinCost());
 			}
 		}
-
-	
 
 		const auto& resourceProduction = ageCard->getResourcesProduction();
 		if (!resourceProduction.empty()) {
 			text += "Production:<br>";
 			for (const auto& prod : resourceProduction) {
-				text += QString("  - %1 x%2<br>").arg(resourceTypeToString(prod.first)).arg(prod.second);
+				text += QString(" - %1 x%2<br>").arg(resourceTypeToString(prod.first)).arg(prod.second);
 			}
 		}
 
@@ -89,10 +87,10 @@ static QString buildCardText(const Models::Card* card)
 			text += "Effects:<br>";
 			for (const auto& effect : effects) {
 				if (effect.second.find("payCoins") != std::string::npos ||
-				    effect.second.find("getResource") != std::string::npos) {
+					effect.second.find("getResource") != std::string::npos) {
 					continue;
 				}
-				QString effectText = "  - " + QString::fromStdString(effect.second);
+				QString effectText = " - " + QString::fromStdString(effect.second);
 				if (effect.second.find("getVictoryPoints") != std::string::npos) {
 					effectText += " (" + QString::number(ageCard->getVictoryPoints()) + ")";
 				}
@@ -131,7 +129,7 @@ static QString buildCardText(const Models::Card* card)
 		}
 	}
 
-	return QString("<div style='width: 250px;'>%1</div>").arg(text);
+	return QString("<div style='width:250px;'>%1</div>").arg(text);
 }
 
 class ClickableRect : public QGraphicsRectItem {
@@ -141,16 +139,16 @@ public:
 	{
 		setAcceptHoverEvents(true);
 		setAcceptedMouseButtons(Qt::LeftButton);
-		m_radius = 8.0;
-		m_pen = QPen(QColor("#7C4A1C"), 2);
+		m_radius =8.0;
+		m_pen = QPen(QColor("#7C4A1C"),2);
 		m_topColor = QColor("#4B5563");
 		m_bottomColor = QColor("#1F2937");
 
 		m_shadow = new QGraphicsRectItem(r, this);
-		m_shadow->setBrush(QBrush(QColor(0, 0, 0, 40)));
+		m_shadow->setBrush(QBrush(QColor(0,0,0,40)));
 		m_shadow->setPen(Qt::NoPen);
 		m_shadow->setZValue(-1);
-		m_shadow->setPos(4, 4);
+		m_shadow->setPos(4,4);
 	}
 
 	void setGradientColors(const QColor& top, const QColor& bottom) { m_topColor = top; m_bottomColor = bottom; update(); }
@@ -195,7 +193,7 @@ protected:
 private:
 	Models::Card* m_card{ nullptr };
 	QGraphicsRectItem* m_shadow{ nullptr };
-	qreal m_radius{ 8.0 };
+	qreal m_radius{8.0 };
 	QPen m_pen;
 	QColor m_topColor;
 	QColor m_bottomColor;
@@ -229,11 +227,13 @@ void AgeTreeWidget::refreshPanels()
 		m_leftPanel->refreshStats();
 		m_leftPanel->refreshCards();
 		m_leftPanel->refreshWonders();
+		m_leftPanel->refreshTokens();
 	}
 	if (m_rightPanel) {
 		m_rightPanel->refreshStats();
 		m_rightPanel->refreshCards();
 		m_rightPanel->refreshWonders();
+		m_rightPanel->refreshTokens();
 	}
 }
 
@@ -242,13 +242,13 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	qDebug() << "AgeTreeWidget::handleLeafClicked called. currentPlayerIndex=" << m_currentPlayerIndex;
 
 	auto& gs = Core::GameState::getInstance();
-	Core::Player* cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	Core::Player* cur = (m_currentPlayerIndex ==0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
 	if (!cur) return;
 	Core::setCurrentPlayer(cur);
 
 	auto& board = Core::Board::getInstance();
-	const auto& nodes = (age == 1) ? board.getAge1Nodes() : (age == 2) ? board.getAge2Nodes() : board.getAge3Nodes();
-	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
+	const auto& nodes = (age ==1) ? board.getAge1Nodes() : (age ==2) ? board.getAge2Nodes() : board.getAge3Nodes();
+	if (nodeIndex <0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
 	auto node = nodes[static_cast<size_t>(nodeIndex)];
 	if (!node) return;
 	auto* card = node->getCard();
@@ -269,18 +269,18 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		if (!clicked) return;
 
 		int action = -1;
-		if (clicked == buildBtn) action = 0;
-		else if (clicked == sellBtn) action = 1;
-		else if (clicked == wonderBtn) action = 2;
+		if (clicked == buildBtn) action =0;
+		else if (clicked == sellBtn) action =1;
+		else if (clicked == wonderBtn) action =2;
 		else return;
 
 		std::optional<size_t> wonderChoice;
-		if (action == 2) {
+		if (action ==2) {
 			if (!cur->m_player) return;
 			auto& owned = cur->m_player->getOwnedWonders();
 			QStringList options;
 			std::vector<size_t> candidates;
-			for (size_t i = 0; i < owned.size(); ++i) {
+			for (size_t i =0; i < owned.size(); ++i) {
 				if (owned[i] && !owned[i]->IsConstructed()) {
 					candidates.push_back(i);
 					options << QString::fromStdString(owned[i]->getName());
@@ -292,20 +292,20 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			}
 
 			bool ok = false;
-			QString picked = QInputDialog::getItem(this, "Choose wonder", "Select wonder to build:", options, 0, false, &ok);
+			QString picked = QInputDialog::getItem(this, "Choose wonder", "Select wonder to build:", options,0, false, &ok);
 			if (!ok) {
 				continue;
 			}
 
 			int pickedIdx = options.indexOf(picked);
-			if (pickedIdx < 0 || pickedIdx >= static_cast<int>(candidates.size())) {
+			if (pickedIdx <0 || pickedIdx >= static_cast<int>(candidates.size())) {
 				continue;
 			}
 			wonderChoice = candidates[static_cast<size_t>(pickedIdx)];
 
 			// Show cost breakdown before attempting the action
 			auto& gs2 = Core::GameState::getInstance();
-			Core::Player* opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
+			Core::Player* opp = (m_currentPlayerIndex ==0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
 			if (opp && opp->m_player) {
 				const Models::Wonder* selectedWonder = (wonderChoice.has_value() && wonderChoice.value() < owned.size())
 					? owned[wonderChoice.value()].get()
@@ -316,7 +316,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 					details += QString("Available coins: %1\n").arg(breakdown.availableCoins);
 					details += QString("Total cost: %1\n").arg(breakdown.totalCost);
 					if (breakdown.architectureTokenApplied) {
-						details += "Architecture token applied (up to 2 units free).\n";
+						details += "Architecture token applied (up to2 units free).\n";
 					}
 					if (!breakdown.lines.empty()) {
 						details += "\nMissing resources to trade:\n";
@@ -327,8 +327,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 								.arg(line.costPerUnit)
 								.arg(line.totalCost);
 						}
-					}
-					else {
+					} else {
 						details += "\nNo trading needed (resources covered).\n";
 					}
 
@@ -359,20 +358,113 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			continue;
 		}
 
+		// success - check if player got matching scientific symbols
+		if (action ==0 && card) { // Only check after building a card
+			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
+			if (ageCard && ageCard->getScientificSymbols().has_value()) {
+				auto targetSymbol = ageCard->getScientificSymbols().value();
+				
+				// Count how many of this symbol the player now has
+				int symbolCount =0;
+				const auto& inventory = cur->m_player->getOwnedCards();
+				for (const auto& ownedCardPtr : inventory) {
+					if (auto* ownedAgeCard = dynamic_cast<const Models::AgeCard*>(ownedCardPtr.get())) {
+						auto sym = ownedAgeCard->getScientificSymbols();
+						if (sym.has_value() && sym.value() == targetSymbol) {
+							symbolCount++;
+						}
+					}
+				}
+				
+				// If they now have exactly2, show message and let them choose a token
+				if (symbolCount ==2) {
+					QString playerName = (m_currentPlayerIndex ==0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
+						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
+						: (gs.GetPlayer2() && gs.GetPlayer2()->m_player) 
+							? QString::fromStdString(gs.GetPlayer2()->m_player->getPlayerUsername()) 
+							: QString("Player");
+					
+					QMessageBox::information(this, 
+						"Simboluri Stiintifice!", 
+						QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
+					
+					int playerIndexForToken = m_currentPlayerIndex;
+					if (onRequestTokenSelection) {
+						onRequestTokenSelection([playerIndexForToken, this](int tokenIndex) {
+							// Process on next event loop tick to avoid re-entrancy during mousePress
+							QTimer::singleShot(0, this, [playerIndexForToken, tokenIndex, this]() {
+								// Disable selection immediately to prevent double-click crashes
+								if (onDisableTokenSelection) onDisableTokenSelection();
+								
+								auto& gsCallback = Core::GameState::getInstance();
+								Core::Player* tokenPlayer = (playerIndexForToken ==0)
+									? gsCallback.GetPlayer1().get()
+									: gsCallback.GetPlayer2().get();
+								if (!tokenPlayer || !tokenPlayer->m_player) {
+									return;
+								}
+								
+								auto& boardRef = Core::Board::getInstance();
+								auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(boardRef.getProgressTokens());
+								if (tokenIndex <0 || tokenIndex >= static_cast<int>(availableTokens.size())) {
+									return;
+								}
+								if (!availableTokens[tokenIndex]) {
+									return;
+								}
+								
+								auto chosenToken = std::move(availableTokens[tokenIndex]);
+								availableTokens.erase(availableTokens.begin() + tokenIndex);
+								if (!chosenToken) {
+									return;
+								}
+								
+								// Safely read token properties
+								std::string tokenName;
+								std::string tokenDesc;
+								try {
+									tokenName = chosenToken->getName();
+									tokenDesc = chosenToken->getDescription();
+								} catch (...) {
+									// In case of unexpected exception from token access
+									return;
+								}
+								
+								// Add token to player inventory
+								tokenPlayer->m_player->addToken(std::move(chosenToken));
+								
+								// Notify UI and listeners
+								Core::TokenEvent tokenEvent;
+								tokenEvent.playerID = static_cast<int>(tokenPlayer->m_player->getkPlayerId());
+								tokenEvent.playerName = tokenPlayer->m_player->getPlayerUsername();
+								tokenEvent.tokenName = tokenName;
+								tokenEvent.tokenType = "PROGRESS";
+								tokenEvent.tokenDescription = tokenDesc;
+								Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+								
+								// Refresh panels to show the new token
+								refreshPanels();
+							});
+						});
+					}
+				}
+			}
+		}
+
 		// success
 		break;
 	}
 
 	refreshPanels();
 
-	m_currentPlayerIndex = (m_currentPlayerIndex == 0) ? 1 : 0;
-	auto newCur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	m_currentPlayerIndex = (m_currentPlayerIndex ==0) ?1 :0;
+	auto newCur = (m_currentPlayerIndex ==0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
 	Core::setCurrentPlayer(newCur);
 
 	if (onPlayerTurnChanged) {
 		auto p1 = gs.GetPlayer1();
 		auto p2 = gs.GetPlayer2();
-		QString curName = (m_currentPlayerIndex == 0 && p1 && p1->m_player)
+		QString curName = (m_currentPlayerIndex ==0 && p1 && p1->m_player)
 			? QString::fromStdString(p1->m_player->getPlayerUsername())
 			: (p2 && p2->m_player) ? QString::fromStdString(p2->m_player->getPlayerUsername()) : QString("<unknown>");
 		onPlayerTurnChanged(m_currentPlayerIndex, curName);
@@ -415,7 +507,7 @@ void AgeTreeWidget::showAgeTree(int age)
 		clearWidgetSurface();
 
 		auto* msgLayout = new QVBoxLayout(this);
-		msgLayout->setContentsMargins(0, 0, 0, 0);
+		msgLayout->setContentsMargins(0,0,0,0);
 		msgLayout->setSpacing(0);
 		msgLayout->setAlignment(Qt::AlignCenter);
 
@@ -437,41 +529,27 @@ void AgeTreeWidget::showAgeTree(int age)
 			});
 		};
 
-	if (age == 2 && !s_phase2Shown) {
+	if (age ==2 && !s_phase2Shown) {
 		s_phase2Shown = true;
-		showPhaseMessage("Phase 2 incepe", 2);
+		showPhaseMessage("Phase2 incepe",2);
 		return;
 	}
-	if (age == 3 && !s_phase3Shown) {
+	if (age ==3 && !s_phase3Shown) {
 		s_phase3Shown = true;
-		showPhaseMessage("Phase 3 incepe", 3);
+		showPhaseMessage("Phase3 incepe",3);
 		return;
 	}
 
-<<<<<<< HEAD
 	// Normal render path
 	clearWidgetSurface();
-=======
-	// If we are about to render any tree (including age 2 after the message),
-	// ensure any temporary "phase" layout is removed completely.
-	if (auto oldLayout = this->layout()) {
-		while (auto item = oldLayout->takeAt(0)) {
-			if (auto w = item->widget()) {
-				w->removeEventFilter(this);
-			}
-			delete item;
-		}
-		delete oldLayout;
-	}
->>>>>>> 4984e351ca3a87fe344db72b68dd1c25ba227c6d
 
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
-	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
+	const auto* nodesPtr = (age ==1) ? &board.getAge1Nodes() : (age ==2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
-	// Auto-advance: when Phase 2 has no more available cards, start Phase 3.
-	if (age == 2) {
+	// Auto-advance: when Phase2 has no more available cards, start Phase3.
+	if (age ==2) {
 		bool anyAvailable = false;
 		for (const auto& n : nodes) {
 			if (!n) continue;
@@ -490,18 +568,18 @@ void AgeTreeWidget::showAgeTree(int age)
 
 	std::vector<int> rows;
 	bool flipVertical = false;
-	if (age == 1) {
-		rows = { 2,3,4,5,6 };
+	if (age ==1) {
+		rows = {2,3,4,5,6 };
 	}
-	else if (age == 2) {
-		rows = { 6,5,4,3,2 };
+	else if (age ==2) {
+		rows = {6,5,4,3,2 };
 	}
 	else {
-		// Backend creates 20 nodes for Age III; use the same 7-row layout.
-		rows = { 2,3,4,2,4,3,2 };
+		// Backend creates20 nodes for Age III; use the same7-row layout.
+		rows = {2,3,4,2,4,3,2 };
 		flipVertical = false;
-		// If you ever switch backend Age III nodes to a 12-node diamond, enable this:
-		// if (nodes.size() == 12) { rows = { 2,3,2,3,2 }; flipVertical = true; }
+		// If you ever switch backend Age III nodes to a12-node diamond, enable this:
+		// if (nodes.size() ==12) { rows = {2,3,2,3,2 }; flipVertical = true; }
 	}
 
 	// Choose palette depending on age
@@ -511,14 +589,14 @@ void AgeTreeWidget::showAgeTree(int age)
 	auto paletteForCardColor = [](Models::ColorType c) -> std::tuple<QColor, QColor, QColor, QColor> {
 		// returns {top, bottom, border, text}
 		switch (c) {
-		case Models::ColorType::BROWN:  return { QColor("#B58860"), QColor("#7C4A1C"), QColor("#7C4A1C"), QColor("#FFFFFF") };
-		case Models::ColorType::GREY:   return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#111827") };
-		case Models::ColorType::RED:    return { QColor("#F87171"), QColor("#B91C1C"), QColor("#7F1D1D"), QColor("#FFFFFF") };
+		case Models::ColorType::BROWN: return { QColor("#B58860"), QColor("#7C4A1C"), QColor("#7C4A1C"), QColor("#FFFFFF") };
+		case Models::ColorType::GREY: return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#111827") };
+		case Models::ColorType::RED: return { QColor("#F87171"), QColor("#B91C1C"), QColor("#7F1D1D"), QColor("#FFFFFF") };
 		case Models::ColorType::YELLOW: return { QColor("#FCD34D"), QColor("#D97706"), QColor("#92400E"), QColor("#111827") };
-		case Models::ColorType::GREEN:  return { QColor("#34D399"), QColor("#047857"), QColor("#065F46"), QColor("#FFFFFF") };
-		case Models::ColorType::BLUE:   return { QColor("#60A5FA"), QColor("#1E3A8A"), QColor("#0369A1"), QColor("#FFFFFF") };
+		case Models::ColorType::GREEN: return { QColor("#34D399"), QColor("#047857"), QColor("#065F46"), QColor("#FFFFFF") };
+		case Models::ColorType::BLUE: return { QColor("#60A5FA"), QColor("#1E3A8A"), QColor("#0369A1"), QColor("#FFFFFF") };
 		case Models::ColorType::PURPLE: return { QColor("#A78BFA"), QColor("#5B21B6"), QColor("#4C1D95"), QColor("#FFFFFF") };
-		default:                        return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#FFFFFF") };
+		default: return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#FFFFFF") };
 		}
 		};
 
@@ -549,6 +627,8 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_proxyMap.clear();
 
 	m_scene = new QGraphicsScene(this);
+	// Make scene transparent so underlying center widget background is visible
+	m_scene->setBackgroundBrush(Qt::NoBrush);
 	m_view = new QGraphicsView(m_scene, this);
 	qDebug() << "AgeTreeWidget: created scene=" << static_cast<const void*>(m_scene) << " view=" << static_cast<const void*>(m_view);
 	m_view->setRenderHint(QPainter::Antialiasing);
@@ -557,13 +637,21 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_view->setFrameStyle(QFrame::NoFrame);
 	m_view->setAlignment(Qt::AlignCenter);
 
-	const int cardW = 180;
-	const int cardH = 110;
-	const int hgap = 28;
-	const int vgap = 30;
+	// Make view and its viewport transparent so the age tree blends with app background
+	m_view->setStyleSheet("background: transparent;");
+	m_view->setAttribute(Qt::WA_TranslucentBackground);
+	if (m_view->viewport()) {
+		m_view->viewport()->setStyleSheet("background: transparent;");
+		m_view->viewport()->setAttribute(Qt::WA_TranslucentBackground);
+	}
+
+	const int cardW =180;
+	const int cardH =110;
+	const int hgap =28;
+	const int vgap =30;
 
 	if (nodes.empty()) {
-		m_scene->setSceneRect(0, 0, 800, 400);
+		m_scene->setSceneRect(0,0,800,400);
 		QGraphicsTextItem* t = m_scene->addText("No cards to display.");
 		QFont f = t->font();
 		f.setPointSize(18);
@@ -571,10 +659,10 @@ void AgeTreeWidget::showAgeTree(int age)
 		t->setFont(f);
 		t->setDefaultTextColor(QColor("#FFFFFF"));
 		QRectF tb = t->boundingRect();
-		t->setPos((800 - tb.width()) / 2.0, (400 - tb.height()) / 2.0);
+		t->setPos((800 - tb.width()) /2.0, (400 - tb.height()) /2.0);
 
 		auto* vlayout = new QVBoxLayout(this);
-		vlayout->setContentsMargins(8, 8, 8, 8);
+		vlayout->setContentsMargins(8,8,8,8);
 		vlayout->setSpacing(0);
 		vlayout->addWidget(m_view);
 		setLayout(vlayout);
@@ -588,26 +676,26 @@ void AgeTreeWidget::showAgeTree(int age)
 	std::vector<QPointF> positions(nodes.size());
 
 	int totalRows = static_cast<int>(rows.size());
-	int idx = 0;
-	int sceneWidth = 0;
-	for (int r = 0; r < totalRows; ++r) {
+	int idx =0;
+	int sceneWidth =0;
+	for (int r =0; r < totalRows; ++r) {
 		int cols = rows[r];
-		int rowWidth = cols * cardW + (cols - 1) * hgap;
+		int rowWidth = cols * cardW + (cols -1) * hgap;
 		sceneWidth = std::max(sceneWidth, rowWidth);
 	}
 
-	const int totalHeight = totalRows * cardH + (totalRows - 1) * vgap;
+	const int totalHeight = totalRows * cardH + (totalRows -1) * vgap;
 
-	int y = 0;
-	for (int r = 0; r < totalRows; ++r) {
+	int y =0;
+	for (int r =0; r < totalRows; ++r) {
 		int cols = rows[r];
-		int rowWidth = cols * cardW + (cols - 1) * hgap;
-		int x0 = (sceneWidth - rowWidth) / 2;
+		int rowWidth = cols * cardW + (cols -1) * hgap;
+		int x0 = (sceneWidth - rowWidth) /2;
 		int rowY = y;
 		if (flipVertical) {
 			rowY = (totalHeight - cardH) - y;
 		}
-		for (int c = 0; c < cols; ++c) {
+		for (int c =0; c < cols; ++c) {
 			if (idx >= static_cast<int>(nodes.size())) break;
 			int x = x0 + c * (cardW + hgap);
 			positions[idx] = QPointF(x, rowY);
@@ -617,17 +705,17 @@ void AgeTreeWidget::showAgeTree(int age)
 	}
 
 	// Fixed rect so view doesn't zoom/resize when cards disappear
-	// (also handle when computed sizes are 0)
-	m_scene->setSceneRect(0, 0, std::max(sceneWidth, 800), std::max(totalHeight + vgap, 400));
+	// (also handle when computed sizes are0)
+	m_scene->setSceneRect(0,0, std::max(sceneWidth,800), std::max(totalHeight + vgap,400));
 
 	std::unordered_map<Core::Node*, int> ptrToIndex;
-	for (size_t i = 0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
+	for (size_t i =0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
 
 	std::vector<QGraphicsRectItem*> rects(nodes.size(), nullptr);
-	idx = 0;
-	for (int r = 0; r < totalRows; ++r) {
+	idx =0;
+	for (int r =0; r < totalRows; ++r) {
 		int cols = rows[r];
-		for (int c = 0; c < cols; ++c) {
+		for (int c =0; c < cols; ++c) {
 			if (idx >= static_cast<int>(nodes.size())) break;
 			QPointF pos = positions[idx];
 			QRectF rrect(pos, QSizeF(cardW, cardH));
@@ -667,14 +755,14 @@ void AgeTreeWidget::showAgeTree(int age)
 					t->setFont(f);
 					t->setDefaultTextColor(text);
 					QRectF tb = t->boundingRect();
-					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
+					t->setPos(pos.x() + (cardW - tb.width()) /2, pos.y() + (cardH - tb.height()) /2);
 					t->setZValue(2);
 				}
 
 				int nodeIndexToUse = idx;
 				item->onClicked = [this, nodeIndexToUse]() {
 					this->handleLeafClicked(nodeIndexToUse, m_currentAge);
-					};
+				};
 			}
 			else {
 				// Non-leaf or not available: not clickable.
@@ -695,12 +783,12 @@ void AgeTreeWidget::showAgeTree(int age)
 					t->setFont(f);
 					t->setDefaultTextColor(text);
 					QRectF tb = t->boundingRect();
-					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
+					t->setPos(pos.x() + (cardW - tb.width()) /2, pos.y() + (cardH - tb.height()) /2);
 					t->setZValue(2);
 				}
 				else {
 					QColor bg = QColor("#EDE7E0");
-					QGraphicsRectItem* ritem = m_scene->addRect(rrect, QPen(QColor("#374151"), 3), QBrush(bg));
+					QGraphicsRectItem* ritem = m_scene->addRect(rrect, QPen(QColor("#374151"),3), QBrush(bg));
 					ritem->setZValue(1);
 					baseItem = ritem;
 				}
@@ -711,40 +799,8 @@ void AgeTreeWidget::showAgeTree(int age)
 		}
 	}
 
-	// Remove connector lines behind the tree for cleaner UI
-	// (previously drawn below cards using linePen)
-	/*
-	QPen linePen(lineColor); linePen.setWidth(3);
-	for (size_t i = 0; i < nodes.size(); ++i) {
-		if (!nodes[i]) continue;
-		auto child1 = nodes[i]->getChild1();
-		auto child2 = nodes[i]->getChild2();
-		QPointF fromCenter = positions[i] + QPointF(cardW / 2.0, cardH / 2.0);
-
-		if (child1) {
-			auto it = ptrToIndex.find(child1.get());
-			if (it != ptrToIndex.end()) {
-				int ci = it->second;
-				QPointF toCenter = positions[ci] + QPointF(cardW / 2.0, cardH / 2.0);
-				QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-				line->setZValue(0);
-			}
-		}
-
-		if (child2) {
-			auto it = ptrToIndex.find(child2.get());
-			if (it != ptrToIndex.end()) {
-				int ci = it->second;
-				QPointF toCenter = positions[ci] + QPointF(cardW / 2.0, cardH / 2.0);
-				QGraphicsLineItem* line = m_scene->addLine(QLineF(fromCenter, toCenter), linePen);
-				line->setZValue(0);
-			}
-		}
-	}
-	*/
-
 	auto* vlayout = new QVBoxLayout(this);
-	vlayout->setContentsMargins(8, 8, 8, 8);
+	vlayout->setContentsMargins(8,8,8,8);
 	vlayout->setSpacing(0);
 	vlayout->addWidget(m_view);
 	setLayout(vlayout);
@@ -752,7 +808,7 @@ void AgeTreeWidget::showAgeTree(int age)
 	QPointer<AgeTreeWidget> guard(this);
 	QTimer::singleShot(0, [guard]() {
 		if (guard) guard->fitAgeTree();
-		});
+	});
 
 	if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
 }

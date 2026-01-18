@@ -23,6 +23,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QMetaObject>
 #include <QtCore/QDebug>
+#include <QtWidgets/QMessageBox>
 
 
 
@@ -314,7 +315,7 @@ void UserInterface::showPhaseTransitionMessage()
 	auto* msgLayout = new QVBoxLayout(m_centerMiddle);
 	msgLayout->setContentsMargins(8,8,8,8);
 
-	QLabel* phaseMsg = new QLabel("Phase1 incepe", m_centerMiddle);
+	QLabel* phaseMsg = new QLabel("Sa inceapa epocile!", m_centerMiddle);
 	phaseMsg->setAlignment(Qt::AlignCenter);
 	phaseMsg->setStyleSheet("color: white;");
 	QFont f = phaseMsg->font();
@@ -519,13 +520,10 @@ void UserInterface::onWonderSelected(int index)
 		m_cardsPickedInPhase =0;
 
 		if (m_selectionPhase <2) {
-			// next batch is handled by the controller
 			if (m_wonderController) m_wonderController->loadNextBatch();
 		} 
 		else {
 			m_centerWidget->setTurnMessage("");
-			// lock middle panel height so it remains fixed after selection finished
-			// hide selection widget
 			if (m_centerWidget) m_centerWidget->hide();
 
 			// Show a simple large text message in the same panel before the age tree
@@ -548,20 +546,17 @@ void UserInterface::onWonderSelected(int index)
 
 				QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
 				phaseMsg->setAlignment(Qt::AlignCenter);
-				phaseMsg->setStyleSheet(""); // no formatting, just default
+				phaseMsg->setStyleSheet("");
 				QFont f = phaseMsg->font();
-				f.setPointSize(24); // large text
+				f.setPointSize(24);
 				f.setBold(true);
 				phaseMsg->setFont(f);
 				msgLayout->addWidget(phaseMsg);
 
-				// After a short delay, replace message with the age tree
 				QTimer::singleShot(1800, this, [this]() {
 					showAgeTree(1);
 					});
 			}
-
-			// Optionally start phase I automatically (console version) in background - not starting here to keep UI responsive
 		}
 	}
 	if (m_currentBatch.size() >1)
@@ -690,15 +685,73 @@ void UserInterface::initializeGame() {
 	// React to tree-node changes/empties by refreshing age tree
 	connect(m_gameListener.get(), &GameListenerBridge::treeNodeEmptiedSignal, this, [this](int ageIndex, int nodeIndex){
 		Q_UNUSED(nodeIndex);
-		#if 1
 		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
-		#else
-		// delayed to avoid duplicates
-		QTimer::singleShot(0,this,[this,ageIndex](){
-			if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
-		});
-		#endif
-	});
+
+		// If Age III just updated, and there are no more available cards, show final panel
+		if (ageIndex ==3) {
+			auto& board = Core::Board::getInstance();
+			const auto& nodes = board.getAge3Nodes();
+			bool anyAvailable = false;
+			for (const auto& n : nodes) {
+				if (!n) continue;
+				auto* c = n->getCard();
+				if (!c) continue;
+				if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+			}
+			if (!anyAvailable) {
+				QTimer::singleShot(200, this, [this]() {
+					// compute final civilian-style scores locally and show popup
+					auto& gs = Core::GameState::getInstance();
+					auto p1w = gs.GetPlayer1();
+					auto p2w = gs.GetPlayer2();
+					if (!p1w || !p2w) return;
+					Models::Player* p1 = p1w->m_player.get();
+					Models::Player* p2 = p2w->m_player.get();
+					if (!p1 || !p2) return;
+
+					auto calcScore = [](Models::Player* pl)->uint32_t {
+						if (!pl) return 0;
+						const auto& pts = pl->getPoints();
+						uint32_t total = static_cast<uint32_t>(pts.m_militaryVictoryPoints)
+							+ static_cast<uint32_t>(pts.m_buildingVictoryPoints)
+							+ static_cast<uint32_t>(pts.m_wonderVictoryPoints)
+							+ static_cast<uint32_t>(pts.m_progressVictoryPoints);
+						total += pl->totalCoins(pl->getRemainingCoins()) /3;
+						return total;
+					};
+
+					uint32_t s1 = calcScore(p1);
+					uint32_t s2 = calcScore(p2);
+					QString winnerName;
+					QString victoryType;
+					if (s1 > s2) {
+						winnerName = QString::fromStdString(p1->getPlayerUsername());
+						victoryType = "Civilian (Score)";
+					} else if (s2 > s1) {
+						winnerName = QString::fromStdString(p2->getPlayerUsername());
+						victoryType = "Civilian (Score)";
+					} else {
+						winnerName = "Tie";
+						victoryType = "Draw";
+					}
+
+					QString details = QString("Jocul s-a terminat.\n\nCastigator: %1\nTip victorie: %2\nScor: %3 - %4")
+						.arg(winnerName)
+						.arg(victoryType)
+						.arg(s1)
+						.arg(s2);
+
+					QApplication::beep();
+					QMessageBox::information(this, "Joc terminat", details, QMessageBox::Ok);
+
+					if (m_leftPanel) { m_leftPanel->refreshStats(); m_leftPanel->refreshTokens(); }
+					if (m_rightPanel) { m_rightPanel->refreshStats(); m_rightPanel->refreshTokens(); }
+					if (m_boardWidget) m_boardWidget->refresh();
+				});
+			}
+		}
+	}, Qt::QueuedConnection);
+
 	connect(m_gameListener.get(), &GameListenerBridge::treeNodeChangedSignal, this,
 		[this](int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty){
 			Q_UNUSED(nodeIndex);
@@ -706,7 +759,24 @@ void UserInterface::initializeGame() {
 			Q_UNUSED(isVisible);
 			Q_UNUSED(isEmpty);
 			if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
-		});
+		}, Qt::QueuedConnection);
+
+	// Victory popup: show a message box with winner and details when backend signals victory
+	connect(m_gameListener.get(), &GameListenerBridge::victoryAchievedSignal, this,
+		[this](int winnerPlayerID, const QString& winnerName, const QString& victoryType, int winnerScore, int loserScore){
+			// Ensure UI update happens on the GUI thread
+			QApplication::beep();
+			QString details = QString("%1 a castigat!\n\nTip victorie: %2\nScor castigator: %3\nScor invins: %4")
+				.arg(winnerName)
+				.arg(victoryType)
+				.arg(winnerScore)
+				.arg(loserScore);
+			QMessageBox::information(this, "Joc terminat", details, QMessageBox::Ok);
+			// Refresh UI to show final scores/tokens
+			if (m_leftPanel) { m_leftPanel->refreshStats(); m_leftPanel->refreshTokens(); }
+			if (m_rightPanel) { m_rightPanel->refreshStats(); m_rightPanel->refreshTokens(); }
+			if (m_boardWidget) m_boardWidget->refresh();
+		}, Qt::QueuedConnection);
 
 	// Initial sync (in case the pawn already has a non-zero position)
 	auto& board = Core::Board::getInstance();

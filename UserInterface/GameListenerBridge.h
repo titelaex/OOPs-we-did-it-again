@@ -2,6 +2,10 @@
 #include <QObject>
 #include <memory>
 #include <QDebug> // Include qdebug for debug output
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtCore/QTimer>
+#include <QtCore/QString>
 
 import Models.Player;
 import Core.Player;
@@ -42,7 +46,26 @@ public:
     void onTurnEnded(const Core::TurnEvent& e) override {}
     void onPhaseChanged(const Core::PhaseEvent& e) override {}
     void onRoundChanged(int r, int p) override {}
-    void onVictoryAchieved(const Core::VictoryEvent& e) override {}
+    void onVictoryAchieved(const Core::VictoryEvent& e) override {
+        qDebug() << "[GameListenerBridge] onVictoryAchieved: winner=" << e.winnerName.c_str() << " type=" << e.victoryType.c_str();
+        // Emit a Qt signal so UI can show a popup with details
+        emit victoryAchievedSignal(e.winnerPlayerID, QString::fromStdString(e.winnerName), QString::fromStdString(e.victoryType), e.winnerScore, e.loserScore);
+
+        // Also schedule a GUI popup on the UI thread
+        QString winner = QString::fromStdString(e.winnerName);
+        QString type = QString::fromStdString(e.victoryType);
+        int winnerScore = e.winnerScore;
+        int loserScore = e.loserScore;
+        QTimer::singleShot(0, this, [this, winner, type, winnerScore, loserScore]() {
+            QApplication::beep();
+            QString details = QString("%1 a castigat!\n\nTip victorie: %2\nScor castigator: %3\nScor invins: %4")
+                .arg(winner)
+                .arg(type)
+                .arg(winnerScore)
+                .arg(loserScore);
+            QMessageBox::information(nullptr, "Joc terminat", details, QMessageBox::Ok);
+        });
+    }
     void onGameStarted(int gm, Core::Playstyle p1, Core::Playstyle p2) override {}
     void onGameEnded() override {}
     void onPointsChanged(const Core::PointsEvent& e) override {}
@@ -71,4 +94,6 @@ signals:
     void treeNodeChangedSignal(int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty);
     void treeNodeEmptiedSignal(int ageIndex, int nodeIndex);
     void boardRefreshRequested();
+    // New signal for UI to display victory popup
+    void victoryAchievedSignal(int winnerPlayerID, const QString& winnerName, const QString& victoryType, int winnerScore, int loserScore);
 };
