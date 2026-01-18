@@ -1185,7 +1185,24 @@ namespace Core {
 
 			Core::setCurrentPlayer(&cur);
 
-			IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
+				for (size_t k = 0; k < availableIndex.size(); ++k) {
+					size_t index = availableIndex[k];
+					const auto& node = (*nodes)[index];
+					auto card = node->getCard();
+					DisplayRequestEvent cardEvent;
+					cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+					cardEvent.context = "\n[" + std::to_string(k) + "] ";
+					notifier.notifyDisplayRequested(cardEvent);
+					if (card) {
+						card->displayCardInfo();
+						if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+							if (ageCard->getScientificSymbols().has_value()) {
+								cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
+								notifier.notifyDisplayRequested(cardEvent);
+							}
+						}
+					}
+				}
 
 			displayPlayerResources(cur, playerOneTurn ? "Player1" : "Player2");
 			DisplayRequestEvent promptEvent;
@@ -1261,6 +1278,97 @@ namespace Core {
 						cancelled = true;
 						break;
 					}
+					case 1: {
+						auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+						cur.sellCard(cardPtr, discarded);
+						actionSucceeded = true;
+						break;
+					}
+					case 2: {
+						if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders) {
+							DisplayRequestEvent errEvent;
+							errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+							errEvent.context = "Maximum wonders already built. Choose another action: [0]=build, [1]=sell, [2]=wonder";
+							notifier.notifyDisplayRequested(errEvent);
+							break;
+						}
+
+						auto& owned = cur.m_player->getOwnedWonders();
+						std::vector<size_t> candidates;
+						for (size_t i = 0; i < owned.size(); ++i) {
+							if (owned[i] && !owned[i]->IsConstructed()) candidates.push_back(i);
+						}
+						if (candidates.empty()) {
+							DisplayRequestEvent errEvent;
+							errEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							errEvent.context = "No unbuilt wonders available. Choose another action: [0]=build, [1]=sell, [2]=wonder";
+							notifier.notifyDisplayRequested(errEvent);
+							break;
+						}
+
+						auto& notifier2 = GameState::getInstance().getEventNotifier();
+						DisplayRequestEvent headerEvent;
+						headerEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						headerEvent.context = "Choose wonder to construct:";
+						notifier2.notifyDisplayRequested(headerEvent);
+
+						for (size_t i = 0; i < candidates.size(); ++i) {
+							DisplayRequestEvent cardEvent;
+							cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							cardEvent.context = "[" + std::to_string(i) + "] " + owned[candidates[i]]->getName();
+							notifier2.notifyDisplayRequested(cardEvent);
+						}
+
+						size_t wchoice = curDecisionMaker.selectWonder(candidates);
+						if (wchoice >= candidates.size()) wchoice = 0;
+						std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[candidates[wchoice]];
+
+						if (!cur.canAffordWonder(chosenWonderPtr, opp.m_player)) {
+							DisplayRequestEvent errEvent;
+							errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+							errEvent.context = "Cannot afford this wonder. Choose another action: [0]=build, [1]=sell, [2]=wonder";
+							notifier2.notifyDisplayRequested(errEvent);
+							break;
+						}
+
+						std::vector<Models::Token> discardedTokens;
+						auto& discardedCards = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+						cur.playCardWonder(chosenWonderPtr, cardPtr, opp.m_player, discardedTokens, discardedCards);
+						actionSucceeded = true;
+						break;
+					}
+					default: {
+						DisplayRequestEvent errEvent;
+						errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+						errEvent.context = "Invalid action. Choose: [0]=build, [1]=sell, [2]=wonder";
+						notifier.notifyDisplayRequested(errEvent);
+						break;
+					}
+					}
+
+					if (!cardPtr && action == 0 && potentialPair) {
+						int realCount = 0;
+						auto targetSymbol = symbolToCheck.value();
+						const auto& inventory = cur.m_player->getOwnedCards();
+
+						for (const auto& ownedCardPtr : inventory) {
+							if (auto ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+								auto sym = ageCard->getScientificSymbols();
+								if (sym.has_value() && sym.value() == targetSymbol) {
+									realCount++;
+								}
+							}
+						}
+
+						if (realCount == 2) {
+							DisplayRequestEvent pairEvent;
+							pairEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
+							notifier.notifyDisplayRequested(pairEvent);
+
+							cur.chooseProgressTokenFromBoard(&curDecisionMaker);
+						}
+					}
 				}
 
 				if (!cardPtr && action == 0 && potentialPair) {
@@ -1292,65 +1400,122 @@ namespace Core {
 				continue;
 			}
 
-			if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
-				continue;
-			}
-
-			// Centralized backend rule+notifier updates (shared with UI)
-			Game::updateTreeAfterPick(currentPhase, static_cast<int>(chosenNodeIndex));
-
-			if (logger) {
-				MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
-				MCTSAction mctsAction;
-				mctsAction.cardNodeIndex = chosenNodeIndex;
-				mctsAction.actionType = action;
-				mctsAction.cardName = cardName;
-				TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
-				logger->logTurn(turn);
-			}
 
 			gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
 			gameState.saveGameState("");
 
-			DisplayRequestEvent saveEvent;
-			saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-			saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
-			notifier.notifyDisplayRequested(saveEvent);
-
-			if (shields > 0) {
-				Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
-				awardMilitaryTokenIfPresent(cur);
-				int win = checkImmediateMilitaryVictory();
-				if (win != -1) {
-					gameState.setVictory(win, "Military Supremacy", 0, 0);
-					gameState.saveGameState("");
-					announceVictory(win, "Military Supremacy", p1, p2);
-					g_last_active_was_player_one = !playerOneTurn;
-					return;
-				}
-			}
-
-			int sv = checkImmediateScientificVictory(p1, p2);
-			if (sv != -1) {
-				gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
+				gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
 				gameState.saveGameState("");
-				announceVictory(sv, "Scientific Supremacy", p1, p2);
-				g_last_active_was_player_one = !playerOneTurn;
-				return;
+
+				DisplayRequestEvent saveEvent;
+				saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
+				notifier.notifyDisplayRequested(saveEvent);
+
+				if (shields > 0) {
+					Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
+					awardMilitaryTokenIfPresent(cur, opp);
+					int win = checkImmediateMilitaryVictory();
+					if (win != -1) {
+						gameState.setVictory(win, "Military Supremacy", 0, 0);
+						gameState.saveGameState("");
+						announceVictory(win, "Military Supremacy", p1, p2);
+						g_last_active_was_player_one = !playerOneTurn;
+						return;
+					}
+
+					if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
+						continue;
+					}
+
+					if (auto takenNode = (*nodes)[chosenNodeIndex]) {
+						auto checkParent = [](const std::shared_ptr<Node>& p) {
+							if (p) {
+								auto c1 = p->getChild1();
+								auto c2 = p->getChild2();
+								bool empty1 = (!c1 || c1->getCard() == nullptr);
+								bool empty2 = (!c2 || c2->getCard() == nullptr);
+								if (empty1 && empty2 && p->getCard()) {
+									p->getCard()->setIsAvailable(true);
+									p->getCard()->setIsVisible(true);
+								}
+							}
+							};
+						checkParent(takenNode->getParent1());
+						checkParent(takenNode->getParent2());
+					}
+
+					gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
+
+					gameState.recordAction(
+						playerOneTurn ? p1.m_player->getPlayerUsername() : p2.m_player->getPlayerUsername(),
+						std::to_string(action),
+						cardName,
+						effects
+					);
+
+					if (logger) {
+						MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
+						MCTSAction mctsAction;
+						mctsAction.cardNodeIndex = chosenNodeIndex;
+						mctsAction.actionType = action;
+						mctsAction.cardName = cardName;
+						TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
+						logger->logTurn(turn);
+					}
+
+					gameState.saveGameState("");
+
+					DisplayRequestEvent saveEvent;
+					saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+					saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
+					notifier.notifyDisplayRequested(saveEvent);
+
+					if (shields > 0) {
+						Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
+						awardMilitaryTokenIfPresent(cur, opp);
+						int win = checkImmediateMilitaryVictory();
+						if (win != -1) {
+							gameState.setVictory(win, "Military Supremacy", 0, 0);
+							gameState.saveGameState("");
+							announceVictory(win, "Military Supremacy", p1, p2);
+							g_last_active_was_player_one = !playerOneTurn;
+							return;
+						}
+
+						int sv = checkImmediateScientificVictory(p1, p2);
+						if (sv != -1) {
+							gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
+						 gameState.saveGameState("");
+							announceVictory(sv, "Scientific Supremacy", p1, p2);
+							g_last_active_was_player_one = !playerOneTurn;
+							return;
+						}
+					}
+
+					displayPlayerHands(p1, p2);
+					displayTurnStatus(p1, p2);
+
+					++nrOfRounds;
+					playerOneTurn = !playerOneTurn;
+				}
+
+				DisplayRequestEvent completeEvent;
+				completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				completeEvent.context = phaseName + " completed.";
+				notifier.notifyDisplayRequested(completeEvent);
+
+				currentPhase++;
+				nrOfRounds = 1;
 			}
 
-			displayPlayerHands(p1, p2);
-			displayTurnStatus(p1, p2);
-			++nrOfRounds;
-			playerOneTurn = !playerOneTurn;
+			g_last_active_was_player_one = !playerOneTurn;
+
+			DisplayRequestEvent allPhaseEvent;
+			allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			allPhaseEvent.context = "=== All Phases Completed ===";
+			notifier.notifyDisplayRequested(allPhaseEvent);
 		}
-
-		g_last_active_was_player_one = !playerOneTurn;
-
-		DisplayRequestEvent allPhaseEvent;
-		allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-		allPhaseEvent.context = "=== All Phases Completed ===";
-		notifier.notifyDisplayRequested(allPhaseEvent);
 	}
 
 
