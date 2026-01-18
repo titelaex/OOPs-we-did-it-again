@@ -113,13 +113,11 @@ void AgeTreeWidget::refreshPanels()
 		m_leftPanel->refreshStats();
 		m_leftPanel->refreshCards();
 		m_leftPanel->refreshWonders();
-		m_leftPanel->refreshTokens();
 	}
 	if (m_rightPanel) {
 		m_rightPanel->refreshStats();
 		m_rightPanel->refreshCards();
 		m_rightPanel->refreshWonders();
-		m_rightPanel->refreshTokens();
 	}
 }
 
@@ -213,7 +211,8 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 								.arg(line.costPerUnit)
 								.arg(line.totalCost);
 						}
-					} else {
+					}
+					else {
 						details += "\nNo trading needed (resources covered).\n";
 					}
 
@@ -244,79 +243,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			continue;
 		}
 
-		// success - check if player got matching scientific symbols
-		if (action == 0 && card) { // Only check after building a card
-			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
-			if (ageCard && ageCard->getScientificSymbols().has_value()) {
-				auto targetSymbol = ageCard->getScientificSymbols().value();
-				
-				// Count how many of this symbol the player now has
-				int symbolCount = 0;
-				const auto& inventory = cur->m_player->getOwnedCards();
-				for (const auto& ownedCardPtr : inventory) {
-					if (auto* ownedAgeCard = dynamic_cast<const Models::AgeCard*>(ownedCardPtr.get())) {
-						auto sym = ownedAgeCard->getScientificSymbols();
-						if (sym.has_value() && sym.value() == targetSymbol) {
-							symbolCount++;
-						}
-					}
-				}
-				
-				// If they now have exactly 2, show message and let them choose a token
-				if (symbolCount == 2) {
-					QString playerName = (m_currentPlayerIndex == 0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
-						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
-						: (gs.GetPlayer2() && gs.GetPlayer2()->m_player) 
-							? QString::fromStdString(gs.GetPlayer2()->m_player->getPlayerUsername()) 
-							: QString("Player");
-					
-					QMessageBox::information(this, 
-						"Simboluri Stiintifice!", 
-						QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
-					
-					// Enable token selection on the board
-					// We need access to BoardWidget - let's emit a signal or use a callback
-					if (onRequestTokenSelection) {
-						onRequestTokenSelection([cur, this](int tokenIndex) {
-							// Player clicked a token
-							auto& board = Core::Board::getInstance();
-							auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
-							
-							if (tokenIndex >= 0 && tokenIndex < static_cast<int>(availableTokens.size())) {
-								auto chosenToken = std::move(availableTokens[tokenIndex]);
-								availableTokens.erase(availableTokens.begin() + tokenIndex);
-								
-								if (chosenToken) {
-									std::string tokenName = chosenToken->getName();
-									std::string tokenDesc = chosenToken->getDescription();
-									
-									// Add token to player
-									cur->m_player->addToken(std::move(chosenToken));
-									
-									// Notify that a token was acquired
-									Core::TokenEvent tokenEvent;
-									tokenEvent.playerID = static_cast<int>(cur->m_player->getkPlayerId());
-									tokenEvent.playerName = cur->m_player->getPlayerUsername();
-									tokenEvent.tokenName = tokenName;
-									tokenEvent.tokenType = "PROGRESS";
-									tokenEvent.tokenDescription = tokenDesc;
-									Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
-									
-									// Disable token selection
-									if (onDisableTokenSelection) {
-										onDisableTokenSelection();
-									}
-									
-									// Refresh panels to show the new token
-									refreshPanels();
-								}
-							}
-						});
-					}
-				}
-			}
-		}
-
 		// success
 		break;
 	}
@@ -344,12 +270,11 @@ void AgeTreeWidget::showAgeTree(int age)
 	qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
 		<< " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
 
-	// Phase 2 transition message (centered). Show once.
+	// Phase transitions (centered). Show once per phase.
 	static bool s_phase2Shown = false;
-	if (age == 2 && !s_phase2Shown) {
-		s_phase2Shown = true;
+	static bool s_phase3Shown = false;
 
-		// remove everything currently in this widget
+	auto clearWidgetSurface = [&]() {
 		if (auto oldLayout = this->layout()) {
 			while (auto item = oldLayout->takeAt(0)) {
 				if (auto w = item->widget()) w->deleteLater();
@@ -368,13 +293,17 @@ void AgeTreeWidget::showAgeTree(int age)
 			m_scene = nullptr;
 		}
 		m_proxyMap.clear();
+		};
+
+	auto showPhaseMessage = [&](const QString& text, int phaseToShowTree) {
+		clearWidgetSurface();
 
 		auto* msgLayout = new QVBoxLayout(this);
 		msgLayout->setContentsMargins(0, 0, 0, 0);
 		msgLayout->setSpacing(0);
 		msgLayout->setAlignment(Qt::AlignCenter);
 
-		QLabel* phaseMsg = new QLabel("Phase 2 incepe", this);
+		QLabel* phaseMsg = new QLabel(text, this);
 		phaseMsg->setAlignment(Qt::AlignCenter);
 		phaseMsg->setStyleSheet("color: white;");
 		QFont f = phaseMsg->font();
@@ -387,33 +316,63 @@ void AgeTreeWidget::showAgeTree(int age)
 		setLayout(msgLayout);
 
 		QPointer<AgeTreeWidget> guard(this);
-		QTimer::singleShot(1800, this, [guard]() {
-			if (guard) guard->showAgeTree(2);
-		});
+		QTimer::singleShot(1800, this, [guard, phaseToShowTree]() {
+			if (guard) guard->showAgeTree(phaseToShowTree);
+			});
+		};
+
+	if (age == 2 && !s_phase2Shown) {
+		s_phase2Shown = true;
+		showPhaseMessage("Phase 2 incepe", 2);
+		return;
+	}
+	if (age == 3 && !s_phase3Shown) {
+		s_phase3Shown = true;
+		showPhaseMessage("Phase 3 incepe", 3);
 		return;
 	}
 
-	// If we are about to render any tree (including age 2 after the message),
-	// ensure any temporary "phase" layout is removed completely.
-	if (auto oldLayout = this->layout()) {
-		while (auto item = oldLayout->takeAt(0)) {
-			if (auto w = item->widget()) w->deleteLater();
-			delete item;
-		}
-		delete oldLayout;
-	}
+	// Normal render path
+	clearWidgetSurface();
 
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
 	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
+	// Auto-advance: when Phase 2 has no more available cards, start Phase 3.
+	if (age == 2) {
+		bool anyAvailable = false;
+		for (const auto& n : nodes) {
+			if (!n) continue;
+			auto* c = n->getCard();
+			if (!c) continue;
+			if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+		}
+		if (!anyAvailable) {
+			QPointer<AgeTreeWidget> guard(this);
+			QTimer::singleShot(0, this, [guard]() {
+				if (guard) guard->showAgeTree(3);
+				});
+			return;
+		}
+	}
+
 	std::vector<int> rows;
-	// Keep per-age arrangements aligned with backend AgeTree wiring
-	if (age == 1) rows = { 2,3,4,5,6 };
-	else if (age == 2) rows = { 6,5,4,3,2 };
-	else rows = { 2,3,4,2,4,3,2 };
-	const bool flipVertical = false;
+	bool flipVertical = false;
+	if (age == 1) {
+		rows = { 2,3,4,5,6 };
+	}
+	else if (age == 2) {
+		rows = { 6,5,4,3,2 };
+	}
+	else {
+		// Backend creates 20 nodes for Age III; use the same 7-row layout.
+		rows = { 2,3,4,2,4,3,2 };
+		flipVertical = false;
+		// If you ever switch backend Age III nodes to a 12-node diamond, enable this:
+		// if (nodes.size() == 12) { rows = { 2,3,2,3,2 }; flipVertical = true; }
+	}
 
 	// Choose palette depending on age
 	QColor invisibleBorderColor = QColor("#CCCCCC");
@@ -431,7 +390,7 @@ void AgeTreeWidget::showAgeTree(int age)
 		case Models::ColorType::PURPLE: return { QColor("#A78BFA"), QColor("#5B21B6"), QColor("#4C1D95"), QColor("#FFFFFF") };
 		default:                        return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#FFFFFF") };
 		}
-	};
+		};
 
 	// clear previous layout
 	if (auto oldLayout = this->layout()) {
@@ -467,13 +426,6 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setFrameStyle(QFrame::NoFrame);
 	m_view->setAlignment(Qt::AlignCenter);
-
-	// Make background transparent
-	m_scene->setBackgroundBrush(Qt::NoBrush);
-	m_view->setStyleSheet("background: transparent;");
-	if (m_view->viewport()) {
-		m_view->viewport()->setStyleSheet("background: transparent;");
-	}
 
 	const int cardW = 180;
 	const int cardH = 110;
@@ -591,7 +543,7 @@ void AgeTreeWidget::showAgeTree(int age)
 				int nodeIndexToUse = idx;
 				item->onClicked = [this, nodeIndexToUse]() {
 					this->handleLeafClicked(nodeIndexToUse, m_currentAge);
-				};
+					};
 			}
 			else {
 				// Non-leaf or not available: not clickable.
@@ -668,7 +620,7 @@ void AgeTreeWidget::showAgeTree(int age)
 	QPointer<AgeTreeWidget> guard(this);
 	QTimer::singleShot(0, [guard]() {
 		if (guard) guard->fitAgeTree();
-	});
+		});
 
 	if (m_view && m_view->viewport()) m_view->viewport()->installEventFilter(this);
 }
