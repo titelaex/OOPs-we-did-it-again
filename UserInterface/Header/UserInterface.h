@@ -1,88 +1,75 @@
 ﻿#pragma once
 
 #include <QtWidgets/QMainWindow>
-#include <vector>
-#include <unordered_map>
-#include <memory>
 #include "ui_UserInterface.h"
-#include <QtWidgets/QDialog>
-
-class QSplitter;
-class QLabel;
-class QGraphicsProxyWidget;
-class QWidget;
-class PlayerPanelWidget;
+#include <vector>
+#include <memory>
+#include <functional>
+#include <QtCore/QPointer>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QSplitter>
 class WonderSelectionWidget;
-class WonderSelectionController;
+class PlayerPanelWidget;
 class BoardWidget;
 class AgeTreeWidget;
+class WonderSelectionController;
 class GameListenerBridge;
 
+namespace Models {
+	class Wonder;
+	class Card;
+}
 
-namespace Models { class Wonder; }
+namespace Core {
+	class Player;
+}
 
 class UserInterface : public QMainWindow
 {
 	Q_OBJECT
 
 public:
-
-	enum class GameMode {
-		PvP,    
-		PvAI,   
-		AIvAI   
-	};
-
-	explicit  UserInterface(QWidget* parent = nullptr);
+	UserInterface(QWidget* parent = nullptr);
 	~UserInterface();
 
-private:
-	void showGameModeSelection();
+	enum class GameMode {
+		PvP,
+		PvAI,
+		AIvAI
+	};
 
-	void initializePlayers();
+private:
 	void setupLayout();
 	void setupCenterPanel(QSplitter* splitter);
-	void startWonderSelection();
-	void showPhaseTransitionMessage();
-	void loadNextBatch();
-	void updatePanels();
-	void handleLeafClicked(int nodeIndex, int age);
 	void initializeGame();
+	void initializePlayers();
+	void startWonderSelection();
+	void showAgeTree(int age);
+	void updateTurnLabel();
+	void onWonderSelected(int index);
+	void showGameModeSelection();
+	void showPhaseTransitionMessage(int age);
+	void finishAction(int age, bool parentBecameAvailable);
 
+private:
 	Ui::UserInterfaceClass ui;
+	WonderSelectionWidget* m_centerWidget = nullptr;
+	PlayerPanelWidget* m_leftPanel = nullptr;
+	PlayerPanelWidget* m_rightPanel = nullptr;
+	BoardWidget* m_boardWidget = nullptr;
+	QPointer<AgeTreeWidget> m_ageTreeWidget = nullptr;
+	WonderSelectionController* m_wonderController = nullptr;
+	std::shared_ptr<GameListenerBridge> m_gameListener;
 
-	GameMode m_gameMode = GameMode::PvP;
-
-	PlayerPanelWidget* m_leftPanel{ nullptr };
-	PlayerPanelWidget* m_rightPanel{ nullptr };
-	WonderSelectionWidget* m_centerWidget{ nullptr };
-	WonderSelectionController* m_wonderController{ nullptr };
-
-	QWidget* m_centerContainer{ nullptr };
-	QWidget* m_centerTop{ nullptr };
-	QWidget* m_centerMiddle{ nullptr };
-	QWidget* m_centerBottom{ nullptr };
-
-	QLabel* m_phaseBanner{ nullptr };
-	BoardWidget* m_boardWidget{ nullptr };
-	AgeTreeWidget* m_ageTreeWidget{ nullptr };
+	QWidget* m_centerContainer = nullptr;
+	QWidget* m_centerTop = nullptr;
+	QWidget* m_centerMiddle = nullptr;
+	QWidget* m_centerBottom = nullptr;
+	QLabel* m_phaseBanner = nullptr;
 
 	int m_selectionPhase = 0;
 	int m_cardsPickedInPhase = 0;
-
-	int m_currentPlayerIndex = 0;
-
 	std::vector<Models::Wonder*> m_currentBatch;
-
-	std::unordered_map<QWidget*, QGraphicsProxyWidget*> m_proxyMap;
-
-	void updateTurnLabel();
-
-	Q_INVOKABLE void showAgeTree(int age);
-
-	std::shared_ptr<GameListenerBridge> m_gameListener;
-
-private Q_SLOTS:
-	void finishAction(int age, bool parentBecameAvailable);
-	void onWonderSelected(int index);
+	int m_currentPlayerIndex = 0;
+	GameMode m_gameMode = GameMode::PvP;
 };
