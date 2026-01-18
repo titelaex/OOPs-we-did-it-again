@@ -121,7 +121,8 @@ void DiscardedCardsWidget::addDiscardedCard(const QString& cardName, const QStri
 {
     QListWidgetItem* item = new QListWidgetItem(m_cardsList);
     item->setData(Qt::DisplayRole, cardName);
-    item->setData(Qt::UserRole, getHexColorForCard(cardColor));
+    // Convert the hex string to a QColor and set it as the background
+    item->setData(Qt::BackgroundRole, QColor(getHexColorForCard(cardColor)));
 
     item->setSizeHint(QSize(75, 110));
 

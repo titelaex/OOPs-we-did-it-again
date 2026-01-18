@@ -26,7 +26,7 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
 	const QRect r = option.rect.adjusted(1,1,-1,-1);
 
-	QColor bg = index.data(Qt::UserRole).value<QColor>();
+	QColor bg = index.data(Qt::BackgroundRole).value<QColor>();
 	if (!bg.isValid()) bg = QColor("#374151");
 
 	QColor border = QColor("#111827");
