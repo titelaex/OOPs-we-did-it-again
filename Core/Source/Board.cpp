@@ -1,4 +1,4 @@
-﻿module Core.Board;
+module Core.Board;
 import Core.Node;
 import Models.AgeCard;
 import Models.GuildCard;

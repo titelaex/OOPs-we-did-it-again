@@ -1,4 +1,4 @@
-﻿module Core.Node;
+module Core.Node;
 import Models.Card;
 import <utility>;
 import <memory>;

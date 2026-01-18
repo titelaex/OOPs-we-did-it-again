@@ -1,4 +1,4 @@
-﻿export module Core.CardCsvParser;
+export module Core.CardCsvParser;
 import Models.AgeCard;
 import Models.GuildCard;
 import Models.Wonder;

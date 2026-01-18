@@ -1,4 +1,4 @@
-﻿export module Core.Node;
+export module Core.Node;
 import Models.Card;
 import <memory>;
 import <utility>;
@@ -30,7 +30,7 @@ export namespace Core {
 		void setChild2(const std::shared_ptr<Node>& child);
 		std::optional<std::reference_wrapper<Models::Card>> getCard();
 		std::optional<std::reference_wrapper<const Models::Card>> getCard() const;
-		Models::Card* getCardRaw() const; // Kept for backward compatibility if needed
+		Models::Card* getCardRaw() const; 
 		void setCard(std::unique_ptr<Models::Card> card);
 		std::unique_ptr<Models::Card> releaseCard();
 		bool isAvailable() const;

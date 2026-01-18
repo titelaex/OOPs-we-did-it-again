@@ -1,4 +1,4 @@
-﻿module Core.AgeTree;
+module Core.AgeTree;
 import <vector>;
 import <memory>;
 import <algorithm>;

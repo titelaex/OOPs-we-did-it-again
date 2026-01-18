@@ -1,4 +1,4 @@
-﻿export module Core.MCTS;
+export module Core.MCTS;
 import <vector>;
 import <memory>;
 import <random>;

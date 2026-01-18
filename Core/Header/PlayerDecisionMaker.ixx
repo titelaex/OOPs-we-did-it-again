@@ -35,8 +35,8 @@ export namespace Core {
         size_t selectProgressToken(const std::vector<size_t>& available) override;
         size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
-        // Full "tree move" selection via MCTS (card node + action + optional wonder index).
-        // Used by the gameplay loop to avoid overloading selectCard() (which is also used for many non-tree selections).
+        
+        
         MCTSAction selectTurnAction();
         void setPlaystyle(Playstyle style);
         void setIterations(int count);
@@ -77,7 +77,7 @@ export namespace Core {
         size_t selectProgressToken(const std::vector<size_t>& available) override;
         size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
-        // Same idea as MCTSDecisionMaker::selectTurnAction(), but uses this class' tuning knobs.
+        
         MCTSAction selectTurnAction();
         void setSimulationCount(unsigned int count);
         void setExplorationConstant(double constant);

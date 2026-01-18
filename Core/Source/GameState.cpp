@@ -1,4 +1,4 @@
-﻿module Core.GameState;
+module Core.GameState;
 import Core.Board;
 import Core.Player;
 import Core.ConsoleListener;

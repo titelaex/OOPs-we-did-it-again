@@ -1,4 +1,4 @@
-﻿export module Core.Game;
+export module Core.Game;
 import <memory>;
 import <vector>;
 import <string>;

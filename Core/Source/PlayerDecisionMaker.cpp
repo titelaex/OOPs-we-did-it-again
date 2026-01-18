@@ -150,7 +150,7 @@ MCTSAction MCTSDecisionMaker::selectTurnAction() {
     const int phase = gs.getCurrentPhase();
     const bool isP1Turn = gs.isPlayer1Turn();
 
-    // Keep the underlying MCTS instance in sync with any runtime tuning.
+    
     if (m_mcts) {
         m_mcts->setIterations(m_iterations);
         m_mcts->setExplorationConstant(m_explorationConstant);
@@ -250,7 +250,7 @@ size_t MCTSDecisionMaker::selectWonder(const std::vector<size_t>& candidates) {
             score += 1.0 * weights.resourceValue;
         }
 
-        // Slightly penalize expensive wonders so the AI prefers buildable ones.
+        
         for (const auto& [res, amt] : w->getResourceCost()) {
             (void)res;
             score -= static_cast<double>(amt) * weights.resourceValue * 0.5;
@@ -292,7 +292,7 @@ size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& availab
                static_cast<uint32_t>(std::get<2>(coins)) * 6u;
     };
 
-    // Needed for Mathematics token evaluation.
+    
     size_t currentTokenCount = 0;
     if (auto cp = getCurrentPlayer(); cp && cp->m_player) {
         currentTokenCount = cp->m_player->getOwnedTokens().size();
@@ -307,7 +307,7 @@ size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& availab
         score += static_cast<double>(totalCoinValue(token->getCoins())) * weights.coinValue;
         score += static_cast<double>(token->getShieldPoints()) * weights.militaryPriority;
 
-        // Weight-driven approximations for "future value" progress tokens.
+        
         if (name == "Architecture") {
             score += 2.0 * weights.wonderEconomyBonus + 1.0 * weights.resourceValue;
         }
@@ -321,7 +321,7 @@ size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& availab
             score += 3.0 * weights.sciencePriority;
         }
         else if (name == "Mathematics") {
-            // 3 VP per progress token (including itself) at end of game.
+            
             score += static_cast<double>(3u * (currentTokenCount + 1u)) * weights.victoryPointValue;
             score += 1.0 * weights.sciencePriority;
         }
@@ -338,7 +338,7 @@ size_t MCTSDecisionMaker::selectProgressToken(const std::vector<size_t>& availab
             score += 1.0 * weights.economyPriority;
         }
         else if (name == "Philosophy") {
-            // Already covered via VP above; keep as-is.
+            
         }
 
         return score;
@@ -378,7 +378,7 @@ size_t MCTSDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availab
         if (!card) return -1e9;
         double score = 0.0;
 
-        // Removing opponent points/resources/science/military is "denial".
+        
         score += static_cast<double>(card->getVictoryPoints()) * weights.victoryPointValue * weights.opponentDenial;
 
         if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
@@ -392,7 +392,7 @@ size_t MCTSDecisionMaker::selectCardToDiscard(const std::vector<size_t>& availab
             }
         }
 
-        // Deny economy cards a bit (yellow typically grants coins/discounts).
+        
         if (card->getColor() == Models::ColorType::YELLOW) {
             score += 1.0 * weights.economyPriority * weights.opponentDenial;
         }
@@ -419,7 +419,7 @@ std::uint8_t MCTSDecisionMaker::selectStartingPlayer() {
     AIConfig config(m_playstyle);
     const auto weights = config.getWeights();
 
-    // Simple trainable heuristic: higher military/denial -> prefer going first.
+    
     double aggression = weights.militaryPriority + weights.opponentDenial;
     double economy = weights.victoryPointValue + weights.sciencePriority + weights.economyPriority;
     return (aggression >= economy) ? 0 : 1;

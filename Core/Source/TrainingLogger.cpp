@@ -1,4 +1,4 @@
-﻿#include <ctime>
+#include <ctime>
 module Core.TrainingLogger;
 import <string>;
 import <vector>;

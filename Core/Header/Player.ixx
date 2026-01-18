@@ -1,4 +1,4 @@
-﻿export module Core.Player;
+export module Core.Player;
 import Models.Wonder;
 import Models.Card;
 import Models.Player;
