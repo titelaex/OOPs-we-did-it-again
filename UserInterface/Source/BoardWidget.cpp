@@ -186,7 +186,6 @@ void BoardWidget::drawBoard()
 			int threes = static_cast<int>(std::get<1>(coins));
 			int sixes = static_cast<int>(std::get<2>(coins));
 
-			// Build detailed tooltip HTML
 			QString tooltip = "<b>" + tokenName + "</b>";
 			if (!tokenDesc.isEmpty()) tooltip += "<br>" + tokenDesc;
 			QString coinsText;
@@ -206,7 +205,6 @@ void BoardWidget::drawBoard()
 				tooltip += acts.join(", ");
 			}
 
-			// Add background circle with border - make it clickable if selection is enabled
 			QGraphicsItem* ring = nullptr;
 			if (m_tokenSelectionEnabled && m_onTokenClicked) {
 				auto* clickableRing = new ClickableTokenItem(cRect, i, m_onTokenClicked);
@@ -215,7 +213,6 @@ void BoardWidget::drawBoard()
 				clickableRing->setZValue(3);
 				m_scene->addItem(clickableRing);
 				ring = clickableRing;
-				// set tooltip on clickable item
 				clickableRing->setToolTip(tooltip);
 				
 				auto* shadow = new QGraphicsDropShadowEffect();
@@ -224,7 +221,6 @@ void BoardWidget::drawBoard()
 				shadow->setColor(QColor(0,0,0,150));
 				clickableRing->setGraphicsEffect(shadow);
 			} else {
-				// Non-clickable ring
 				QPainterPath ringPath;
 				ringPath.addEllipse(cRect);
 				auto* pathRing = m_scene->addPath(ringPath, QPen(QColor("#8b6f47"),5), QBrush(QColor("#a67c52")));
@@ -262,7 +258,6 @@ void BoardWidget::drawBoard()
 					cRect.center().y() - scaledPixmap.height() /2.0
 				);
 				pixmapItem->setZValue(4);
-				// set tooltip on pixmap too
 				pixmapItem->setToolTip(tooltip);
 				
 				if (m_tokenSelectionEnabled && m_onTokenClicked) {

@@ -643,7 +643,6 @@ void UserInterface::initializeGame() {
 		Q_UNUSED(nodeIndex);
 		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
 
-		// If Age III just updated, and there are no more available cards, show final panel
 		if (ageIndex ==3) {
 			auto& board = Core::Board::getInstance();
 			const auto& nodes = board.getAge3Nodes();
@@ -656,7 +655,6 @@ void UserInterface::initializeGame() {
 			}
 			if (!anyAvailable) {
 				QTimer::singleShot(200, this, [this]() {
-					// compute final civilian-style scores locally and show popup
 					auto& gs = Core::GameState::getInstance();
 					auto p1w = gs.GetPlayer1();
 					auto p2w = gs.GetPlayer2();
@@ -717,10 +715,8 @@ void UserInterface::initializeGame() {
 			if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
 		}, Qt::QueuedConnection);
 
-	// Victory popup: show a message box with winner and details when backend signals victory
 	connect(m_gameListener.get(), &GameListenerBridge::victoryAchievedSignal, this,
 		[this](int winnerPlayerID, const QString& winnerName, const QString& victoryType, int winnerScore, int loserScore){
-			// Ensure UI update happens on the GUI thread
 			QApplication::beep();
 			QString details = QString("%1 a castigat!\n\nTip victorie: %2\nScor castigator: %3\nScor invins: %4")
 				.arg(winnerName)
@@ -728,7 +724,6 @@ void UserInterface::initializeGame() {
 				.arg(winnerScore)
 				.arg(loserScore);
 			QMessageBox::information(this, "Joc terminat", details, QMessageBox::Ok);
-			// Refresh UI to show final scores/tokens
 			if (m_leftPanel) { m_leftPanel->refreshStats(); m_leftPanel->refreshTokens(); }
 			if (m_rightPanel) { m_rightPanel->refreshStats(); m_rightPanel->refreshTokens(); }
 			if (m_boardWidget) m_boardWidget->refresh();

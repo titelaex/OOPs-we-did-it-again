@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <QObject>
 #include <memory>
-#include <QDebug> // Include qdebug for debug output
+#include <QDebug> 
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QApplication>
 #include <QtCore/QTimer>
@@ -47,10 +47,8 @@ public:
     void onRoundChanged(int r, int p) override {}
     void onVictoryAchieved(const Core::VictoryEvent& e) override {
         qDebug() << "[GameListenerBridge] onVictoryAchieved: winner=" << e.winnerName.c_str() << " type=" << e.victoryType.c_str();
-        // Emit a Qt signal so UI can show a popup with details
         emit victoryAchievedSignal(e.winnerPlayerID, QString::fromStdString(e.winnerName), QString::fromStdString(e.victoryType), e.winnerScore, e.loserScore);
 
-        // Also schedule a GUI popup on the UI thread
         QString winner = QString::fromStdString(e.winnerName);
         QString type = QString::fromStdString(e.victoryType);
         int winnerScore = e.winnerScore;
@@ -96,6 +94,5 @@ signals:
     void treeNodeChangedSignal(int ageIndex, int nodeIndex, bool isAvailable, bool isVisible, bool isEmpty);
     void treeNodeEmptiedSignal(int ageIndex, int nodeIndex);
     void boardRefreshRequested();
-    // New signal for UI to display victory popup
     void victoryAchievedSignal(int winnerPlayerID, const QString& winnerName, const QString& victoryType, int winnerScore, int loserScore);
 };

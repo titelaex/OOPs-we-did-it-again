@@ -354,13 +354,11 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			continue;
 		}
 
-		// success - check if player got matching scientific symbols
-		if (action ==0 && card) { // Only check after building a card
+		if (action ==0 && card) { 
 			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
 			if (ageCard && ageCard->getScientificSymbols().has_value()) {
 				auto targetSymbol = ageCard->getScientificSymbols().value();
 				
-				// Count how many of this symbol the player now has
 				int symbolCount =0;
 				const auto& inventory = cur->m_player->getOwnedCards();
 				for (const auto& ownedCardPtr : inventory) {
@@ -372,7 +370,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 					}
 				}
 				
-				// If they now have exactly2, show message and let them choose a token
 				if (symbolCount ==2) {
 					QString playerName = (m_currentPlayerIndex ==0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
 						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
@@ -387,9 +384,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 					int playerIndexForToken = m_currentPlayerIndex;
 					if (onRequestTokenSelection) {
 						onRequestTokenSelection([playerIndexForToken, this](int tokenIndex) {
-							// Process on next event loop tick to avoid re-entrancy during mousePress
 							QTimer::singleShot(0, this, [playerIndexForToken, tokenIndex, this]() {
-								// Disable selection immediately to prevent double-click crashes
 								if (onDisableTokenSelection) onDisableTokenSelection();
 								
 								auto& gsCallback = Core::GameState::getInstance();
@@ -415,21 +410,17 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 									return;
 								}
 								
-								// Safely read token properties
 								std::string tokenName;
 								std::string tokenDesc;
 								try {
 									tokenName = chosenToken->getName();
 									tokenDesc = chosenToken->getDescription();
 								} catch (...) {
-									// In case of unexpected exception from token access
 									return;
 								}
 								
-								// Add token to player inventory
 								tokenPlayer->m_player->addToken(std::move(chosenToken));
 								
-								// Notify UI and listeners
 								Core::TokenEvent tokenEvent;
 								tokenEvent.playerID = static_cast<int>(tokenPlayer->m_player->getkPlayerId());
 								tokenEvent.playerName = tokenPlayer->m_player->getPlayerUsername();
@@ -438,7 +429,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 								tokenEvent.tokenDescription = tokenDesc;
 								Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
 								
-								// Refresh panels to show the new token
 								refreshPanels();
 							});
 						});
@@ -446,8 +436,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 				}
 			}
 		}
-
-		// success
 		break;
 	}
 
@@ -535,7 +523,6 @@ void AgeTreeWidget::showAgeTree(int age)
 		return;
 	}
 
-	// Normal render path
 	clearWidgetSurface();
 
 	m_currentAge = age;
@@ -612,7 +599,6 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_proxyMap.clear();
 
 	m_scene = new QGraphicsScene(this);
-	// Make scene transparent so underlying center widget background is visible
 	m_scene->setBackgroundBrush(Qt::NoBrush);
 	m_view = new QGraphicsView(m_scene, this);
 	qDebug() << "AgeTreeWidget: created scene=" << static_cast<const void*>(m_scene) << " view=" << static_cast<const void*>(m_view);
@@ -621,8 +607,6 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setFrameStyle(QFrame::NoFrame);
 	m_view->setAlignment(Qt::AlignCenter);
-
-	// Make view and its viewport transparent so the age tree blends with app background
 	m_view->setStyleSheet("background: transparent;");
 	m_view->setAttribute(Qt::WA_TranslucentBackground);
 	if (m_view->viewport()) {
