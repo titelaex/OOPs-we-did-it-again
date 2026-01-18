@@ -1,4 +1,4 @@
-﻿#include "BoardWidget.h"
+#include "BoardWidget.h"
 #include "UserInterface.h"
 #include "PlayerPanelWidget.h"
 #include "WonderSelectionWidget.h"
@@ -391,9 +391,10 @@ void UserInterface::showAgeTree(int age)
 					bool anyAvailable = false;
 					for (const auto& n : nodes) {
 						if (!n) continue;
-						auto* c = n->getCard();
-						if (!c) continue;
-						if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+						auto cardOpt = n->getCard();
+						if (!cardOpt.has_value()) continue;
+						auto& c = cardOpt->get();
+						if (n->isAvailable() && c.isAvailable()) { anyAvailable = true; break; }
 					}
 					if (!anyAvailable) {
 						showPhaseTransitionMessage(currentAge + 1);
