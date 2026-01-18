@@ -241,7 +241,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	qDebug() << "AgeTreeWidget::handleLeafClicked called. currentPlayerIndex=" << m_currentPlayerIndex;
 
 	auto& gs = Core::GameState::getInstance();
-	Core::Player* cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	auto cur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1() : gs.GetPlayer2();
 	if (!cur) return;
 	Core::setCurrentPlayer(cur);
 
@@ -250,13 +250,13 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= nodes.size()) return;
 	auto node = nodes[static_cast<size_t>(nodeIndex)];
 	if (!node) return;
-	auto* card = node->getCard();
-	if (!card) return;
+	auto card = node->getCard();
+	if (!card.has_value()) return;
 
 	while (true) {
 		QMessageBox msg(this);
 		msg.setWindowTitle("Choose action");
-		msg.setText(QString::fromStdString(card->getName()));
+		msg.setText(QString::fromStdString(card->get().getName()));
 		QPushButton* buildBtn = msg.addButton("Build", QMessageBox::ActionRole);
 		QPushButton* sellBtn = msg.addButton("Sell", QMessageBox::ActionRole);
 		QPushButton* wonderBtn = msg.addButton("Use as Wonder", QMessageBox::ActionRole);
@@ -302,7 +302,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			wonderChoice = candidates[static_cast<size_t>(pickedIdx)];
 
 			auto& gs2 = Core::GameState::getInstance();
-			Core::Player* opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
+			auto opp = (m_currentPlayerIndex == 0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
 			if (opp && opp->m_player) {
 				const Models::Wonder* selectedWonder = (wonderChoice.has_value() && wonderChoice.value() < owned.size())
 					? owned[wonderChoice.value()].get()
@@ -351,7 +351,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		if (!ok) {
 			QMessageBox::warning(this, "Action failed", "Action failed (insufficient resources or invalid choice). Please choose another action.");
 			card = node->getCard();
-			if (!card) return;
+			if (!card.has_value()) return;
 			continue;
 		}
 
@@ -361,7 +361,7 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	refreshPanels();
 
 	m_currentPlayerIndex = (m_currentPlayerIndex == 0) ? 1 : 0;
-	auto newCur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	auto newCur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1() : gs.GetPlayer2();
 	Core::setCurrentPlayer(newCur);
 
 	if (onPlayerTurnChanged) {
@@ -462,9 +462,9 @@ void AgeTreeWidget::showAgeTree(int age)
 		bool anyAvailable = false;
 		for (const auto& n : nodes) {
 			if (!n) continue;
-			auto* c = n->getCard();
-			if (!c) continue;
-			if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+			auto c = n->getCard();
+			if (!c.has_value()) continue;
+			if (n->isAvailable() && c->get().isAvailable()) { anyAvailable = true; break; }
 		}
 		if (!anyAvailable) {
 			QPointer<AgeTreeWidget> guard(this);
@@ -620,7 +620,9 @@ void AgeTreeWidget::showAgeTree(int age)
 				continue;
 			}
 
-			Models::Card* cardPtr = nodes[idx]->getCard();
+			auto cardOpt = nodes[idx]->getCard();
+			if (!cardOpt.has_value()) continue;
+			Models::Card* cardPtr = &cardOpt->get();
 
 			const bool leafAvailable = nodes[idx]->isAvailable();
 			const bool isVisible = cardPtr->isVisible();

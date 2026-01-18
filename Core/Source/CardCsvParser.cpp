@@ -65,28 +65,28 @@ static std::vector<std::string> splitActions(const std::string& field)
 }
 auto payCoins = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         cp->subtractCoins(amt);
     };
 };
 auto getCoins = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         cp->addCoins(amt);
     };
 };
 auto getResource = [](uint8_t amt, Models::ResourceType res) {
     return [amt, res]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         cp->m_player->addPermanentResource(res, amt);
     };
 };
 auto takeResource = [](uint8_t amt, Models::ResourceType res) {
     return [amt, res]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
 		auto owned = cp->m_player->getOwnedPermanentResources();
 		auto it = owned.find(res);
@@ -103,7 +103,7 @@ auto takeResource = [](uint8_t amt, Models::ResourceType res) {
 };
 auto getShieldPoints = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         auto points = cp->m_player->getPoints();
         points.m_militaryVictoryPoints += amt;
@@ -112,7 +112,7 @@ auto getShieldPoints = [](uint8_t amt) {
 };
 auto getVictoryPoints = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         auto points = cp->m_player->getPoints();
         points.m_buildingVictoryPoints += amt;
@@ -121,14 +121,14 @@ auto getVictoryPoints = [](uint8_t amt) {
 };
 auto getScientificSymbol = [](ScientificSymbolType symbol) {
     return [symbol]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
 		cp->m_player->addScientificSymbol(symbol, 1);
     };
 };
 auto getTradeRule = [](TradeRuleType rule) {
     return [rule]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         auto tradeRules = cp->m_player->getTradeRules();
         tradeRules[rule] = true;
@@ -137,7 +137,7 @@ auto getTradeRule = [](TradeRuleType rule) {
 };
 auto applyAgeCoinWorth = [](CoinWorthType type) {
     return [type]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         switch (type) {
         case CoinWorthType::GREY:
@@ -162,7 +162,7 @@ auto applyAgeCoinWorth = [](CoinWorthType type) {
 };
 auto applyGuildCoinWorth = [](CoinWorthType type) {
     return [type]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
         switch (type) {
         case CoinWorthType::GREYBROWN:
@@ -197,36 +197,36 @@ auto applyGuildCoinWorth = [](CoinWorthType type) {
 };
 auto returnCoinsFromOpponent = [](uint8_t amt) {
     return [amt]() {
-        Core::Player* cp = Core::getCurrentPlayer();
+        auto cp = Core::getCurrentPlayer();
         if (!cp) return;
-        Core::Player* opponent = Core::getOpponentPlayer();
+        auto opponent = Core::getOpponentPlayer();
         if (!opponent) return;
         opponent->subtractCoins(amt);
         cp->addCoins(amt);
     };
 };
 auto playAnotherTurn = []() {
-    Core::Player* cp = Core::getCurrentPlayer();
+    auto cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->setHasAnotherTurn(true);
 };
 auto discardOpponentCard = [](ColorType type) {
-    Core::Player* opponent = Core::getOpponentPlayer();
+    auto opponent = Core::getOpponentPlayer();
     if (!opponent) return;
     opponent->discardCard(type);
 };
 auto drawToken = []() {
-    Core::Player* cp = Core::getCurrentPlayer();
+    auto cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->drawToken();
 };
 auto takeNewCard = []() {
-    Core::Player* cp = Core::getCurrentPlayer();
+    auto cp = Core::getCurrentPlayer();
     if (!cp) return;
     cp->takeNewCard();
 };
 auto lawTokenEffect = []() {
-    Core::Player* cp = Core::getCurrentPlayer();
+    auto cp = Core::getCurrentPlayer();
     if (!cp) return;
 	cp->m_player->addScientificSymbol(ScientificSymbolType::SCALE, 1);
 };
@@ -244,15 +244,14 @@ auto applyToken = [](std::string tokenName) {
             {9, "Theology"},
             {10, "Urbanism"}
         };
-        Core::Player* cp = Core::getCurrentPlayer();
-        if (!cp) return;
-        auto player = cp->m_player.get();
-        if (!player) return;
+        auto cp = Core::getCurrentPlayer();
+        if (!cp || !cp->m_player) return;
+        auto& player = *cp->m_player;
         for (const auto& [idx, name] : tokenDisctionary) {
-            if (name == tokenName && idx > 0 && static_cast<size_t>(idx) <= player->getTokensOwned().size()) {
-                auto tokens = player->getTokensOwned();
+            if (name == tokenName && idx > 0 && static_cast<size_t>(idx) <= player.getTokensOwned().size()) {
+                auto tokens = player.getTokensOwned();
                 tokens.set(static_cast<size_t>(idx - 1));
-                player->setTokensOwned(tokens);
+                player.setTokensOwned(tokens);
                 break;
             }
         }

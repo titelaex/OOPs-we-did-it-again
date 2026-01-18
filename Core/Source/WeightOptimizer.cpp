@@ -1,4 +1,5 @@
-﻿module Core.WeightOptimizer;
+﻿#include <cmath>
+module Core.WeightOptimizer;
 import <string>;
 import <vector>;
 import <fstream>;
@@ -8,7 +9,6 @@ import <iomanip>;
 import <algorithm>;
 import <unordered_map>;
 import Core.AIConfig;
-#include <cmath>
 namespace Core {
 WeightOptimizer::WeightOptimizer() {
     m_weights[Playstyle::BRITNEY] = Core::getDefaultWeights(Playstyle::BRITNEY);

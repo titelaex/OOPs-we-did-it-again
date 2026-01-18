@@ -748,11 +748,11 @@ namespace Core {
             
             writer.writeInt("index", static_cast<int>(i));
             
-            auto card = node ? node->getCard() : nullptr;
-            writer.writeString("cardName", card ? card->getName() : "EMPTY", true);
-            writer.writeBool("isEmpty", !card, true);
-            writer.writeBool("isAvailable", card && card->isAvailable(), true);
-            writer.writeBool("isVisible", card && card->isVisible(), true);
+            auto card = node ? node->getCard() : std::nullopt;
+            writer.writeString("cardName", card.has_value() ? card->get().getName() : "EMPTY", true);
+            writer.writeBool("isEmpty", !card.has_value(), true);
+            writer.writeBool("isAvailable", card.has_value() && card->get().isAvailable(), true);
+            writer.writeBool("isVisible", card.has_value() && card->get().isVisible(), true);
             
             writer.writeKey("parents");
             writer.buffer << "[";
