@@ -23,11 +23,12 @@ import Core.IGameListener;
 import Core.PlayerDecisionMaker;
 
 namespace Core {
-	namespace {
-		thread_local Player* g_current_player = nullptr;
-	}
-	void setCurrentPlayer(Player* p) { g_current_player = p; }
-	Player* getCurrentPlayer() { return g_current_player; }
+namespace {
+thread_local Player* g_current_player = nullptr;
+}
+
+void setCurrentPlayer(Player* p) { g_current_player = p; }
+Player* getCurrentPlayer() { return g_current_player; }
 }
 namespace {
     void streamCardByType(std::ostream& out, const Models::Card* card)
@@ -49,91 +50,112 @@ namespace {
 }
 Core::Player* Core::getOpponentPlayer()
 {
-	Core::Player* cp = getCurrentPlayer();
-	if (!cp) return nullptr;
+    Core::Player* cp = getCurrentPlayer();
+    if (!cp) return nullptr;
 	auto& gs = Core::GameState::getInstance();
 	Core::Player* p1 = gs.GetPlayer1().get();
 	Core::Player* p2 = gs.GetPlayer2().get();
-	if (p1 == cp) return p2;
-	if (p2 == cp) return p1;
-	return nullptr;
+    if (p1 == cp) return p2;
+    if (p2 == cp) return p1;
+    return nullptr;
 }
+
 void Core::playTurnForCurrentPlayer()
 {
-	Core::Player* cp = getCurrentPlayer();
-	if (!cp) return;
-	std::cout << "Playing an extra turn for player\n";
+    Core::Player* cp = getCurrentPlayer();
+    if (!cp) return;
+    std::cout << "Playing an extra turn for player\n";
 }
-void Core::discardOpponentCardOfColor(Models::ColorType color)
+void Core::drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker)
 {
-	Core::Player* cp = getCurrentPlayer();
-	if (!cp) return;
-	Core::Player* opponent = getOpponentPlayer();
-	if (!opponent) return;
-	auto& owned = opponent->m_player->getOwnedCards();
-	std::vector<size_t> candidates;
-	for (size_t i = 0; i < owned.size(); ++i) {
-		if (!owned[i]) continue;
-		if (owned[i]->getColor() == color) candidates.push_back(i);
+    Core::Player* cp = getCurrentPlayer();
+    if (!cp) return;
+    std::vector<std::unique_ptr<Models::Token>> combined;
+    auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
+    auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
+    for (auto& t : progressTokens) combined.push_back(std::move(t));
+    for (auto& t : militaryTokens) combined.push_back(std::move(t));
+    if (combined.empty()) return;
+    std::random_device rd; std::mt19937 gen(rd());
+    std::shuffle(combined.begin(), combined.end(), gen);
+    size_t pickCount = std::min<size_t>(3, combined.size());
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose a token:";
+	notifier.notifyDisplayRequested(event);
+	
+	std::vector<size_t> tokenIndices;
+	for (size_t i = 0; i < pickCount; ++i) {
+		tokenIndices.push_back(i);
+		event.context = "[" + std::to_string(i) + "] " + combined[i]->getName();
+		notifier.notifyDisplayRequested(event);
 	}
-	if (candidates.empty()) return;
-	std::cout << "Choose opponent card to discard:\n";
-	for (size_t idx = 0; idx < candidates.size(); ++idx) {
-		size_t i = candidates[idx];
-		std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
+	
+	size_t choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectProgressToken(tokenIndices);
 	}
-	size_t choice = 0; std::cin >> choice; if (choice >= candidates.size()) choice = 0;
-	size_t removeIdx = candidates[choice];
-	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
-	if (moved)
-	{
-		Core::Game::getNotifier().notifyCardDiscarded({
-			static_cast<int>(cp->m_player->getkPlayerId()),  
-			cp->m_player->getPlayerUsername(),
-			moved->getName(),                               
-			-1,
-			Models::ColorTypeToString(moved->getColor()),    
-			{"Opponent card destroyed"}                      
-			});
-
-		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
-		discarded.push_back(std::move(moved));
-	}
+	
+	if (choice >= pickCount) choice = 0;
+    auto chosen = std::move(combined[choice]);
+    if (chosen) cp->m_player->addToken(std::move(chosen));
+    std::vector<std::unique_ptr<Models::Token>> newProgress;
+    std::vector<std::unique_ptr<Models::Token>> newMilitary;
+    for (auto& tptr : combined) {
+        if (!tptr) continue;
+        if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
+        else newMilitary.push_back(std::move(tptr));
+    }
+    Board::getInstance().setProgressTokens(std::move(newProgress));
+    Board::getInstance().setMilitaryTokens(std::move(newMilitary));
 }
+void Core::discardOpponentCardOfColor(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
+{
+	Core::Player* opponent = Core::getOpponentPlayer();
+	if (!opponent || !decisionMaker) return;
+
+    Core::Player* cp = getCurrentPlayer();
+    if (!cp) return;
+	
+	Game::handleOpponentCardDiscard(*opponent, *cp, color, *decisionMaker);
+    }
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {
-	if (availableWonders.empty())
-	{
+    if (availableWonders.empty())
+    {
 		std::cout << "No available wonders to choose from.\n";
-		return;
-	}
+        return;
+    }
 	if (availableWonders.size() == 1)
-	{
+    {
 		std::string wonderName = availableWonders[0]->getName();
-		m_player->addWonder(std::move(availableWonders[0]));
-		availableWonders.erase(availableWonders.begin());
-		std::cout << "  ✓ Automatically chosen (last wonder): " << wonderName << "\n\n";
-		return;
+        m_player->addWonder(std::move(availableWonders[0]));
+        availableWonders.erase(availableWonders.begin());
+		std::cout << "Automatically chosen (last wonder): " << wonderName << "\n\n";
+        return;
 	}
-	if (chosenIndex >= availableWonders.size())
-	{
+    if (chosenIndex >= availableWonders.size())
+    {
 		std::cout << "ERROR: Invalid wonder index " << static_cast<int>(chosenIndex) 
 		          << " (available: 0-" << (availableWonders.size() - 1) << ")\n";
-		return;
-	}
+        return;
+    }
 	std::string wonderName = availableWonders[chosenIndex]->getName();
 	m_player->addWonder(std::move(availableWonders[chosenIndex]));
-	availableWonders.erase(availableWonders.begin() + chosenIndex);
-	std::cout << "  ✓ Chosen wonder: " << wonderName << "\n\n";
+    availableWonders.erase(availableWonders.begin() + chosenIndex);
+	std::cout << "Chosen wonder: " << wonderName << "\n\n";
 }
+
 void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
-	uint8_t coinsToGain = 2;
+    uint8_t coinsToGain = 2;
 	uint8_t yellowCardCount = countYellowCards();
 	coinsToGain += yellowCardCount;
-	addCoins(coinsToGain);
-	std::cout << "Player sold \"" << ageCard->getName() << "\" for "
-		<< static_cast<int>(coinsToGain) << " coins.\n";
+    addCoins(coinsToGain);
+
+    std::cout << "Player sold \"" << ageCard->getName() << "\" for "
+        << static_cast<int>(coinsToGain) << " coins.\n";
 
 	Core::Game::getNotifier().notifyCardSold({
 		m_player->getkPlayerId(),                       
@@ -143,48 +165,54 @@ void Core::Player::sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<
 		Models::ColorTypeToString(ageCard->getColor()), 
 		});
 
-	discardedCards.push_back(std::move(ageCard));
+    discardedCards.push_back(std::move(ageCard));
 }
+
 uint8_t Core::Player::countYellowCards()
 {
-	uint8_t count = 0;
-	for (const auto& p : m_player->getOwnedCards()) {
-		if (!p) continue;
-		if (p->getColor() == Models::ColorType::YELLOW) ++count;
-	}
-	return count;
+    uint8_t count = 0;
+    for (const auto& p : m_player->getOwnedCards()) {
+        if (!p) continue;
+        if (p->getColor() == Models::ColorType::YELLOW) ++count;
+    }
+    return count;
 }
 void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::unique_ptr<Models::Card>& ageCard, std::unique_ptr<Models::Player>& opponent,
-	std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
+    std::vector<Models::Token>& discardedTokens, std::vector<std::unique_ptr<Models::Card>>& discardedCards)
 {
-	if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders)
-	{
+    if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders)
+    {
 		std::cout << "All wonders have been built in the game\n";
-		return;
-	}
-	if (wonder->IsConstructed())
-	{
+        return;
+    }
+
+    if (wonder->IsConstructed())
+    {
 		std::cout << "Wonder \"" << wonder->getName() << "\" is already constructed\n";
-		return;
-	}
-	if (!canAffordWonder(wonder, opponent))
-	{
+        return;
+    }
+
+    if (!canAffordWonder(wonder, opponent))
+    {
 		std::cout << "Cannot afford to construct wonder \"" << wonder->getName() << "\n";
-		return;
-	}
-	payForWonder(wonder, opponent);
-	Models::Wonder* rawWonderPtr = wonder.release();
-	std::unique_ptr<Models::Card> tempCard(rawWonderPtr);
-	applyCardEffects(tempCard);
-	rawWonderPtr = static_cast<Models::Wonder*>(tempCard.release());
-	wonder.reset(rawWonderPtr);
-	wonder->setConstructed(true);
-	const auto builtCount = Models::Wonder::incrementWondersBuilt();
-	if (builtCount == Models::Wonder::MaxWonders)
-	{
+        return;
+    }
+
+    payForWonder(wonder, opponent);
+
+    Models::Wonder* rawWonderPtr = wonder.release();
+    std::unique_ptr<Models::Card> tempCard(rawWonderPtr);
+    applyCardEffects(tempCard);
+    rawWonderPtr = static_cast<Models::Wonder*>(tempCard.release());
+    wonder.reset(rawWonderPtr);
+
+    wonder->setConstructed(true);
+    const auto builtCount = Models::Wonder::incrementWondersBuilt();
+    if (builtCount == Models::Wonder::MaxWonders)
+    {
 		std::cout << "All wonders have been built in the game\n";
-		discardRemainingWonder(opponent);
-	}
+        discardRemainingWonder(opponent);
+    }
 	if (wonder->getResourceProduction() != Models::ResourceType::NO_RESOURCE) {
 		m_player->addPermanentResource(wonder->getResourceProduction(), 1);
 		std::cout << "  Added 1x " << Models::ResourceTypeToString(wonder->getResourceProduction()) << " to permanent resources\n";
@@ -193,229 +221,253 @@ void Core::Player::playCardWonder(std::unique_ptr<Models::Wonder>& wonder, std::
 	if (wonder->getShieldPoints() > 0)
 	{
 		Game::movePawn(static_cast<int>(wonder->getShieldPoints()));
-		Game::awardMilitaryTokenIfPresent(*this);
+		Core::Player oppWrapper;
+		oppWrapper.m_player = std::move(opponent);
+		Game::awardMilitaryTokenIfPresent(*this, oppWrapper);
+		opponent = std::move(oppWrapper.m_player);
 	}
 	std::cout << "Wonder \"" << wonder->getName() << "\" constructed successfully\n";
+	bool hasTheologyToken = m_player->hasToken(Models::TokenIndex::THEOLOGY);
+	if (hasTheologyToken) {
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Theology Token: Wonder grants an extra Play Again effect!";
+		notifier.notifyDisplayRequested(event);
+	}
 }
 bool Core::Player::canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
-	const auto& cost = wonder->getResourceCost();
-	const auto& ownPermanent = m_player->getOwnedPermanentResources();
-	const auto& ownTrading = m_player->getOwnedTradingResources();
-	uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
-	std::unordered_map<Models::ResourceType, uint8_t> missingResources;
-	for (const auto& [resource, requiredAmount] : cost) {
-		uint8_t produced = 0;
-		if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
-		if (ownTrading.count(resource)) produced += ownTrading.at(resource);
-		if (produced < requiredAmount) {
-			missingResources[resource] = requiredAmount - produced;
-		}
-	}
-	if (missingResources.empty()) {
-		return true;
-	}
-	bool hasArchitectureToken = false;
-	for (const auto& token : m_player->getOwnedTokens()) {
-		if (token->getName() == "Architecture") {
-			hasArchitectureToken = true;
-			break;
-		}
-	}
-	auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
-		const auto& tradeRules = m_player->getTradeRules();
-		Models::TradeRuleType ruleType;
-		switch (resource) {
-		case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
-		case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
-		case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
-		case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
-		case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
+
+    const auto& cost = wonder->getResourceCost();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownTrading = m_player->getOwnedTradingResources();
+    uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
+
+    std::unordered_map<Models::ResourceType, uint8_t> missingResources;
+    for (const auto& [resource, requiredAmount] : cost) {
+        uint8_t produced = 0;
+        if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
+        if (ownTrading.count(resource)) produced += ownTrading.at(resource);
+
+        if (produced < requiredAmount) {
+            missingResources[resource] = requiredAmount - produced;
+        }
+    }
+
+    if (missingResources.empty()) {
+        return true;
+    }
+	bool hasArchitectureToken = m_player->hasToken(Models::TokenIndex::ARCHITECTURE);
+    auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
+        const auto& tradeRules = m_player->getTradeRules();
+        Models::TradeRuleType ruleType;
+        switch (resource) {
+        case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
+        case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
+        case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
+        case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
+        case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
 		default: return -1;
-		}
-		auto it = tradeRules.find(ruleType);
-		if (it != tradeRules.end() && it->second) {
+        }
+        auto it = tradeRules.find(ruleType);
+        if (it != tradeRules.end() && it->second) {
 			return 1;
-		}
+        }
 		return -1;
-		};
-	std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
-	for (const auto& card : opponent->getOwnedCards())
-	{
-		if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY))
-		{
-			if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get()))
-			{
-				for (const auto& resourcePair : ageCard->getResourcesProduction())
-				{
-					if (getTradeDiscount(resourcePair.first) == -1)
-					{
-						opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
-					}
-				}
-			}
-		}
-	}
-	uint8_t totalCost = 0;
-	if (hasArchitectureToken) {
-		std::vector<std::pair<uint8_t, Models::ResourceType>> purchaseCosts;
-		for (const auto& [resource, amount] : missingResources) {
-			int discountedCost = getTradeDiscount(resource);
-			uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
-			uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
-			purchaseCosts.push_back({ costPerUnit, resource });
-		}
-		std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
-		int discount = 2;
-		for (auto& costPair : purchaseCosts) {
-			auto resource = costPair.second;
-			uint8_t needed = missingResources[resource];
-			uint8_t discountedAmount = std::min((int)needed, discount);
-			missingResources[resource] -= discountedAmount;
-			discount -= discountedAmount;
-			if (discount <= 0) break;
-		}
-	}
-	for (const auto& [resource, amount] : missingResources) {
-		if (amount == 0) continue;
-		int discountedCost = getTradeDiscount(resource);
-		uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
-		uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
-		totalCost += costPerUnit * amount;
-	}
-	return availableCoins >= totalCost;
+        };
+    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+    for (const auto& card : opponent->getOwnedCards())
+    {
+        if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY))
+        {
+            if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get()))
+            {
+                for (const auto& resourcePair : ageCard->getResourcesProduction())
+                {
+                    if (getTradeDiscount(resourcePair.first) == -1)
+                    {
+                        opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
+                    }
+                }
+            }
+        }
+    }
+    uint8_t totalCost = 0;
+    if (hasArchitectureToken) {
+        std::vector<std::pair<uint8_t, Models::ResourceType>> purchaseCosts;
+        for (const auto& [resource, amount] : missingResources) {
+            int discountedCost = getTradeDiscount(resource);
+            uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+            uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
+            purchaseCosts.push_back({ costPerUnit, resource });
+        }
+        std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
+        int discount = 2;
+        for (auto& costPair : purchaseCosts) {
+            auto resource = costPair.second;
+            uint8_t needed = missingResources[resource];
+            uint8_t discountedAmount = std::min((int)needed, discount);
+            missingResources[resource] -= discountedAmount;
+            discount -= discountedAmount;
+            if (discount <= 0) break;
+        }
+    }
+    for (const auto& [resource, amount] : missingResources) {
+        if (amount == 0) continue;
+        int discountedCost = getTradeDiscount(resource);
+        uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+        uint8_t costPerUnit = (discountedCost != -1) ? discountedCost : (2 + opponentAmount);
+        totalCost += costPerUnit * amount;
+    }
+
+    return availableCoins >= totalCost;
 }
+
 void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent)
 {
-	const auto& cost = wonder->getResourceCost();
-	const auto& ownPermanent = m_player->getOwnedPermanentResources();
-	const auto& ownTrading = m_player->getOwnedTradingResources();
-	std::unordered_map<Models::ResourceType, uint8_t> missingResources;
-	int totalMissingUnits = 0;
-	for (const auto& [resource, requiredAmount] : cost) {
-		uint8_t produced = 0;
-		if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
-		if (ownTrading.count(resource)) produced += ownTrading.at(resource);
-		if (produced < requiredAmount) {
-			uint8_t missing = requiredAmount - produced;
-			missingResources[resource] = missing;
-			totalMissingUnits += missing;
-		}
+
+    const auto& cost = wonder->getResourceCost();
+    const auto& ownPermanent = m_player->getOwnedPermanentResources();
+    const auto& ownTrading = m_player->getOwnedTradingResources();
+
+    std::unordered_map<Models::ResourceType, uint8_t> missingResources;
+    int totalMissingUnits = 0;
+
+    for (const auto& [resource, requiredAmount] : cost) {
+ 
+        uint8_t produced = 0;
+        if (ownPermanent.count(resource)) produced += ownPermanent.at(resource);
+        if (ownTrading.count(resource)) produced += ownTrading.at(resource);
+
+        if (produced < requiredAmount) {
+            uint8_t missing = requiredAmount - produced;
+            missingResources[resource] = missing;
+            totalMissingUnits += missing;
+        }
 	}
-	if (missingResources.empty()) {
-		std::cout << "Player constructed the wonder for free (sufficient resources owned).\n";
-		return;
-	}
-	bool hasArchitectureToken = false;
-	for (const auto& token : m_player->getOwnedTokens()) {
-		if (token->getName() == "Architecture") {
-			hasArchitectureToken = true;
-			break;
-		}
-	}
-	if (hasArchitectureToken && totalMissingUnits <= 2) {
-		std::cout << "Player constructed the wonder for free (covered fully by Architecture token).\n";
-		return;
-	}
-	auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
-		const auto& tradeRules = m_player->getTradeRules();
-		Models::TradeRuleType ruleType;
-		switch (resource) {
-		case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
-		case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
-		case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
-		case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
-		case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
-		default: return -1;
-		};
-		auto it = tradeRules.find(ruleType);
+
+    if (missingResources.empty()) {
+        std::cout << "Player constructed the wonder for free (sufficient resources owned).\n";
+        return;
+    }
+	bool hasArchitectureToken = m_player->hasToken(Models::TokenIndex::ARCHITECTURE);
+    if (hasArchitectureToken && totalMissingUnits <= 2) {
+        std::cout << "Player constructed the wonder for free (covered fully by Architecture token).\n";
+        return;
+    }
+    auto getTradeDiscount = [&](Models::ResourceType resource) -> int {
+        const auto& tradeRules = m_player->getTradeRules();
+        Models::TradeRuleType ruleType;
+        switch (resource) {
+        case Models::ResourceType::WOOD:    ruleType = Models::TradeRuleType::WOOD; break;
+        case Models::ResourceType::STONE:   ruleType = Models::TradeRuleType::STONE; break;
+        case Models::ResourceType::CLAY:    ruleType = Models::TradeRuleType::CLAY; break;
+        case Models::ResourceType::PAPYRUS: ruleType = Models::TradeRuleType::PAPYRUS; break;
+        case Models::ResourceType::GLASS:   ruleType = Models::TradeRuleType::GLASS; break;
+        default: return -1;
+        };
+        auto it = tradeRules.find(ruleType);
 		if (it != tradeRules.end() && it->second) return 1;
-		return -1;
-		};
-	std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
-	bool opponentCheckNeeded = false;
-	for (const auto& [resource, amount] : missingResources) {
-		if (getTradeDiscount(resource) == -1) {
-			opponentCheckNeeded = true;
-			break;
-		}
-	}
-	if (opponentCheckNeeded) {
-		for (const auto& card : opponent->getOwnedCards()) {
-			if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY)) {
-				if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
-					for (const auto& resourcePair : ageCard->getResourcesProduction()) {
-						if (missingResources.find(resourcePair.first) != missingResources.end()) {
-							opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
-						}
-					}
-				}
-			}
-		}
-	}
-	std::vector<uint8_t> purchaseCosts;
-	for (const auto& [resource, amount] : missingResources) {
-		int discountedCost = getTradeDiscount(resource);
-		uint8_t costPerUnit = 0;
-		if (discountedCost != -1) {
-			costPerUnit = 1;
-		}
-		else {
-			uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
-			costPerUnit = 2 + opponentAmount;
-		}
-		for (int i = 0; i < amount; ++i) {
-			purchaseCosts.push_back(costPerUnit);
-		}
-	}
-	if (hasArchitectureToken) {
-		std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
-		if (purchaseCosts.size() >= 2) {
-			purchaseCosts.erase(purchaseCosts.begin(), purchaseCosts.begin() + 2);
-		}
-	}
-	uint8_t totalTradingCost = 0;
-	for (uint8_t price : purchaseCosts) {
-		totalTradingCost += price;
-	}
-	if (totalTradingCost > 0) {
+        return -1;
+        };
+
+    std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
+    bool opponentCheckNeeded = false;
+
+	//verify if we need to check opponent production at all
+    for (const auto& [resource, amount] : missingResources) {
+        if (getTradeDiscount(resource) == -1) {
+            opponentCheckNeeded = true;
+            break;
+        }
+    }
+
+    if (opponentCheckNeeded) {
+        for (const auto& card : opponent->getOwnedCards()) {
+            if (card && (card->getColor() == Models::ColorType::BROWN || card->getColor() == Models::ColorType::GREY)) {
+                if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
+                    for (const auto& resourcePair : ageCard->getResourcesProduction()) {
+                        if (missingResources.find(resourcePair.first) != missingResources.end()) {
+                            opponentBrownGreyProduction[resourcePair.first] += resourcePair.second;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    std::vector<uint8_t> purchaseCosts;
+
+    for (const auto& [resource, amount] : missingResources) {
+        int discountedCost = getTradeDiscount(resource);
+        uint8_t costPerUnit = 0;
+
+        if (discountedCost != -1) {
+            costPerUnit = 1;
+        }
+        else {
+            uint8_t opponentAmount = opponentBrownGreyProduction.count(resource) ? opponentBrownGreyProduction.at(resource) : 0;
+            costPerUnit = 2 + opponentAmount;
+        }
+
+        for (int i = 0; i < amount; ++i) {
+            purchaseCosts.push_back(costPerUnit);
+        }
+    }
+    if (hasArchitectureToken) {
+        std::sort(purchaseCosts.rbegin(), purchaseCosts.rend());
+        if (purchaseCosts.size() >= 2) {
+            purchaseCosts.erase(purchaseCosts.begin(), purchaseCosts.begin() + 2);
+        }
+    }
+
+    uint8_t totalTradingCost = 0;
+    for (uint8_t price : purchaseCosts) {
+        totalTradingCost += price;
+    }
+
+    if (totalTradingCost > 0) {
 		std::cout << "  Total coins to pay for trading: " << static_cast<int>(totalTradingCost) << " coins\n";
-		subtractCoins(totalTradingCost);
+        subtractCoins(totalTradingCost);
 		std::cout << "  Coins after payment: " << static_cast<int>(m_player->totalCoins(m_player->getRemainingCoins())) << " coins\n";
-	}
-	else {
+    }
+    else {
 		std::cout << "  No trading needed - player has all required resources (or covered by Architecture token)\n";
-	}
+    }
 }
+
 void Core::Player::discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent)
 {
-	auto discardFromList = [](std::vector<std::unique_ptr<Models::Wonder>>& wonderList) -> bool {
-		for (auto it = wonderList.begin(); it != wonderList.end(); ++it) {
-			if (*it && !(*it)->IsConstructed()) {
-				std::cout << "7 Wonders Rule: Removing unbuilt wonder \""
-					<< (*it)->getName() << "\" from the game.\n";
-				wonderList.erase(it);
+    auto discardFromList = [](std::vector<std::unique_ptr<Models::Wonder>>& wonderList) -> bool {
+
+        for (auto it = wonderList.begin(); it != wonderList.end(); ++it) {
+            if (*it && !(*it)->IsConstructed()) {
+
+                std::cout << "7 Wonders Rule: Removing unbuilt wonder \""
+                    << (*it)->getName() << "\" from the game.\n";
+                wonderList.erase(it);
 				return true;
-			}
-		}
+            }
+        }
 		return false;
-		};
-	if (discardFromList(m_player->getOwnedWonders())) {
+        };
+    if (discardFromList(m_player->getOwnedWonders())) {
 		return;
-	}
-	if (discardFromList(opponent->getOwnedWonders())) {
+    }
+    if (discardFromList(opponent->getOwnedWonders())) {
 		return;
-	}
-	std::cout << "Warning: Could not find the 8th unbuilt wonder to discard.\n";
+    }
+
+    std::cout << "Warning: Could not find the 8th unbuilt wonder to discard.\n";
 }
 void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent)
 {
 	if (!card)
-	{
+    {
 		std::cout << "Card is null\n";
-		return;
-	}
-	
+        return;
+    }
+
 	if (!opponent)
 	{
 		std::cout << "ERROR: Opponent is null in playCardBuilding\n";
@@ -428,33 +480,44 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		std::cout << "Card \"" << card->getName() << "\" is not available for building\n";
 		return;
 	}
-	
-	if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
-	{
-		for (const auto& ownedCard : m_player->getOwnedCards())
-		{
-			if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
-			{
-				card->setIsVisible(false);
-				std::cout << "Card \"" << card->getName() << "\" constructed for free via chain->\n";
-				applyCardEffects(card);
+    
+    if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    {
+        for (const auto& ownedCard : m_player->getOwnedCards())
+        {
+            if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
+            {
+                card->setIsVisible(false);
+				auto& notifier = GameState::getInstance().getEventNotifier();
+				DisplayRequestEvent event;
+				event.displayType = DisplayRequestEvent::Type::MESSAGE;
+				event.context = "Card \"" + std::string(card->getName()) + "\" constructed for free via chain->";
+				notifier.notifyDisplayRequested(event);
+                applyCardEffects(card);
 				if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 					const auto& resourceProduction = ageCard->getResourcesProduction();
 					for (const auto& [resource, amount] : resourceProduction) {
 						m_player->addPermanentResource(resource, amount);
-						std::cout << "  Added " << static_cast<int>(amount) << "x " << Models::ResourceTypeToString(resource) << " to permanent resources\n";
+						event.context = "  Added " + std::to_string(static_cast<int>(amount)) + "x " + Models::ResourceTypeToString(resource) + " to permanent resources";
+						notifier.notifyDisplayRequested(event);
 					}
 				}
+				bool hasUrbanismToken = m_player->hasToken(Models::TokenIndex::URBANISM);
+				if (hasUrbanismToken) {
+					addCoins(4);
+				}
 				m_player->addCard(std::move(card));
-				return;
-			}
-		}
-	}
-	if (card->getResourceCost().empty())
-	{
-		card->setIsVisible(false);
-		std::cout << "Card \"" << card->getName() << "\" constructed for free->\n";
-		applyCardEffects(card);
+                return;
+            }
+        }
+    }
+    
+
+    if (card->getResourceCost().empty())
+    {
+        card->setIsVisible(false);
+        std::cout << "Card \"" << card->getName() << "\" constructed for free->\n";
+        applyCardEffects(card);
 		if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 			const auto& resourceProduction = ageCard->getResourcesProduction();
 			for (const auto& [resource, amount] : resourceProduction) {
@@ -463,17 +526,17 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 			}
 		}
 		m_player->addCard(std::move(card));
-		return;
-	}
+        return;
+    }
 	if (!canAffordCard(card.get(), opponent))
-	{
-		std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
-		return;
-	}
-	payForCard(card, opponent);
-	card->setIsVisible(false);
-	std::cout << "Card \"" << card->getName() << "\" constructed->\n";
-	applyCardEffects(card);
+    {
+        std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
+        return;
+    }
+    payForCard(card, opponent);
+    card->setIsVisible(false);
+    std::cout << "Card \"" << card->getName() << "\" constructed->\n";
+    applyCardEffects(card);
 	if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 		const auto& resourceProduction = ageCard->getResourcesProduction();
 		for (const auto& [resource, amount] : resourceProduction) {
@@ -504,6 +567,12 @@ bool Core::Player::canAffordCard(const Models::Card* card, std::unique_ptr<Model
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentProduction = opponent->getOwnedPermanentResources();
     uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
+    
+    bool hasMasonryToken = m_player->hasToken(Models::TokenIndex::MASONRY);
+    if (hasMasonryToken && card->getColor() == Models::ColorType::BLUE) {
+        availableCoins += 2;
+    }
+
     for (const auto& kv : cost)
     {
         auto resource = kv.first;
@@ -515,9 +584,11 @@ bool Core::Player::canAffordCard(const Models::Card* card, std::unique_ptr<Model
             produced += ownTrading.at(resource);
         if (produced >= requiredAmount)
             continue;
+
         uint8_t missing = requiredAmount - produced;
         uint8_t opponentAmount = (opponentProduction.find(resource) != opponentProduction.end()) ? opponentProduction.at(resource) : 0;
         uint8_t costPerUnit = 2 + opponentAmount;
+
         uint8_t totalCost = costPerUnit * missing;
         if (availableCoins < totalCost)
             return false;
@@ -532,11 +603,11 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 		return;
 	}
 
-	const auto& cost = card->getResourceCost();
+    const auto& cost = card->getResourceCost();
 	const auto& ownPermanent = m_player->getOwnedPermanentResources();
-	const auto& ownTrading = m_player->getOwnedTradingResources();
-	const auto& opponentPermanent = opponent->getOwnedPermanentResources();
-	uint8_t totalCoinsToPay = 0;
+    const auto& ownTrading = m_player->getOwnedTradingResources();
+    const auto& opponentPermanent = opponent->getOwnedPermanentResources();
+    uint8_t totalCoinsToPay = 0;
 	
 	if (const auto* ageCard = dynamic_cast<const Models::AgeCard*>(card.get())) {
 		uint8_t cardCoinCost = ageCard->getCoinCost();
@@ -545,25 +616,34 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 			std::cout << "  Card maintenance cost: " << static_cast<int>(cardCoinCost) << " coins\n";
 		}
 	}
-	
-	for (const auto& kv : cost)
-	{
+
+    for (const auto& kv : cost)
+    {
 		auto resource = kv.first;
 		auto requiredAmount = kv.second;
-		uint8_t produced = 0;
+        uint8_t produced = 0;
 		if (ownPermanent.find(resource) != ownPermanent.end())
 			produced += ownPermanent.at(resource);
 		if (ownTrading.find(resource) != ownTrading.end())
 			produced += ownTrading.at(resource);
-		if (produced >= requiredAmount)
-			continue;
-		uint8_t missing = requiredAmount - produced;
+        if (produced >= requiredAmount)
+            continue;
+
+        uint8_t missing = requiredAmount - produced;
 		uint8_t opponentAmount = (opponentPermanent.find(resource) != opponentPermanent.end()) ? opponentPermanent.at(resource) : 0;
 		uint8_t costPerUnit = 2 + opponentAmount;
-		totalCoinsToPay += costPerUnit * missing;
+        totalCoinsToPay += costPerUnit * missing;
 		std::cout << "  Buying " << static_cast<int>(missing) << "x " << Models::ResourceTypeToString(resource) 
 		          << " for " << static_cast<int>(costPerUnit) << " coins each (total: " << static_cast<int>(costPerUnit * missing) << " coins)\n";
+    }
+
+	bool hasMasonryToken = m_player->hasToken(Models::TokenIndex::MASONRY);
+	if (hasMasonryToken && card->getColor() == Models::ColorType::BLUE) {
+		if (totalCoinsToPay >= 2) {
+			totalCoinsToPay -= 2;
+		}
 	}
+	
 	if (totalCoinsToPay > 0) {
 		std::cout << "  Total coins to pay for trading: " << static_cast<int>(totalCoinsToPay) << " coins\n";
 		subtractCoins(totalCoinsToPay);
@@ -574,102 +654,126 @@ void Core::Player::payForCard(std::unique_ptr<Models::Card>& card, std::unique_p
 }
 void Core::Player::applyCardEffects(std::unique_ptr<Models::Card>& card)
 {
-	std::cout << "Applying effects of card \"" << card->getName() << "\"->\n";
+    std::cout << "Applying effects of card \"" << card->getName() << "\"->\n";
 	card->onPlay();
 }
+
 void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 {
-	const auto& oldActions = card->getOnPlayActions();
-	Models::CardBuilder builder;
-	builder.setName(card->getName())
-		.setResourceCost(card->getResourceCost())
-		.setVictoryPoints(card->getVictoryPoints())
-		.setCaption(card->getCaption())
-		.setColor(card->getColor());
-	for (const auto& act : oldActions) {
-		builder.addOnPlayAction([act]() {
-			Core::Player* cp = getCurrentPlayer();
+    const auto& oldActions = card->getOnPlayActions();
+    Models::CardBuilder builder;
+    builder.setName(card->getName())
+        .setResourceCost(card->getResourceCost())
+        .setVictoryPoints(card->getVictoryPoints())
+        .setCaption(card->getCaption())
+        .setColor(card->getColor());
+
+    for (const auto& act : oldActions) {
+        builder.addOnPlayAction([act]() {
+            Core::Player* cp = getCurrentPlayer();
 			(void)cp;
 			if (act.first) act.first();
 			}, act.second);
-	}
-	auto newCard = std::make_unique<Models::Card>(builder.build());
-	std::cout << "Player takes card: " << newCard->getName() << "\n";
-	{
-		Core::Player* cp = getCurrentPlayer();
-		newCard->onPlay();
-	}
-	m_player->addCard(std::move(newCard));
+    }
+
+    auto newCard = std::make_unique<Models::Card>(builder.build());
+
+    std::cout << "Player takes card: " << newCard->getName() << "\n";
+    {
+        Core::Player* cp = getCurrentPlayer();
+        newCard->onPlay();
+    }
+    m_player->addCard(std::move(newCard));
 }
+
 void Core::Player::addCoins(uint8_t amt)
 {
 	auto coins = m_player->getRemainingCoins();
-	uint32_t total = m_player->totalCoins(coins) + amt;
-	uint8_t sixes = static_cast<uint8_t>(total / 6u);
-	uint8_t rem = static_cast<uint8_t>(total % 6u);
-	uint8_t threes = static_cast<uint8_t>(rem / 3u);
-	uint8_t ones = static_cast<uint8_t>(rem % 3u);
+    uint32_t total = m_player->totalCoins(coins) + amt;
+    uint8_t sixes = static_cast<uint8_t>(total / 6u);
+    uint8_t rem = static_cast<uint8_t>(total % 6u);
+    uint8_t threes = static_cast<uint8_t>(rem / 3u);
+    uint8_t ones = static_cast<uint8_t>(rem % 3u);
 	m_player->setRemainingCoins({ ones, threes, sixes });
 }
+
 void Core::Player::subtractCoins(uint8_t amt)
 {
-	auto coins = m_player->getRemainingCoins();
-	uint32_t total = m_player->totalCoins(coins);
+    auto coins = m_player->getRemainingCoins();
+    uint32_t total = m_player->totalCoins(coins);
 	if (amt >= total) { m_player->setRemainingCoins({ 0,0,0 }); return; }
-	uint32_t newTotal = total - amt;
-	uint8_t sixes = static_cast<uint8_t>(newTotal / 6u);
-	uint8_t rem = static_cast<uint8_t>(newTotal % 6u);
-	uint8_t threes = static_cast<uint8_t>(rem / 3u);
-	uint8_t ones = static_cast<uint8_t>(rem % 3u);
+    uint32_t newTotal = total - amt;
+    uint8_t sixes = static_cast<uint8_t>(newTotal / 6u);
+    uint8_t rem = static_cast<uint8_t>(newTotal % 6u);
+    uint8_t threes = static_cast<uint8_t>(rem / 3u);
+    uint8_t ones = static_cast<uint8_t>(rem % 3u);
 	m_player->setRemainingCoins({ ones, threes, sixes });
 }
+
 namespace Core
 {
-	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens)
+	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
+    {
+        Core::Player* cp = getCurrentPlayer();
+        if (!cp) return;
+
+        if (tokens.empty()) return;
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Choose a progress token by index:";
+		notifier.notifyDisplayRequested(event);
+
+		std::vector<size_t> tokenIndices;
+        for (size_t i = 0; i < tokens.size(); ++i) {
+			if (tokens[i]) {
+				tokenIndices.push_back(i);
+				event.context = "[" + std::to_string(i) + "] " + tokens[i]->getName();
+				notifier.notifyDisplayRequested(event);
+			}
+        }
+
+        size_t idx = 0;
+		if (decisionMaker) {
+			idx = decisionMaker->selectProgressToken(tokenIndices);
+        }
+
+		if (idx >= tokens.size()) idx = 0;
+        std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
+        tokens.erase(tokens.begin() + idx);
+        if (taken) cp->m_player->addToken(std::move(taken));
+    }
+	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
 	{
 		Core::Player* cp = getCurrentPlayer();
 		if (!cp) return;
 		if (tokens.empty()) return;
-		std::cout << "Choose a progress token by index:\n";
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "Choose a progress token by name:";
+		notifier.notifyDisplayRequested(event);
+		
+		std::vector<size_t> tokenIndices;
 		for (size_t i = 0; i < tokens.size(); ++i) {
-			if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
+			if (tokens[i]) {
+				tokenIndices.push_back(i);
+				event.context = "[" + std::to_string(i) + "] " + tokens[i]->getName();
+				notifier.notifyDisplayRequested(event);
+			}
 		}
+		
 		size_t idx = 0;
-		if (!(std::cin >> idx) || idx >= tokens.size()) {
-			if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-			idx = 0;
+		if (decisionMaker) {
+			idx = decisionMaker->selectProgressToken(tokenIndices);
 		}
-		std::unique_ptr<Models::Token> taken = std::move(tokens[idx]);
-		tokens.erase(tokens.begin() + idx);
+		
+		if (idx >= tokenIndices.size()) idx = 0;
+		size_t selectedIdx = tokenIndices[idx];
+		
+		std::unique_ptr<Models::Token> taken = std::move(tokens[selectedIdx]);
+		tokens.erase(tokens.begin() + selectedIdx);
 		if (taken) cp->m_player->addToken(std::move(taken));
-	}
-	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens)
-	{
-		Core::Player* cp = getCurrentPlayer();
-		if (!cp) return;
-		if (tokens.empty()) return;
-		std::cout << "Choose a progress token by name:\n";
-		for (size_t i = 0; i < tokens.size(); ++i) {
-			if (tokens[i]) std::cout << "[" << i << "] " << tokens[i]->getName() << "\n";
-		}
-		std::string name;
-		if (!std::getline(std::cin >> std::ws, name)) return;
-		if (name.empty()) {
-			if (!tokens.empty() && tokens[0]) {
-				cp->m_player->addToken(std::move(tokens[0]));
-				tokens.erase(tokens.begin());
-			}
-			return;
-		}
-		for (auto it = tokens.begin(); it != tokens.end(); ++it) {
-			if (*it && (*it)->getName() == name) {
-				std::unique_ptr<Models::Token> taken = std::move(*it);
-				tokens.erase(it);
-				if (taken) cp->m_player->addToken(std::move(taken));
-				return;
-			}
-		}
-		std::cout << "No progress token named '" << name << "' found." << std::endl;
 	}
 }
 namespace Core {
@@ -678,6 +782,7 @@ namespace Core {
 		if (!player.m_player) {
 			return out;
 		}
+
 		const auto& p = player.m_player;
 		auto csvEscape = [](const std::string& s) -> std::string {
 			if (s.find_first_of(",\"\n\r") != std::string::npos) {
@@ -821,7 +926,7 @@ void Core::Player::setHasAnotherTurn(bool hasAnotherTurn)
 	std::cout << "Player gets an extra turn!\n";
 	Core::playTurnForCurrentPlayer();
 }
-void Core::Player::discardCard(Models::ColorType color)
+void Core::Player::discardCard(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
 {
 	Core::Player* opponent = Core::getOpponentPlayer();
 	if (!opponent) return;
@@ -834,28 +939,40 @@ void Core::Player::discardCard(Models::ColorType color)
 		}
 	}
 	if (candidates.empty()) {
-		std::cout << "No opponent cards of the specified color to discard.\n";
+		auto& notifier = GameState::getInstance().getEventNotifier();
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "No opponent cards of the specified color to discard.";
+		notifier.notifyDisplayRequested(event);
 		return;
 	}
-	std::cout << "Choose opponent card to discard:\n";
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose opponent card to discard:";
+	notifier.notifyDisplayRequested(event);
+	
 	for (size_t idx = 0; idx < candidates.size(); ++idx) {
 		size_t i = candidates[idx];
-		std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
+		event.context = "[" + std::to_string(idx) + "] " + owned[i]->getName();
+		notifier.notifyDisplayRequested(event);
 	}
+	
 	size_t choice = 0;
-	if (!(std::cin >> choice) || choice >= candidates.size()) {
-		if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-		choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectCard(candidates);
 	}
+	
+	if (choice >= candidates.size()) choice = 0;
 	size_t removeIdx = candidates[choice];
 	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
 	if (!moved) return;
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Core::Board::getInstance().getDiscardedCards());
 	discarded.push_back(std::move(moved));
 }
-void Core::Player::drawToken()
+void Core::Player::drawToken(IPlayerDecisionMaker* decisionMaker)
 {
-	Core::drawTokenForCurrentPlayer();
+	Core::drawTokenForCurrentPlayer(decisionMaker);
 }
 void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker)
 {
@@ -936,78 +1053,57 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 		Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
 	}
 }
-void Core::Player::takeNewCard()
+void Core::Player::takeNewCard(IPlayerDecisionMaker* decisionMaker)
 {
 	Core::Player* cp = getCurrentPlayer();
 	if (!cp) return;
 	auto& board = Core::Board::getInstance();
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+	auto& notifier = GameState::getInstance().getEventNotifier();
+	
 	if (discarded.empty()) {
-		std::cout << "No cards in the discard pile.\n";
+		DisplayRequestEvent event;
+		event.displayType = DisplayRequestEvent::Type::MESSAGE;
+		event.context = "No cards in the discard pile.";
+		notifier.notifyDisplayRequested(event);
 		return;
 	}
-	std::cout << "Choose a card from the discard pile:\n";
+
+	DisplayRequestEvent event;
+	event.displayType = DisplayRequestEvent::Type::MESSAGE;
+	event.context = "Choose a card from the discard pile:";
+	notifier.notifyDisplayRequested(event);
+
+	std::vector<size_t> cardIndices;
 	for (size_t i = 0; i < discarded.size(); ++i) {
 		if (discarded[i]) {
-			std::cout << "[" << i << "] " << discarded[i]->getName() << "\n";
+			cardIndices.push_back(i);
+			event.context = "[" + std::to_string(i) + "] " + discarded[i]->getName();
+			notifier.notifyDisplayRequested(event);
 		}
 	}
- size_t choice = 0;
- if (!(std::cin >> choice) || choice >= discarded.size()) {
-   if (!std::cin) { std::cin.clear(); std::string discard; std::getline(std::cin, discard); }
-   choice = 0;
- }
- if (!discarded[choice]) {
-   std::cout << "Invalid card selection.\n";
-   return;
- }
- auto card = std::move(discarded[choice]);
- discarded.erase(discarded.begin() + choice);
- if (!card) return;
- cp->m_player->addCard(std::move(card));
- cp->m_player->getOwnedCards().back()->onPlay();
- std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
-}
-void Core::drawTokenForCurrentPlayer()
-{
-	Core::Player* cp = getCurrentPlayer();
-	if (!cp) return;
-	std::vector<std::unique_ptr<Models::Token>> combined;
-	auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
-	auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
-	for (auto& t : progressTokens) combined.push_back(std::move(t));
-	for (auto& t : militaryTokens) combined.push_back(std::move(t));
-	if (combined.empty()) return;
-	std::random_device rd; std::mt19937 gen(rd());
-	std::shuffle(combined.begin(), combined.end(), gen);
-	size_t pickCount = std::min<size_t>(3, combined.size());
-	std::cout << "Choose a token: \n";
-	for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
-	size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
-	auto chosen = std::move(combined[choice]);
-	if (chosen) {
-		std::string tokenName = chosen->getName();
-		std::string tokenDesc = chosen->getDescription();
-		Models::TokenType tokenType = chosen->getType();
 
-		cp->m_player->addToken(std::move(chosen));
+	size_t choice = 0;
+	if (decisionMaker) {
+		choice = decisionMaker->selectCard(cardIndices);
+	}
+	
+	if (choice >= cardIndices.size()) choice = 0;
+	size_t selectedIdx = cardIndices[choice];
 
-		// Notify that a token was acquired
-		Core::TokenEvent tokenEvent;
-		tokenEvent.playerID = static_cast<int>(cp->m_player->getkPlayerId());
-		tokenEvent.playerName = cp->m_player->getPlayerUsername();
-		tokenEvent.tokenName = tokenName;
-		tokenEvent.tokenType = (tokenType == Models::TokenType::PROGRESS) ? "PROGRESS" : "MILITARY";
-		tokenEvent.tokenDescription = tokenDesc;
-		Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+	if (!discarded[selectedIdx]) {
+		event.context = "Invalid card selection.";
+		notifier.notifyDisplayRequested(event);
+		return;
 	}
-	std::vector<std::unique_ptr<Models::Token>> newProgress;
-	std::vector<std::unique_ptr<Models::Token>> newMilitary;
-	for (auto& tptr : combined) {
-		if (!tptr) continue;
-		if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
-		else newMilitary.push_back(std::move(tptr));
-	}
-	Board::getInstance().setProgressTokens(std::move(newProgress));
-	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
+
+	auto card = std::move(discarded[selectedIdx]);
+	discarded.erase(discarded.begin() + selectedIdx);
+	if (!card) return;
+
+	cp->m_player->addCard(std::move(card));
+	cp->m_player->getOwnedCards().back()->onPlay();
+	
+	event.context = "Card \"" + std::string(cp->m_player->getOwnedCards().back()->getName()) + "\" constructed for free.";
+	notifier.notifyDisplayRequested(event);
 }

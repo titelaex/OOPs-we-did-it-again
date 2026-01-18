@@ -75,6 +75,10 @@ public:
     void displayError(const std::string&) override {}
     void displayWarning(const std::string&) override {}
 
+    virtual void displayCardInfo(const Models::Card& card) override {}
+    virtual void displayWonderInfo(const Models::Wonder& wonder) override {}
+    virtual void displayAgeCardInfo(const Models::AgeCard& ageCard) override {}
+
 private:
     DiscardedCardsWidget* m_widget;
 };

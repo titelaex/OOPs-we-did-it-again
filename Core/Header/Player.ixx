@@ -11,7 +11,7 @@ import <vector>;
 export namespace Core
 {
 	struct IPlayerDecisionMaker;
-	
+
 	export class Player
 	{
 	public:
@@ -25,15 +25,15 @@ export namespace Core
 		void chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex);
 		void sellCard(std::unique_ptr<Models::Card>& ageCard, std::vector<std::unique_ptr<Models::Card>>& discardedCards);
 		void setHasAnotherTurn(bool has);
-		void discardCard(Models::ColorType color);
-		void drawToken();
+		void discardCard(Models::ColorType color, IPlayerDecisionMaker* decisionMaker = nullptr);
+		void drawToken(IPlayerDecisionMaker* decisionMaker = nullptr);
 		void chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker = nullptr);
-		void takeNewCard();
+		void takeNewCard(IPlayerDecisionMaker* decisionMaker = nullptr);
 		bool canAffordWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		bool canAffordCard(const Models::Card* card, std::unique_ptr<Models::Player>& opponent);
 	private:
 		uint8_t countYellowCards();
-		void payForWonder(std::unique_ptr<Models::Wonder>& wonder,const std::unique_ptr<Models::Player>& opponent);
+		void payForWonder(std::unique_ptr<Models::Wonder>& wonder, const std::unique_ptr<Models::Player>& opponent);
 		void discardRemainingWonder(const std::unique_ptr<Models::Player>& opponent);
 		void payForCard(std::unique_ptr<Models::Card>& card, std::unique_ptr<Models::Player>& opponent);
 		void applyCardEffects(std::unique_ptr<Models::Card>& card);
@@ -44,6 +44,6 @@ export namespace Core
 	export Player* getCurrentPlayer();
 	export Player* getOpponentPlayer();
 	export void playTurnForCurrentPlayer();
-	export void drawTokenForCurrentPlayer();
-	export void discardOpponentCardOfColor(Models::ColorType color);
+	export void drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker = nullptr);
+	export void discardOpponentCardOfColor(Models::ColorType color, IPlayerDecisionMaker* decisionMaker = nullptr);
 }
