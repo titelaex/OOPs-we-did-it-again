@@ -354,84 +354,92 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			continue;
 		}
 
-		if (action ==0 && card) { 
-			auto* ageCard = dynamic_cast<const Models::AgeCard*>(card);
-			if (ageCard && ageCard->getScientificSymbols().has_value()) {
-				auto targetSymbol = ageCard->getScientificSymbols().value();
-				
-				int symbolCount =0;
-				const auto& inventory = cur->m_player->getOwnedCards();
-				for (const auto& ownedCardPtr : inventory) {
-					if (auto* ownedAgeCard = dynamic_cast<const Models::AgeCard*>(ownedCardPtr.get())) {
-						auto sym = ownedAgeCard->getScientificSymbols();
-						if (sym.has_value() && sym.value() == targetSymbol) {
-							symbolCount++;
+		// After building a card, check for a scientific "pair".
+		// NOTE: do not use `card` (it was the node card before the action; it may have been moved out).
+		if (action == 0 && cur && cur->m_player) {
+			const auto& inventory = cur->m_player->getOwnedCards();
+			if (!inventory.empty() && inventory.back()) {
+				if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(inventory.back().get())) {
+					auto symOpt = ageCard->getScientificSymbols();
+					if (symOpt.has_value()) {
+						const auto targetSymbol = symOpt.value();
+
+						int symbolCount = 0;
+						for (const auto& ownedCardPtr : inventory) {
+							if (!ownedCardPtr) continue;
+							if (auto* ownedAgeCard = dynamic_cast<const Models::AgeCard*>(ownedCardPtr.get())) {
+								auto sym = ownedAgeCard->getScientificSymbols();
+								if (sym.has_value() && sym.value() == targetSymbol) {
+									++symbolCount;
+								}
+							}
 						}
-					}
-				}
-				
-				if (symbolCount ==2) {
-					QString playerName = (m_currentPlayerIndex ==0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
-						? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
-						: (gs.GetPlayer2() && gs.GetPlayer2()->m_player) 
-							? QString::fromStdString(gs.GetPlayer2()->m_player->getPlayerUsername()) 
-							: QString("Player");
-					
-					QMessageBox::information(this, 
-						"Simboluri Stiintifice!", 
-						QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
-					
-					int playerIndexForToken = m_currentPlayerIndex;
-					if (onRequestTokenSelection) {
-						onRequestTokenSelection([playerIndexForToken, this](int tokenIndex) {
-							QTimer::singleShot(0, this, [playerIndexForToken, tokenIndex, this]() {
-								if (onDisableTokenSelection) onDisableTokenSelection();
-								
-								auto& gsCallback = Core::GameState::getInstance();
-								Core::Player* tokenPlayer = (playerIndexForToken ==0)
-									? gsCallback.GetPlayer1().get()
-									: gsCallback.GetPlayer2().get();
-								if (!tokenPlayer || !tokenPlayer->m_player) {
-									return;
-								}
-								
-								auto& boardRef = Core::Board::getInstance();
-								auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(boardRef.getProgressTokens());
-								if (tokenIndex <0 || tokenIndex >= static_cast<int>(availableTokens.size())) {
-									return;
-								}
-								if (!availableTokens[tokenIndex]) {
-									return;
-								}
-								
-								auto chosenToken = std::move(availableTokens[tokenIndex]);
-								availableTokens.erase(availableTokens.begin() + tokenIndex);
-								if (!chosenToken) {
-									return;
-								}
-								
-								std::string tokenName;
-								std::string tokenDesc;
-								try {
-									tokenName = chosenToken->getName();
-									tokenDesc = chosenToken->getDescription();
-								} catch (...) {
-									return;
-								}
-								
-								tokenPlayer->m_player->addToken(std::move(chosenToken));
-								
-								Core::TokenEvent tokenEvent;
-								tokenEvent.playerID = static_cast<int>(tokenPlayer->m_player->getkPlayerId());
-								tokenEvent.playerName = tokenPlayer->m_player->getPlayerUsername();
-								tokenEvent.tokenName = tokenName;
-								tokenEvent.tokenType = "PROGRESS";
-								tokenEvent.tokenDescription = tokenDesc;
-								Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
-								
-								refreshPanels();
-							});
-						});
+
+						if (symbolCount == 2) {
+							QString playerName = (m_currentPlayerIndex == 0 && gs.GetPlayer1() && gs.GetPlayer1()->m_player)
+								? QString::fromStdString(gs.GetPlayer1()->m_player->getPlayerUsername())
+								: (gs.GetPlayer2() && gs.GetPlayer2()->m_player)
+									? QString::fromStdString(gs.GetPlayer2()->m_player->getPlayerUsername())
+									: QString("Player");
+
+							QMessageBox::information(this,
+								"Simboluri Stiintifice!",
+								QString("%1, ai obtinut 2 simboluri stiintifice la fel. Alege un token de pe tabla!").arg(playerName));
+
+							int playerIndexForToken = m_currentPlayerIndex;
+							if (onRequestTokenSelection) {
+								onRequestTokenSelection([playerIndexForToken, this](int tokenIndex) {
+									QTimer::singleShot(0, this, [playerIndexForToken, tokenIndex, this]() {
+										if (onDisableTokenSelection) onDisableTokenSelection();
+
+										auto& gsCallback = Core::GameState::getInstance();
+										Core::Player* tokenPlayer = (playerIndexForToken == 0)
+											? gsCallback.GetPlayer1().get()
+											: gsCallback.GetPlayer2().get();
+										if (!tokenPlayer || !tokenPlayer->m_player) {
+											return;
+										}
+
+										auto& boardRef = Core::Board::getInstance();
+										auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(boardRef.getProgressTokens());
+										if (tokenIndex < 0 || tokenIndex >= static_cast<int>(availableTokens.size())) {
+											return;
+										}
+										if (!availableTokens[tokenIndex]) {
+											return;
+										}
+
+										auto chosenToken = std::move(availableTokens[tokenIndex]);
+										availableTokens.erase(availableTokens.begin() + tokenIndex);
+										if (!chosenToken) {
+											return;
+										}
+
+										std::string tokenName;
+										std::string tokenDesc;
+										try {
+											tokenName = chosenToken->getName();
+											tokenDesc = chosenToken->getDescription();
+										}
+										catch (...) {
+											return;
+										}
+
+										tokenPlayer->m_player->addToken(std::move(chosenToken));
+
+										Core::TokenEvent tokenEvent;
+										tokenEvent.playerID = static_cast<int>(tokenPlayer->m_player->getkPlayerId());
+										tokenEvent.playerName = tokenPlayer->m_player->getPlayerUsername();
+										tokenEvent.tokenName = tokenName;
+										tokenEvent.tokenType = "PROGRESS";
+										tokenEvent.tokenDescription = tokenDesc;
+										Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
+
+										refreshPanels();
+										});
+									});
+							}
+						}
 					}
 				}
 			}

@@ -15,6 +15,9 @@
 #include <QtCore/QEvent>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
+#include <QtCore/QCoreApplication>
 #include <QtGui/QTransform>
 #include <QtGui/QPixmap>
 #include <algorithm> 
@@ -198,19 +201,43 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	m_centerContainer = new QWidget(splitter);
 	m_centerContainer->setObjectName("centerContainer"); 
 	
-	QPixmap bgImage(":/images/background.jpg");
-	if (bgImage.isNull()) {
-		bgImage = QPixmap("C:/Users/catal/Documents/FMI/modern_c++/OOPs-we-did-it-again/UserInterface/Resources/images/background.jpg");
-	}
-	
-	QString bgPath = bgImage.isNull() 
-		? "" 
-		: (QFile::exists(":/images/background.jpg") ? ":/images/background.jpg" : "C:/Users/catal/Documents/FMI/modern_c++/OOPs-we-did-it-again/UserInterface/Resources/images/background.jpg");
+	// Background image: prefer Qt resources, then fall back to local project files.
+	// NOTE: `Resource.qrc` lists it as `Resources/images/background.jpg` (no prefix),
+	// so the resource path is `:/Resources/images/background.jpg`.
+	auto resolveBackgroundUrl = []() -> QString {
+		const QStringList candidates = {
+			":/Resources/images/background.jpg",
+			// older/alternate resource layouts (just in case)
+			":/images/background.jpg",
+		};
+
+		for (const auto& c : candidates) {
+			if (QFile::exists(c)) return c;
+		}
+
+		const QString appDir = QCoreApplication::applicationDirPath();
+		const QStringList diskCandidates = {
+			QDir(appDir).filePath("Resources/images/background.jpg"),
+			QDir(appDir).filePath("../Resources/images/background.jpg"),
+			QDir(appDir).filePath("../../Resources/images/background.jpg"),
+			"Resources/images/background.jpg",
+		};
+
+		for (const auto& p : diskCandidates) {
+			if (QFile::exists(p)) {
+				return QDir::fromNativeSeparators(QFileInfo(p).absoluteFilePath());
+			}
+		}
+
+		return {};
+	};
+
+	const QString bgPath = resolveBackgroundUrl();
 	
 	if (!bgPath.isEmpty()) {
 		m_centerContainer->setStyleSheet(
 			QString("QWidget#centerContainer {"
-			"  background-image: url(%1);"
+			"  background-image: url(\"%1\");"
 			"  background-position: center;"
 			"  background-repeat: no-repeat;"
 			"}").arg(bgPath)
@@ -613,9 +640,10 @@ void UserInterface::initializeGame() {
 			bool anyAvailable = false;
 			for (const auto& n : nodes) {
 				if (!n) continue;
-				auto* c = n->getCard();
-				if (!c) continue;
-				if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+				auto cardOpt = n->getCard();
+				if (!cardOpt.has_value()) continue;
+				auto& c = cardOpt->get();
+				if (n->isAvailable() && c.isAvailable()) { anyAvailable = true; break; }
 			}
 			if (!anyAvailable) {
 				QTimer::singleShot(200, this, [this]() {
