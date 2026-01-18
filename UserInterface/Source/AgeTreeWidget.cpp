@@ -17,6 +17,8 @@
 #include <QtGui/QPainter>
 #include <QtCore/QTimer>
 #include <QtCore/QEvent>
+#include <QtWidgets/QToolTip>
+#include <QtWidgets/QGraphicsSceneHoverEvent>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QVariantAnimation>
 #include <QtCore/QDebug>
@@ -34,13 +36,110 @@ import Core.Game;
 import Models.Card;
 import Models.AgeCard;
 import Models.ColorType;
+import Models.ResourceType;
+
+static QString resourceTypeToString(Models::ResourceType r)
+{
+	switch (r) {
+	case Models::ResourceType::WOOD:    return "Wood";
+	case Models::ResourceType::STONE:   return "Stone";
+	case Models::ResourceType::CLAY:    return "Clay";
+	case Models::ResourceType::PAPYRUS: return "Papyrus";
+	case Models::ResourceType::GLASS:   return "Glass";
+	default: return "Unknown";
+	}
+}
+
+static QString buildCardText(const Models::Card* card)
+{
+	if (!card) return QString();
+
+	QString text;
+	text += "Name: " + QString::fromStdString(card->getName()) + "<br>";
+	text += "Color: " + QString::fromStdString(Models::ColorTypeToString(card->getColor())) + "<br>";
+
+	if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+		// Display Cost
+		text += "Cost: <br>";
+		const auto& resourceCost = ageCard->getResourceCost();
+		if (resourceCost.empty() && ageCard->getCoinCost() == 0) {
+			text += "  Free<br>";
+		}
+		else {
+			for (const auto& cost : resourceCost) {
+				text += QString("  - %1 x%2<br>").arg(resourceTypeToString(cost.first)).arg(cost.second);
+			}
+			if (ageCard->getCoinCost() > 0) {
+				text += QString("  - %1 Coins<br>").arg(ageCard->getCoinCost());
+			}
+		}
+
+	
+
+		const auto& resourceProduction = ageCard->getResourcesProduction();
+		if (!resourceProduction.empty()) {
+			text += "Production:<br>";
+			for (const auto& prod : resourceProduction) {
+				text += QString("  - %1 x%2<br>").arg(resourceTypeToString(prod.first)).arg(prod.second);
+			}
+		}
+
+		auto effects = ageCard->getOnPlayActions();
+		if (!effects.empty()) {
+			text += "Effects:<br>";
+			for (const auto& effect : effects) {
+				if (effect.second.find("payCoins") != std::string::npos ||
+				    effect.second.find("getResource") != std::string::npos) {
+					continue;
+				}
+				QString effectText = "  - " + QString::fromStdString(effect.second);
+				if (effect.second.find("getVictoryPoints") != std::string::npos) {
+					effectText += " (" + QString::number(ageCard->getVictoryPoints()) + ")";
+				}
+				else if (effect.second.find("getShieldPoints") != std::string::npos) {
+					effectText += " (" + QString::number(ageCard->getShieldPoints()) + ")";
+				}
+				else if (effect.second.find("getScientificSymbol") != std::string::npos) {
+					if (ageCard->getScientificSymbols().has_value()) {
+						auto symbol = ageCard->getScientificSymbols().value();
+						effectText += " (" + QString::fromStdString(Models::ScientificSymbolTypeToString(symbol)) + ")";
+					}
+				}
+				else if (effect.second.find("getTradeRule") != std::string::npos) {
+					const auto& tradeRules = ageCard->getTradeRules();
+					if (!tradeRules.empty()) {
+						QString rules;
+						for (const auto& rule : tradeRules) {
+							if (rule.second) { // Only display if the rule is active
+								if (!rules.isEmpty()) {
+									rules += ", ";
+								}
+								rules += QString::fromStdString(Models::tradeRuleTypeToString(rule.first));
+							}
+						}
+						if (!rules.isEmpty()) {
+							effectText += " (" + rules + ")";
+						}
+					}
+				}
+				text += effectText + "<br>";
+			}
+		}
+
+		if (ageCard->getHasLinkingSymbol().has_value()) {
+			text += "Chains to: " + QString::fromStdString(Models::LinkingSymbolTypeToString(ageCard->getHasLinkingSymbol().value())) + "<br>";
+		}
+	}
+
+	return QString("<div style='width: 250px;'>%1</div>").arg(text);
+}
 
 class ClickableRect : public QGraphicsRectItem {
 public:
 	ClickableRect(const QRectF& r)
 		: QGraphicsRectItem(r)
 	{
-		setAcceptHoverEvents(false);
+		setAcceptHoverEvents(true);
 		setAcceptedMouseButtons(Qt::LeftButton);
 		m_radius = 8.0;
 		m_pen = QPen(QColor("#7C4A1C"), 2);
@@ -56,6 +155,8 @@ public:
 
 	void setGradientColors(const QColor& top, const QColor& bottom) { m_topColor = top; m_bottomColor = bottom; update(); }
 	void setBorderColor(const QColor& c) { m_pen.setColor(c); update(); }
+
+	void setCard(Models::Card* card) { m_card = card; }
 
 	std::function<void()> onClicked;
 
@@ -73,11 +174,26 @@ protected:
 		painter->drawRoundedRect(r, m_radius, m_radius);
 	}
 
+	void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override {
+		if (m_card) {
+			QString tooltipText = buildCardText(m_card);
+			if (!tooltipText.isEmpty()) {
+				setToolTip(tooltipText);
+			}
+		}
+		QGraphicsRectItem::hoverEnterEvent(event);
+	}
+
+	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override {
+		QGraphicsRectItem::hoverLeaveEvent(event);
+	}
+
 	void mousePressEvent(QGraphicsSceneMouseEvent* event) override {
 		QTimer::singleShot(0, [cb = onClicked]() { if (cb) cb(); });
 	}
 
 private:
+	Models::Card* m_card{ nullptr };
 	QGraphicsRectItem* m_shadow{ nullptr };
 	qreal m_radius{ 8.0 };
 	QPen m_pen;
@@ -332,8 +448,22 @@ void AgeTreeWidget::showAgeTree(int age)
 		return;
 	}
 
+<<<<<<< HEAD
 	// Normal render path
 	clearWidgetSurface();
+=======
+	// If we are about to render any tree (including age 2 after the message),
+	// ensure any temporary "phase" layout is removed completely.
+	if (auto oldLayout = this->layout()) {
+		while (auto item = oldLayout->takeAt(0)) {
+			if (auto w = item->widget()) {
+				w->removeEventFilter(this);
+			}
+			delete item;
+		}
+		delete oldLayout;
+	}
+>>>>>>> 4984e351ca3a87fe344db72b68dd1c25ba227c6d
 
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
@@ -521,6 +651,7 @@ void AgeTreeWidget::showAgeTree(int age)
 			if (isSelectable) {
 				// Clickable leaf
 				auto* item = new ClickableRect(rrect);
+				item->setCard(cardPtr);
 				item->setZValue(1);
 				m_scene->addItem(item);
 				baseItem = item;
@@ -549,6 +680,7 @@ void AgeTreeWidget::showAgeTree(int age)
 				// Non-leaf or not available: not clickable.
 				if (isVisible) {
 					auto* item = new ClickableRect(rrect);
+					item->setCard(cardPtr);
 					item->setZValue(1);
 					m_scene->addItem(item);
 					baseItem = item;
