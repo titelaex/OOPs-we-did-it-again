@@ -246,7 +246,7 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	middleLayout->addWidget(m_centerWidget);
 
 	m_centerBottom = new QWidget(m_centerContainer);
-	m_centerBottom->setAttribute(Qt::WA_TranslucentBackground); /
+	m_centerBottom->setAttribute(Qt::WA_TranslucentBackground); 
 	m_centerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_centerBottom->setMinimumHeight(250);
 	auto* bottomLayout = new QVBoxLayout(m_centerBottom);

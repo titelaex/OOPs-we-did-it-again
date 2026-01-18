@@ -59,7 +59,6 @@ static QString buildCardText(const Models::Card* card)
 	text += "Color: " + QString::fromStdString(Models::ColorTypeToString(card->getColor())) + "<br>";
 
 	if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
-		// Display Cost
 		text += "Cost: <br>";
 		const auto& resourceCost = ageCard->getResourceCost();
 		if (resourceCost.empty() && ageCard->getCoinCost() == 0) {
@@ -110,7 +109,7 @@ static QString buildCardText(const Models::Card* card)
 					if (!tradeRules.empty()) {
 						QString rules;
 						for (const auto& rule : tradeRules) {
-							if (rule.second) { // Only display if the rule is active
+							if (rule.second) { 
 								if (!rules.isEmpty()) {
 									rules += ", ";
 								}
@@ -382,17 +381,10 @@ void AgeTreeWidget::showAgeTree(int age)
 	qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
 		<< " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
 
-<<<<<<< HEAD
-	// Phase transitions (centered). Show once per phase.
-=======
->>>>>>> ToMerge
 	static bool s_phase2Shown = false;
 	static bool s_phase3Shown = false;
 
-<<<<<<< HEAD
 	auto clearWidgetSurface = [&]() {
-=======
->>>>>>> ToMerge
 		if (auto oldLayout = this->layout()) {
 			while (auto item = oldLayout->takeAt(0)) {
 				if (auto w = item->widget()) w->deleteLater();
@@ -450,15 +442,7 @@ void AgeTreeWidget::showAgeTree(int age)
 		return;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	// Normal render path
 	clearWidgetSurface();
-=======
-	// If we are about to render any tree (including age 2 after the message),
-	// ensure any temporary "phase" layout is removed completely.
-=======
->>>>>>> ToMerge
 	if (auto oldLayout = this->layout()) {
 		while (auto item = oldLayout->takeAt(0)) {
 			if (auto w = item->widget()) {
@@ -468,14 +452,12 @@ void AgeTreeWidget::showAgeTree(int age)
 		}
 		delete oldLayout;
 	}
->>>>>>> 4984e351ca3a87fe344db72b68dd1c25ba227c6d
 
 	m_currentAge = age;
 	auto& board = Core::Board::getInstance();
 	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
-	// Auto-advance: when Phase 2 has no more available cards, start Phase 3.
 	if (age == 2) {
 		bool anyAvailable = false;
 		for (const auto& n : nodes) {
@@ -494,7 +476,6 @@ void AgeTreeWidget::showAgeTree(int age)
 	}
 
 	std::vector<int> rows;
-<<<<<<< HEAD
 	bool flipVertical = false;
 	if (age == 1) {
 		rows = { 2,3,4,5,6 };
@@ -503,18 +484,9 @@ void AgeTreeWidget::showAgeTree(int age)
 		rows = { 6,5,4,3,2 };
 	}
 	else {
-		// Backend creates 20 nodes for Age III; use the same 7-row layout.
 		rows = { 2,3,4,2,4,3,2 };
 		flipVertical = false;
-		// If you ever switch backend Age III nodes to a 12-node diamond, enable this:
-		// if (nodes.size() == 12) { rows = { 2,3,2,3,2 }; flipVertical = true; }
 	}
-=======
-	if (age == 1) rows = { 2,3,4,5,6 };
-	else if (age == 2) rows = { 6,5,4,3,2 };
-	else rows = { 2,3,4,2,4,3,2 };
-	const bool flipVertical = false;
->>>>>>> ToMerge
 
 	QColor invisibleBorderColor = QColor("#CCCCCC");
 	QColor lineColor = QColor("#4B5563");
@@ -563,15 +535,12 @@ void AgeTreeWidget::showAgeTree(int age)
 	m_view->setFrameStyle(QFrame::NoFrame);
 	m_view->setAlignment(Qt::AlignCenter);
 
-<<<<<<< HEAD
-=======
 	m_scene->setBackgroundBrush(Qt::NoBrush);
 	m_view->setStyleSheet("background: transparent;");
 	if (m_view->viewport()) {
 		m_view->viewport()->setStyleSheet("background: transparent;");
 	}
 
->>>>>>> ToMerge
 	const int cardW = 180;
 	const int cardH = 110;
 	const int hgap = 28;
