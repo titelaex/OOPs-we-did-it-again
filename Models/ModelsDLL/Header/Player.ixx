@@ -16,6 +16,19 @@ import Models.TradeRuleType;
 
 namespace Models
 {
+	export enum class __declspec(dllexport) TokenIndex : uint8_t {
+		AGRICULTURE = 0,
+		ARCHITECTURE = 1,
+		ECONOMY = 2,
+		LAW = 3,
+		MASONRY = 4,
+		MATHEMATICS = 5,
+		PHILOSOPHY = 6,
+		STRATEGY = 7,
+		THEOLOGY = 8,
+		URBANISM = 9
+	};
+
 	export class __declspec(dllexport) Player
 	{
 	private:
@@ -33,6 +46,7 @@ namespace Models
 			uint8_t m_buildingVictoryPoints;
 			uint8_t m_wonderVictoryPoints;
 			uint8_t m_progressVictoryPoints;
+			uint8_t m_coinVictoryPoints;
 			__declspec(dllexport) uint8_t totalVictoryPoints() const;
 		} m_playerPoints;
 		std::unordered_map<TradeRuleType, bool> m_tradeRules{ 0 };
@@ -48,7 +62,6 @@ namespace Models
 		Player() = default;
 		~Player() = default;
 		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
-		// replace these three declarations:
 		void addCard(std::unique_ptr<Card> card);
 		void addWonder(std::unique_ptr<Wonder> wonder);
 		void addToken(std::unique_ptr<Token> token);
@@ -74,6 +87,11 @@ namespace Models
 		const std::bitset<10>& getTokensOwned() const;
 		const Points& getPoints() const;
 		uint8_t getTotalVictoryPoints() const;
+		
+		uint8_t getBlueBuildingVictoryPoints() const;
+		
+		bool hasToken(TokenIndex tokenIndex) const;
+		uint8_t getTokenVictoryBonus() const;
 	};
 
 }

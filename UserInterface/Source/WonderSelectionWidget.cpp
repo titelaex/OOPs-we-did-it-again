@@ -12,7 +12,6 @@ import Models.Wonder;
 
 WonderSelectionWidget::WonderSelectionWidget(QWidget* parent): QWidget(parent)
 {
-	// Make widget transparent to show background
 	setAttribute(Qt::WA_TranslucentBackground);
 	setStyleSheet("WonderSelectionWidget { background: transparent; }");
 	

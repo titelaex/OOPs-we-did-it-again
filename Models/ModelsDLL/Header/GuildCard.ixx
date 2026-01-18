@@ -1,7 +1,7 @@
 export module Models.GuildCard;
 
-import Models.Card; // imports the Card module (provides Models::Card)
-import Models.Age; // used to set card age to AGE_III
+import Models.Card;
+import Models.Age; 
 import Models.ResourceType;
 import Models.CoinWorthType;
 import Models.ColorType;
@@ -9,7 +9,7 @@ import Models.ColorType;
 import <string>;
 import <vector>;
 import <utility>;
-import <iostream>; // only for displayCardInfo override
+import <iostream>;
 import <fstream>;
 import <sstream>;
 import <stdexcept>;
@@ -24,16 +24,12 @@ export namespace Models
 	public:
 		GuildCard() = default;
 
-		// Copy constructor (deleted because base Card is non-copyable)
 		GuildCard(const GuildCard& other) = delete;
 
-		// Move constructor (noexcept to allow container optimizations)
 		GuildCard(GuildCard&& other) noexcept;
 
-		// Copy assignment (deleted)
 		GuildCard& operator=(const GuildCard& other) = delete;
 
-		// Move assignment
 		GuildCard& operator=(GuildCard&& other) noexcept;
 
 
@@ -54,7 +50,6 @@ export namespace Models
 		 void onDiscard() override;
 	};
 
-	// Builder for GuildCard
 	export class __declspec(dllexport) GuildCardBuilder : public CardBuilder
 	{
 		GuildCard m_card;

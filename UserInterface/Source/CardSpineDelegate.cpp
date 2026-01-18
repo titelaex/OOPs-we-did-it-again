@@ -15,7 +15,6 @@ QSize CardSpineDelegate::sizeHint(const QStyleOptionViewItem& option, const QMod
 {
 	Q_UNUSED(option);
 	Q_UNUSED(index);
-	// Match the fixed section height (32px)
 	return QSize(20, 45);
 }
 
@@ -46,17 +45,16 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
 	painter->setClipPath(path);
 
-	// Rotated text: draw vertically by rotating -90 degrees
-	const int padX =4; // padding along text direction
-	const int padY =2; // padding perpendicular to text
-	const int availableX = r.height() -2 * padX; // available width in rotated coords
-	const int availableY = r.width() -2 * padY; // available height in rotated coords
+	
+	const int padX =4;
+	const int padY =2;
+	const int availableX = r.height() -2 * padX; 
+	const int availableY = r.width() -2 * padY; 
 
 	QFont f = option.font;
 	f.setBold(true);
-	f.setPointSize(7); // Start with smaller font for compact spines
+	f.setPointSize(7); 
 
-	// Helper to wrap into lines
 	auto wrapIntoLines = [](const QString& s, int maxWidth, const QFontMetrics& fm) {
 		QString t = s.simplified();
 		QStringList words = t.split(' ', Qt::SkipEmptyParts);
@@ -98,7 +96,6 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 		return lines;
 	};
 
-	// Find a font size that fits
 	QStringList bestLines;
 	for (int attempt =0; attempt <15; ++attempt) {
 		QFontMetrics fm(f);
@@ -123,7 +120,6 @@ void CardSpineDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 	painter->translate(center);
 	painter->rotate(-90);
 
-	// Center block of lines in rotated coordinate space
 	QRect rotRect(-r.height() /2 + padX, -r.width() /2 + padY, availableX, availableY);
 	int yStart = rotRect.top() + (rotRect.height() - totalH) /2;
 

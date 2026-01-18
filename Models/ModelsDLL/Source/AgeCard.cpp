@@ -33,7 +33,6 @@ const ResourceType& AgeCard::getResourceProduction() const {
 }
 bool AgeCard::IsConstructed() const { return false; }
 
-// Setters
 void AgeCard::setResourceProduction(const std::unordered_map<ResourceType, uint8_t>& resourceProduction) { m_resourceProduction = resourceProduction; }
 void AgeCard::setShieldPoints(const uint8_t& shieldPoints) { m_shieldPoints = shieldPoints; }
 void AgeCard::setCoinCost(uint8_t coinCost) { m_coinCost = coinCost; }
@@ -98,7 +97,6 @@ namespace
 	std::string csvEscape(const std::string& s) {
 		if (s.empty()) return "";
 		std::string out;
-		// No need to check for find_first_of, always quote for consistency as requested
 		out.reserve(s.size() + 2);
 		out.push_back('"');
 		for (char ch : s) {
@@ -177,7 +175,7 @@ __declspec(dllexport) std::ostream& Models::operator<<(std::ostream& out, const 
 	writeEscapedField(out, resourceMapToString(card.getResourcesProduction()));
 	writeNumericField(out, card.getVictoryPoints());
 	writeNumericField(out, card.getShieldPoints());
-	writeNumericField(out, card.getCoinCost()); // write coin cost
+	writeNumericField(out, card.getCoinCost());
 
 	std::string scientificSymbol = card.getScientificSymbols().has_value() ? ScientificSymbolTypeToString(card.getScientificSymbols().value()) : std::string{};
 	writeEscapedField(out, scientificSymbol);

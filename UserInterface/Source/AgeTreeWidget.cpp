@@ -59,7 +59,6 @@ static QString buildCardText(const Models::Card* card)
 	text += "Color: " + QString::fromStdString(Models::ColorTypeToString(card->getColor())) + "<br>";
 
 	if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
-		// Display Cost
 		text += "Cost: <br>";
 		const auto& resourceCost = ageCard->getResourceCost();
 		if (resourceCost.empty() && ageCard->getCoinCost() ==0) {
@@ -108,7 +107,7 @@ static QString buildCardText(const Models::Card* card)
 					if (!tradeRules.empty()) {
 						QString rules;
 						for (const auto& rule : tradeRules) {
-							if (rule.second) { // Only display if the rule is active
+							if (rule.second) { 
 								if (!rules.isEmpty()) {
 									rules += ", ";
 								}
@@ -254,7 +253,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 	auto* card = node->getCard();
 	if (!card) return;
 
-	// Allow retrying a different action if the first choice fails.
 	while (true) {
 		QMessageBox msg(this);
 		msg.setWindowTitle("Choose action");
@@ -303,7 +301,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			}
 			wonderChoice = candidates[static_cast<size_t>(pickedIdx)];
 
-			// Show cost breakdown before attempting the action
 			auto& gs2 = Core::GameState::getInstance();
 			Core::Player* opp = (m_currentPlayerIndex ==0) ? gs2.GetPlayer2().get() : gs2.GetPlayer1().get();
 			if (opp && opp->m_player) {
@@ -352,7 +349,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		bool ok = Core::Game::applyTreeCardAction(age, nodeIndex, action, wonderChoice);
 		if (!ok) {
 			QMessageBox::warning(this, "Action failed", "Action failed (insufficient resources or invalid choice). Please choose another action.");
-			// Refresh local pointers in case UI state changed (card is returned to the node on failure)
 			card = node->getCard();
 			if (!card) return;
 			continue;
@@ -478,7 +474,6 @@ void AgeTreeWidget::showAgeTree(int age)
 	qDebug() << "AgeTreeWidget::showAgeTree age=" << age << "this=" << static_cast<const void*>(this)
 		<< " m_scene=" << static_cast<const void*>(m_scene) << " m_view=" << static_cast<const void*>(m_view);
 
-	// Phase transitions (centered). Show once per phase.
 	static bool s_phase2Shown = false;
 	static bool s_phase3Shown = false;
 
@@ -548,8 +543,7 @@ void AgeTreeWidget::showAgeTree(int age)
 	const auto* nodesPtr = (age ==1) ? &board.getAge1Nodes() : (age ==2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
-	// Auto-advance: when Phase2 has no more available cards, start Phase3.
-	if (age ==2) {
+	if (age == 2) {
 		bool anyAvailable = false;
 		for (const auto& n : nodes) {
 			if (!n) continue;
@@ -575,19 +569,14 @@ void AgeTreeWidget::showAgeTree(int age)
 		rows = {6,5,4,3,2 };
 	}
 	else {
-		// Backend creates20 nodes for Age III; use the same7-row layout.
-		rows = {2,3,4,2,4,3,2 };
+		rows = { 2,3,4,2,4,3,2 };
 		flipVertical = false;
-		// If you ever switch backend Age III nodes to a12-node diamond, enable this:
-		// if (nodes.size() ==12) { rows = {2,3,2,3,2 }; flipVertical = true; }
 	}
 
-	// Choose palette depending on age
 	QColor invisibleBorderColor = QColor("#CCCCCC");
 	QColor lineColor = QColor("#4B5563");
 
 	auto paletteForCardColor = [](Models::ColorType c) -> std::tuple<QColor, QColor, QColor, QColor> {
-		// returns {top, bottom, border, text}
 		switch (c) {
 		case Models::ColorType::BROWN: return { QColor("#B58860"), QColor("#7C4A1C"), QColor("#7C4A1C"), QColor("#FFFFFF") };
 		case Models::ColorType::GREY: return { QColor("#9CA3AF"), QColor("#4B5563"), QColor("#374151"), QColor("#111827") };
@@ -600,7 +589,6 @@ void AgeTreeWidget::showAgeTree(int age)
 		}
 		};
 
-	// clear previous layout
 	if (auto oldLayout = this->layout()) {
 		while (auto item = oldLayout->takeAt(0)) {
 			if (auto w = item->widget()) {
@@ -611,9 +599,7 @@ void AgeTreeWidget::showAgeTree(int age)
 		delete oldLayout;
 	}
 
-	// Dispose of previous scene/view if any - schedule deletion to be safe with Qt internals
 	if (m_view) {
-		// detach scene first to avoid operations on a scene that is being cleared elsewhere
 		m_view->setScene(nullptr);
 		m_view->deleteLater();
 		m_view = nullptr;
@@ -623,7 +609,6 @@ void AgeTreeWidget::showAgeTree(int age)
 		m_scene->deleteLater();
 		m_scene = nullptr;
 	}
-	// clear any stored proxy mappings
 	m_proxyMap.clear();
 
 	m_scene = new QGraphicsScene(this);
@@ -704,9 +689,7 @@ void AgeTreeWidget::showAgeTree(int age)
 		y += cardH + vgap;
 	}
 
-	// Fixed rect so view doesn't zoom/resize when cards disappear
-	// (also handle when computed sizes are0)
-	m_scene->setSceneRect(0,0, std::max(sceneWidth,800), std::max(totalHeight + vgap,400));
+	m_scene->setSceneRect(0, 0, std::max(sceneWidth, 800), std::max(totalHeight + vgap, 400));
 
 	std::unordered_map<Core::Node*, int> ptrToIndex;
 	for (size_t i =0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
@@ -720,7 +703,6 @@ void AgeTreeWidget::showAgeTree(int age)
 			QPointF pos = positions[idx];
 			QRectF rrect(pos, QSizeF(cardW, cardH));
 
-			// No placeholders: if a node/card is missing (picked), draw nothing.
 			if (!nodes[idx] || !nodes[idx]->getCard()) {
 				rects[idx] = nullptr;
 				++idx;
@@ -729,7 +711,6 @@ void AgeTreeWidget::showAgeTree(int age)
 
 			Models::Card* cardPtr = nodes[idx]->getCard();
 
-			// Use backend rule for leaf-availability and backend card flags for UI.
 			const bool leafAvailable = nodes[idx]->isAvailable();
 			const bool isVisible = cardPtr->isVisible();
 			const bool isSelectable = leafAvailable && cardPtr->isAvailable();
@@ -737,7 +718,6 @@ void AgeTreeWidget::showAgeTree(int age)
 			QGraphicsRectItem* baseItem = nullptr;
 
 			if (isSelectable) {
-				// Clickable leaf
 				auto* item = new ClickableRect(rrect);
 				item->setCard(cardPtr);
 				item->setZValue(1);
@@ -765,7 +745,6 @@ void AgeTreeWidget::showAgeTree(int age)
 				};
 			}
 			else {
-				// Non-leaf or not available: not clickable.
 				if (isVisible) {
 					auto* item = new ClickableRect(rrect);
 					item->setCard(cardPtr);
@@ -854,7 +833,6 @@ bool AgeTreeWidget::eventFilter(QObject* obj, QEvent* event)
 		}
 	}
 	else if (m_view && obj == m_view->viewport() && event->type() == QEvent::Resize) {
-		// Refit when viewport changes size
 		fitAgeTree();
 	}
 

@@ -212,7 +212,6 @@ namespace Core {
             }
         }
         
-        // Save tree structure with proper parent-child relationships
         auto saveTreeNodes = [&](const std::string& age, const std::vector<std::shared_ptr<Node>>& nodes) {
             for (size_t i = 0; i < nodes.size(); ++i) {
                 const auto& node = nodes[i];
@@ -228,11 +227,9 @@ namespace Core {
                     out << "EMPTY";
                 }
                 
-                // Save node visibility/availability
                 out << "|Available:" << (node->isAvailable() ? "1" : "0");
                 out << "|Visible:" << (node->getCard() && node->getCard()->isVisible() ? "1" : "0");
                 
-                // Find and save parent indices
                 auto p1 = node->getParent1();
                 auto p2 = node->getParent2();
                 for (size_t j = 0; j < nodes.size(); ++j) {
@@ -459,14 +456,11 @@ namespace Core {
 				discarded.push_back(std::make_unique<Models::AgeCard>(ageCardFactory(card_cols)));
 			}
 			else if (section == "TreeNode" && columns.size() >= 3) {
-				// Parse TreeNode,Age,NodeIndex,CardData|Metadata
-				// CardData itself is CSV formatted, so we need to reconstruct it carefully
 				size_t nodeIndex = 0;
 				try {
 					nodeIndex = std::stoi(columns[2]);
 				} catch (...) {}
 				
-				// Reconstruct the vector if needed
 				auto getOrCreateNodeVector = [&](const std::string& age) -> std::vector<std::shared_ptr<Node>>* {
 					if (age == "Age1") return &const_cast<std::vector<std::shared_ptr<Node>>&>(board.getAge1Nodes());
 					if (age == "Age2") return &const_cast<std::vector<std::shared_ptr<Node>>&>(board.getAge2Nodes());
@@ -477,21 +471,16 @@ namespace Core {
 				auto nodeVec = getOrCreateNodeVector(type);
 				if (!nodeVec) continue;
 				
-				// Ensure vector is large enough
 				while (nodeVec->size() <= nodeIndex) {
 					nodeVec->push_back(nullptr);
 				}
 				
-				// The remaining columns after index contain the card data and metadata
-				// We need to rejoin them because the CSV parser split on commas
-				// Format: "CardData1","CardData2",...,"CardDataN"|Available:X|Visible:Y...
 				std::string reconstructedData;
 				for (size_t i = 3; i < columns.size(); ++i) {
 					if (i > 3) reconstructedData += ",";
 					reconstructedData += columns[i];
 				}
 				
-				// Find where metadata starts (indicated by first |)
 				size_t metaStart = reconstructedData.find('|');
 				std::string cardData = (metaStart != std::string::npos) 
 					? reconstructedData.substr(0, metaStart) 
@@ -503,19 +492,16 @@ namespace Core {
 				std::shared_ptr<Node> node;
 				if (cardData != "EMPTY" && !cardData.empty()) {
 					try {
-						// Parse the card - it's already in the format that ageCardFactory expects
 						auto card_cols = splitCsvLine(cardData);
 						auto card = std::make_unique<Models::AgeCard>(ageCardFactory(card_cols));
 						node = std::make_shared<Node>(std::move(card));
 					} catch (...) {
-						// If parsing fails, create an empty node
 						node = std::make_shared<Node>(nullptr);
 					}
 				} else {
 					node = std::make_shared<Node>(nullptr);
 				}
 				
-				// Parse metadata
 				if (!metadata.empty()) {
 					size_t pos = 0;
 					while (pos < metadata.length()) {
@@ -552,7 +538,6 @@ namespace Core {
 				(*nodeVec)[nodeIndex] = node;
 			}
 			else if (section == "Node" && columns.size() > 2) {
-				// Legacy node support - convert to TreeNode format
 				std::vector<std::string> card_cols(columns.begin() + 2, columns.end());
 				std::shared_ptr<Node> node = std::make_shared<Node>(
 					std::make_unique<Models::AgeCard>(ageCardFactory(card_cols))
@@ -569,10 +554,7 @@ namespace Core {
 			}
 		}
 		
-		// Second pass: restore parent-child relationships from TreeNode metadata
 		auto restoreParentChildRelationships = [&](std::vector<std::shared_ptr<Node>>& nodes, const std::string& nodeMetadata) {
-			// This would require storing parent indices in the file
-			// For now, we'll leave this as a note - parent-child links are set in AgeTree construction
 		};
 		
 		board.setProgressTokens(std::move(progressTokens));

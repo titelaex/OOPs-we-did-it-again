@@ -38,7 +38,6 @@ public:
     void onTokenAcquired(const Core::TokenEvent& e) override {
         qDebug() << "[GameListenerBridge] onTokenAcquired called for player" << e.playerName.c_str() << "- token:" << e.tokenName.c_str();
         qDebug() << "[GameListenerBridge] Emitting boardRefreshRequested signal";
-        // When a player acquires a token, refresh the board to show updated token list
         emit boardRefreshRequested();
         qDebug() << "[GameListenerBridge] Signal emitted";
     }
@@ -79,12 +78,15 @@ public:
     void displayPlayerHands(const Core::Player& p1, const Core::Player& p2) override {}
     void displayTurnStatus(const Core::Player& p1, const Core::Player& p2) override {}
     void displayBoard() override {
-        // Trigger board refresh when backend calls displayBoard()
         emit boardRefreshRequested();
     }
     void displayMessage(const std::string& m) override {}
     void displayError(const std::string& e) override {}
     void displayWarning(const std::string& w) override {}
+
+    void displayCardInfo(const Models::Card& card) override {}
+    void displayAgeCardInfo(const Models::AgeCard& ageCard) override {}
+    void displayWonderInfo(const Models::Wonder& wonder) override {}
     
 private:
     std::shared_ptr<GameListenerBridge> m_gameListener;

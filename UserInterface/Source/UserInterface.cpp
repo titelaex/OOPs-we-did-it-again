@@ -38,21 +38,19 @@ UserInterface::UserInterface(QWidget* parent)
 {
 	ui.setupUi(this);
 	
-	// Set solid #1e1e1e background for main window
 	setStyleSheet(
 		"QMainWindow {"
-		"  background-color: #1e1e1e;" // Very dark gray
+		"  background-color: #1e1e1e;"
 		"}"
 	);
 
 	showGameModeSelection(); 
 	
-	setupLayout();     // Create widgets first (but don't populate yet)
-	initializeGame();  // Register listener BEFORE preparing game
-	initializePlayers();     // This calls Core::Game::preparation() which sets up tokens
+	setupLayout();     
+	initializeGame();  
+	initializePlayers();    
 	startWonderSelection();
 
-	// Force refresh after all initialization is complete
 	if (m_boardWidget) {
 		qDebug() << "Initial board refresh with token count:" 
 		  << Core::Board::getInstance().getProgressTokens().size();
@@ -70,7 +68,7 @@ void UserInterface::showGameModeSelection()
 	QDialog selectionDialog(this);
 	selectionDialog.setWindowTitle("Select Game Mode");
 	selectionDialog.setModal(true);
-	selectionDialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); // Fara buton de inchidere X
+	selectionDialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
 	selectionDialog.setStyleSheet("background-color: #1e1e1e; color: white;");
 
 	QVBoxLayout* layout = new QVBoxLayout(&selectionDialog);
@@ -80,7 +78,6 @@ void UserInterface::showGameModeSelection()
 	label->setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;");
 	layout->addWidget(label);
 
-	// Stil comun pentru butoane
 	QString btnStyle =
 		"QPushButton {"
 		"  background-color: #4b5563;"
@@ -91,7 +88,6 @@ void UserInterface::showGameModeSelection()
 		"}"
 		"QPushButton:hover { background-color: #374151; }";
 
-	// Buton Player vs Player
 	QPushButton* btnPvP = new QPushButton("Player vs Player", &selectionDialog);
 	btnPvP->setStyleSheet(btnStyle);
 	QObject::connect(btnPvP, &QPushButton::clicked, [&]() {
@@ -100,7 +96,6 @@ void UserInterface::showGameModeSelection()
 		});
 	layout->addWidget(btnPvP);
 
-	// Buton Player vs AI
 	QPushButton* btnPvAI = new QPushButton("Player vs AI", &selectionDialog);
 	btnPvAI->setStyleSheet(btnStyle);
 	QObject::connect(btnPvAI, &QPushButton::clicked, [&]() {
@@ -109,7 +104,6 @@ void UserInterface::showGameModeSelection()
 		});
 	layout->addWidget(btnPvAI);
 
-	// Buton AI vs AI
 	QPushButton* btnAIvAI = new QPushButton("AI vs AI", &selectionDialog);
 	btnAIvAI->setStyleSheet(btnStyle);
 	QObject::connect(btnAIvAI, &QPushButton::clicked, [&]() {
@@ -118,7 +112,6 @@ void UserInterface::showGameModeSelection()
 		});
 	layout->addWidget(btnAIvAI);
 
-	// Afiseaza dialogul si blocheaza executia pana se alege ceva
 	selectionDialog.exec();
 }
 
@@ -145,7 +138,6 @@ void UserInterface::initializePlayers()
 		if (p2 && p2->m_player && !n2.isEmpty())
 			p2->m_player->setPlayerUsername(n2.toStdString());
 		
-		// Refresh the username labels after setting the names!
 		if (m_leftPanel) {
 			m_leftPanel->refreshUsername();
 		}
@@ -160,10 +152,9 @@ void UserInterface::initializePlayers()
 void UserInterface::setupLayout()
 {
 	auto splitter = new QSplitter(this);
-	splitter->setAttribute(Qt::WA_TranslucentBackground); // Make splitter transparent
+	splitter->setAttribute(Qt::WA_TranslucentBackground);
 	auto& gameState = Core::GameState::getInstance();
 
-	// Left panel with scroll area
 	m_leftPanel = new PlayerPanelWidget(gameState.GetPlayer1(), nullptr, true);
 	auto leftScroll = new QScrollArea(splitter);
 	leftScroll->setWidgetResizable(true);
@@ -173,15 +164,12 @@ void UserInterface::setupLayout()
 	leftScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	leftScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	leftScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	// Use #1e1e1e to match panel
 	leftScroll->setStyleSheet("QScrollArea { background: #1e1e1e; border: none; }");
 	leftScroll->viewport()->setStyleSheet("background: #1e1e1e;");
 	splitter->addWidget(leftScroll);
 
-	// Center container
 	setupCenterPanel(splitter);
 
-	// Right panel with scroll area
 	m_rightPanel = new PlayerPanelWidget(gameState.GetPlayer2(), nullptr, false);
 	auto rightScroll = new QScrollArea(splitter);
 	rightScroll->setWidgetResizable(true);
@@ -191,12 +179,10 @@ void UserInterface::setupLayout()
 	rightScroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	rightScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	rightScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	// Use #1e1e1e to match panel
 	rightScroll->setStyleSheet("QScrollArea { background: #1e1e1e; border: none; }");
 	rightScroll->viewport()->setStyleSheet("background: #1e1e1e;");
 	splitter->addWidget(rightScroll);
 
-	// Splitter configuration
 	splitter->setStretchFactor(0,0);
 	splitter->setStretchFactor(1,1);
 	splitter->setStretchFactor(2,0);
@@ -209,9 +195,8 @@ void UserInterface::setupLayout()
 void UserInterface::setupCenterPanel(QSplitter* splitter)
 {
 	m_centerContainer = new QWidget(splitter);
-	m_centerContainer->setObjectName("centerContainer"); // Set object name for stylesheet
+	m_centerContainer->setObjectName("centerContainer"); 
 	
-	// Apply background image ONLY to center container
 	QPixmap bgImage(":/images/background.jpg");
 	if (bgImage.isNull()) {
 		bgImage = QPixmap("C:/Users/catal/Documents/FMI/modern_c++/OOPs-we-did-it-again/UserInterface/Resources/images/background.jpg");
@@ -235,9 +220,8 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	centerLayout->setContentsMargins(0,0,0,0);
 	centerLayout->setSpacing(0);
 
-	// Top: Phase banner
 	m_centerTop = new QWidget(m_centerContainer);
-	m_centerTop->setAttribute(Qt::WA_TranslucentBackground); // Transparent to show background
+	m_centerTop->setAttribute(Qt::WA_TranslucentBackground); 
 	auto* topLayout = new QHBoxLayout(m_centerTop);
 	topLayout->setContentsMargins(0,0,0,0);
 	m_phaseBanner = new QLabel("", m_centerTop);
@@ -254,18 +238,16 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	m_phaseBanner->hide();
 	topLayout->addWidget(m_phaseBanner);
 
-	// Middle: Wonder selection / Age tree
 	m_centerMiddle = new QWidget(m_centerContainer);
-	m_centerMiddle->setAttribute(Qt::WA_TranslucentBackground); // Transparent
+	m_centerMiddle->setAttribute(Qt::WA_TranslucentBackground);
 	auto* middleLayout = new QVBoxLayout(m_centerMiddle);
 	middleLayout->setContentsMargins(8,8,8,8);
 	middleLayout->setSpacing(8);
 	m_centerWidget = new WonderSelectionWidget(m_centerMiddle);
 	middleLayout->addWidget(m_centerWidget);
 
-	// Bottom: Board
 	m_centerBottom = new QWidget(m_centerContainer);
-	m_centerBottom->setAttribute(Qt::WA_TranslucentBackground); // Transparent
+	m_centerBottom->setAttribute(Qt::WA_TranslucentBackground); 
 	m_centerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_centerBottom->setMinimumHeight(250);
 	auto* bottomLayout = new QVBoxLayout(m_centerBottom);
@@ -301,7 +283,6 @@ void UserInterface::startWonderSelection()
 
 void UserInterface::showPhaseTransitionMessage()
 {
-	// Clear middle panel
 	if (m_centerMiddle && m_centerMiddle->layout()) {
 		QLayoutItem* item;
 		while ((item = m_centerMiddle->layout()->takeAt(0)) != nullptr) {
@@ -310,8 +291,6 @@ void UserInterface::showPhaseTransitionMessage()
 		}
 		delete m_centerMiddle->layout();
 	}
-
-	// Show "Phase1 incepe" message
 	auto* msgLayout = new QVBoxLayout(m_centerMiddle);
 	msgLayout->setContentsMargins(8,8,8,8);
 
@@ -335,23 +314,18 @@ void UserInterface::showPhaseTransitionMessage()
 
 void UserInterface::showAgeTree(int age)
 {
-	// If an AgeTreeWidget already exists, reuse it to avoid deleting widgets
 	if (m_ageTreeWidget) {
 		m_ageTreeWidget->showAgeTree(age);
-		// ensure top/bottom visibility
-		// keep the top turn banner visible for all phases
 		if (m_centerTop) m_centerTop->setVisible(true);
 		if (m_phaseBanner) m_phaseBanner->setVisible(true);
 		if (m_centerBottom) m_centerBottom->setVisible(true);
 		return;
 	}
 
-	// Show panels
 	if (m_centerTop) m_centerTop->setVisible(true);
 	if (m_centerBottom) m_centerBottom->setVisible(true);
 	if (m_phaseBanner) m_phaseBanner->show();
 	
-	// Clear the middle container before inserting the age tree
 	if (m_centerMiddle) {
 		if (auto* existing = m_centerMiddle->layout()) {
 			QLayoutItem* it;
@@ -364,11 +338,9 @@ void UserInterface::showAgeTree(int age)
 		m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
 	}
 
-	// Create age tree widget and insert it into the middle panel
 	m_ageTreeWidget = new AgeTreeWidget(m_centerMiddle);
 	m_ageTreeWidget->setPlayerPanels(m_leftPanel, m_rightPanel);
 	
-	// Connect token selection requests from AgeTreeWidget to BoardWidget
 	m_ageTreeWidget->onRequestTokenSelection = [this](std::function<void(int)> onTokenClicked) {
 		if (m_boardWidget) {
 			m_boardWidget->enableTokenSelection(onTokenClicked);
@@ -385,7 +357,6 @@ void UserInterface::showAgeTree(int age)
 		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
 	}
 
-	// Sync current player
 	Core::Player* coreCur = Core::getCurrentPlayer();
 	auto& gs = Core::GameState::getInstance();
 	auto p1 = gs.GetPlayer1().get();
@@ -400,7 +371,6 @@ void UserInterface::showAgeTree(int age)
 	
 	m_ageTreeWidget->setCurrentPlayerIndex(m_currentPlayerIndex);
 	
-	// Handle turn changes
 	m_ageTreeWidget->onPlayerTurnChanged = [this](int newPlayerIndex, const QString& playerName) {
 		m_currentPlayerIndex = newPlayerIndex;
 		if (m_phaseBanner) {
@@ -409,7 +379,6 @@ void UserInterface::showAgeTree(int age)
 		}
 		if (m_boardWidget) m_boardWidget->refresh();
 
-		// Auto-advance when Phase 1 ends (no more available cards)
 		if (m_ageTreeWidget && m_ageTreeWidget->getCurrentAge() == 1) {
 			QTimer::singleShot(0, this, [this]() {
 				auto& board = Core::Board::getInstance();
@@ -428,7 +397,6 @@ void UserInterface::showAgeTree(int age)
 		}
 	};
 
-	// Update banner
 	if (m_phaseBanner) {
 		QString curName = "<unknown>";
 		if (m_currentPlayerIndex ==0 && p1 && p1->m_player)
@@ -526,11 +494,8 @@ void UserInterface::onWonderSelected(int index)
 			m_centerWidget->setTurnMessage("");
 			if (m_centerWidget) m_centerWidget->hide();
 
-			// Show a simple large text message in the same panel before the age tree
 			if (m_centerMiddle) {
-				// Clear current middle layout contents
 				if (auto* existing = m_centerMiddle->layout()) {
-					// remove all items
 					QLayoutItem* item;
 					while ((item = existing->takeAt(0)) != nullptr) {
 						if (item->widget()) delete item->widget();
@@ -546,7 +511,7 @@ void UserInterface::onWonderSelected(int index)
 
 				QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
 				phaseMsg->setAlignment(Qt::AlignCenter);
-				phaseMsg->setStyleSheet("");
+				phaseMsg->setStyleSheet(""); 
 				QFont f = phaseMsg->font();
 				f.setPointSize(24);
 				f.setBold(true);
@@ -600,7 +565,6 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 	if (m_ageTreeWidget) {
 		m_ageTreeWidget->showAgeTree(age);
 	}
-	// if age1 finished, schedule phase2 transition
 	if (age ==1) {
 		auto& board = Core::Board::getInstance();
 		const auto& nodes = board.getAge1Nodes();
@@ -610,7 +574,6 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 			if (n->isAvailable() && n->getCard()) { anyAvailable = true; break; }
 		}
 		if (!anyAvailable) {
-			// show transition
 			if (m_centerMiddle) {
 				if (auto* existing = m_centerMiddle->layout()) {
 					QLayoutItem* it;
@@ -637,16 +600,13 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 }
 
 void UserInterface::initializeGame() {
-	// Bridge (QObject + Core::IGameListener)
 	m_gameListener = std::make_shared<GameListenerBridge>(this);
 
-	// Backend -> Qt -> BoardWidget
 	if (m_boardWidget) {
 		connect(m_gameListener.get(), &GameListenerBridge::pawnMovedSignal,
 			m_boardWidget, &BoardWidget::setPawnPosition,
 			Qt::QueuedConnection);
 		
-		// Also refresh board when pawn moves (to ensure UI updates)
 		connect(m_gameListener.get(), &GameListenerBridge::pawnMovedSignal,
 			this, [this](int newPosition) {
 				qDebug() << "[UserInterface] Pawn moved to position:" << newPosition;
@@ -655,13 +615,11 @@ void UserInterface::initializeGame() {
 				}
 			}, Qt::QueuedConnection);
 		
-		// Refresh board when tokens change or displayBoard is called
 		connect(m_gameListener.get(), &GameListenerBridge::boardRefreshRequested,
 			m_boardWidget, &BoardWidget::refresh,
 			Qt::QueuedConnection);
 	}
 	
-	// Refresh player panels when tokens are acquired
 	connect(m_gameListener.get(), &GameListenerBridge::boardRefreshRequested,
 		this, [this]() {
 			qDebug() << "[UserInterface] boardRefreshRequested slot triggered";
@@ -679,10 +637,8 @@ void UserInterface::initializeGame() {
 			qDebug() << "[UserInterface] Player panels refreshed";
 		}, Qt::QueuedConnection);
 
-	// Register listener to backend notifier (observer pattern)
 	Core::Game::getNotifier().addListener(m_gameListener);
 
-	// React to tree-node changes/empties by refreshing age tree
 	connect(m_gameListener.get(), &GameListenerBridge::treeNodeEmptiedSignal, this, [this](int ageIndex, int nodeIndex){
 		Q_UNUSED(nodeIndex);
 		if (m_ageTreeWidget) m_ageTreeWidget->showAgeTree(ageIndex ==0 ?1 : ageIndex);
@@ -778,11 +734,9 @@ void UserInterface::initializeGame() {
 			if (m_boardWidget) m_boardWidget->refresh();
 		}, Qt::QueuedConnection);
 
-	// Initial sync (in case the pawn already has a non-zero position)
 	auto& board = Core::Board::getInstance();
 	if (m_boardWidget) {
 		m_boardWidget->setPawnPosition(static_cast<int>(board.getPawnPos()));
-		// Also do an initial refresh to show tokens
 		m_boardWidget->refresh();
 	}
 	
