@@ -927,7 +927,7 @@ namespace Core {
 			for (size_t i = 0; i < wonders.size(); ++i) {
 				event.context = "\n[" + std::to_string(i) + "] ";
 				notifier.notifyDisplayRequested(event);
-				wonders[i]->displayCardInfo();
+				notifier.notifyDisplayWonderInfo(*wonders[i]);
 			}
 			event.context = "=========================";
 			notifier.notifyDisplayRequested(event);
@@ -1211,15 +1211,15 @@ namespace Core {
 					cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
 					cardEvent.context = "\n[" + std::to_string(k) + "] ";
 					notifier.notifyDisplayRequested(cardEvent);
-					if (card) {
-						card->displayCardInfo();
-						if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
-							if (ageCard->getScientificSymbols().has_value()) {
-								cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
-								notifier.notifyDisplayRequested(cardEvent);
-							}
-						}
-					}
+                    if (card) {
+                        notifier.notifyDisplayCardInfo(*card);
+                        if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+                            if (ageCard->getScientificSymbols().has_value()) {
+                                cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
+                                notifier.notifyDisplayRequested(cardEvent);
+                            }
+                        }
+                    }
 				}
 
 				Player& cur = playerOneTurn ? p1 : p2;
@@ -1335,12 +1335,12 @@ namespace Core {
 						headerEvent.context = "Choose wonder to construct:";
 						notifier2.notifyDisplayRequested(headerEvent);
 
-						for (size_t i = 0; i < candidates.size(); ++i) {
-							DisplayRequestEvent cardEvent;
-							cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-							cardEvent.context = "[" + std::to_string(i) + "] " + owned[candidates[i]]->getName();
-							notifier2.notifyDisplayRequested(cardEvent);
-						}
+                        for (size_t i = 0; i < candidates.size(); ++i) {
+                            DisplayRequestEvent cardEvent;
+                            cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+                            cardEvent.context = "[" + std::to_string(i) + "] " + owned[candidates[i]]->getName();
+                            notifier2.notifyDisplayRequested(cardEvent);
+                        }
 
 						size_t wchoice = curDecisionMaker.selectWonder(candidates);
 						if (wchoice >= candidates.size()) wchoice = 0;
@@ -1402,6 +1402,31 @@ namespace Core {
 					continue;
 				}
 
+				if (auto takenNode = (*nodes)[chosenNodeIndex]) {
+					auto checkParent = [](const std::shared_ptr<Node>& p) {
+						if (p) {
+							auto c1 = p->getChild1();
+							auto c2 = p->getChild2();
+							bool empty1 = (!c1 || c1->getCard() == nullptr);
+							bool empty2 = (!c2 || c2->getCard() == nullptr);
+							if (empty1 && empty2 && p->getCard()) {
+								p->getCard()->setIsAvailable(true);
+								p->getCard()->setIsVisible(true);
+							}
+						}
+						};
+					checkParent(takenNode->getParent1());
+					checkParent(takenNode->getParent2());
+				}
+
+				gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
+
+				gameState.recordAction(
+					playerOneTurn ? p1.m_player->getPlayerUsername() : p2.m_player->getPlayerUsername(),
+					std::to_string(action),
+					cardName,
+					effects
+				);
 
 				if (logger) {
 					MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
@@ -1413,7 +1438,6 @@ namespace Core {
 					logger->logTurn(turn);
 				}
 
-				gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
 				gameState.saveGameState("");
 
 				DisplayRequestEvent saveEvent;
@@ -1433,98 +1457,42 @@ namespace Core {
 						return;
 					}
 
-					if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
-						continue;
-					}
-
-					if (auto takenNode = (*nodes)[chosenNodeIndex]) {
-						auto checkParent = [](const std::shared_ptr<Node>& p) {
-							if (p) {
-								auto c1 = p->getChild1();
-								auto c2 = p->getChild2();
-								bool empty1 = (!c1 || c1->getCard() == nullptr);
-								bool empty2 = (!c2 || c2->getCard() == nullptr);
-								if (empty1 && empty2 && p->getCard()) {
-									p->getCard()->setIsAvailable(true);
-									p->getCard()->setIsVisible(true);
-								}
-							}
-							};
-						checkParent(takenNode->getParent1());
-						checkParent(takenNode->getParent2());
-					}
-
-					gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
-
-					gameState.recordAction(
-						playerOneTurn ? p1.m_player->getPlayerUsername() : p2.m_player->getPlayerUsername(),
-						std::to_string(action),
-						cardName,
-						effects
-					);
-
-					if (logger) {
-						MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
-						MCTSAction mctsAction;
-						mctsAction.cardNodeIndex = chosenNodeIndex;
-						mctsAction.actionType = action;
-						mctsAction.cardName = cardName;
-						TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
-						logger->logTurn(turn);
-					}
-
+					
+				}
+				int sv = checkImmediateScientificVictory(p1, p2);
+				if (sv != -1) {
+					gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
 					gameState.saveGameState("");
-
-					DisplayRequestEvent saveEvent;
-					saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-					saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
-					notifier.notifyDisplayRequested(saveEvent);
-
-					if (shields > 0) {
-						Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
-						awardMilitaryTokenIfPresent(cur, opp);
-						int win = checkImmediateMilitaryVictory();
-						if (win != -1) {
-							gameState.setVictory(win, "Military Supremacy", 0, 0);
-							gameState.saveGameState("");
-							announceVictory(win, "Military Supremacy", p1, p2);
-							g_last_active_was_player_one = !playerOneTurn;
-							return;
-						}
-
-						int sv = checkImmediateScientificVictory(p1, p2);
-						if (sv != -1) {
-							gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
-						 gameState.saveGameState("");
-							announceVictory(sv, "Scientific Supremacy", p1, p2);
-							g_last_active_was_player_one = !playerOneTurn;
-							return;
-						}
-					}
-
-					displayPlayerHands(p1, p2);
-					displayTurnStatus(p1, p2);
-
-					++nrOfRounds;
-					playerOneTurn = !playerOneTurn;
+					announceVictory(sv, "Scientific Supremacy", p1, p2);
+					g_last_active_was_player_one = !playerOneTurn;
+					return;
 				}
 
-				DisplayRequestEvent completeEvent;
-				completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-				completeEvent.context = phaseName + " completed.";
-				notifier.notifyDisplayRequested(completeEvent);
+				displayPlayerHands(p1, p2);
+				displayTurnStatus(p1, p2);
 
-				currentPhase++;
-				nrOfRounds = 1;
+				++nrOfRounds;
+				playerOneTurn = !playerOneTurn;
+
+
+
 			}
+			DisplayRequestEvent completeEvent;
+			completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			completeEvent.context = phaseName + " completed.";
+			notifier.notifyDisplayRequested(completeEvent);
 
-			g_last_active_was_player_one = !playerOneTurn;
+			currentPhase++;
+			nrOfRounds = 1;
 
-			DisplayRequestEvent allPhaseEvent;
-			allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-			allPhaseEvent.context = "=== All Phases Completed ===";
-			notifier.notifyDisplayRequested(allPhaseEvent);
+
 		}
+		g_last_active_was_player_one = !playerOneTurn;
+
+		DisplayRequestEvent allPhaseEvent;
+		allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		allPhaseEvent.context = "=== All Phases Completed ===";
+		notifier.notifyDisplayRequested(allPhaseEvent);
 	}
 
 	void Game::movePawn(int steps) {
@@ -1563,13 +1531,13 @@ namespace Core {
 			
 			event.context = "\nOwned Cards (" + std::to_string(p1.m_player->getOwnedCards().size()) + "):";
 			notifier.notifyDisplayRequested(event);
-			for (const auto& card : p1.m_player->getOwnedCards()) {
-				if (card) {
-					event.context = "  - ";
-					notifier.notifyDisplayRequested(event);
-					card->displayCardInfo();
-				}
-			}
+            for (const auto& card : p1.m_player->getOwnedCards()) {
+                if (card) {
+                    event.context = "  - ";
+                    notifier.notifyDisplayRequested(event);
+                    GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*card);
+                }
+            }
 			
 			event.context = "\nWonders (" + std::to_string(p1.m_player->getOwnedWonders().size()) + "):";
 							notifier.notifyDisplayRequested(event);
@@ -1603,13 +1571,13 @@ namespace Core {
 			
 			event.context = "\nOwned Cards (" + std::to_string(p2.m_player->getOwnedCards().size()) + "):";
 			notifier.notifyDisplayRequested(event);
-			for (const auto& card : p2.m_player->getOwnedCards()) {
-				if (card) {
-					event.context = "  - ";
-					notifier.notifyDisplayRequested(event);
-					card->displayCardInfo();
-				}
-			}
+            for (const auto& card : p2.m_player->getOwnedCards()) {
+                if (card) {
+                    event.context = "  - ";
+                    notifier.notifyDisplayRequested(event);
+                    GameState::getInstance().getEventNotifier().notifyDisplayCardInfo(*card);
+                }
+            }
 			
 			event.context = "\nWonders (" + std::to_string(p2.m_player->getOwnedWonders().size()) + "):";
 			notifier.notifyDisplayRequested(event);

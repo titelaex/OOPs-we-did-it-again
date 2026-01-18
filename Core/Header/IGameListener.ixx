@@ -4,6 +4,7 @@ import Core.AIConfig;
 import Models.Card;
 import Models.Wonder;
 import Models.Token;
+import Models.AgeCard;
 import <string>;
 import <vector>;
 import <deque>;
@@ -182,6 +183,10 @@ export namespace Core {
         virtual void displayMessage(const std::string& message) = 0;
         virtual void displayError(const std::string& error) = 0;
         virtual void displayWarning(const std::string& warning) = 0;
+        
+        virtual void displayCardInfo(const Models::Card& card) = 0;
+        virtual void displayWonderInfo(const Models::Wonder& wonder) = 0;
+        virtual void displayAgeCardInfo(const Models::AgeCard& ageCard) = 0;
     };
     
     class GameEventNotifier {
@@ -217,6 +222,9 @@ export namespace Core {
         void notifyPlayerStateChanged(int playerID);
         
         void notifyDisplayRequested(const DisplayRequestEvent& event);
+        void notifyDisplayCardInfo(const Models::Card& card);
+        void notifyDisplayWonderInfo(const Models::Wonder& wonder);
+        void notifyDisplayAgeCardInfo(const Models::AgeCard& ageCard);
         
     private:
         std::vector<std::shared_ptr<IGameListener>> listeners;

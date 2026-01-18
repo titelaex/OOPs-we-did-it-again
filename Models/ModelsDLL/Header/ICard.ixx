@@ -10,6 +10,5 @@ export namespace Models
 		virtual ~ICard() = default;
 		/*virtual void toggleVisibility() = 0;
 		virtual void toggleAccessibility() = 0;*/
-		virtual void displayCardInfo() = 0;
 	};
 }

@@ -54,7 +54,7 @@ namespace Models
 		void setResourceProduction(ResourceType r);
 		void setConstructed(bool constructed);
 
-		void displayCardInfo() override;
+
 		void onDiscard() override;
 
 		void attachUnderCard(std::unique_ptr<Models::Card> c);

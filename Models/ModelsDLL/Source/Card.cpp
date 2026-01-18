@@ -113,17 +113,7 @@ namespace Models {
 		return s;
 	}
 
-	void Card::displayCardInfo() {
-		// [Name colored] | VP=n | Cost=W:1,S:2 | Vis=Y/N | Avl=Y/N
-		const char* cAnsi = colorAnsi(m_color);
-		const char* rAnsi = resetAnsi();
-		std::cout << cAnsi << m_name << rAnsi
-			<< " | VP=" << static_cast<int>(m_victoryPoints)
-			<< " | Cost=" << (!m_resourceCost.empty() ? costAbbrev(m_resourceCost) : "FREE")
-			<< " | Vis=" << (m_isVisible ? 'Y' : 'N')
-			<< " | Avl=" << (m_isAvailable ? 'Y' : 'N')
-			<< "\n";
-	}
+    
 
 	void Card::setName(const std::string& name) { m_name = name; }
 	void Card::setResourceCost(const std::unordered_map<ResourceType, uint8_t>& resourceCost) { m_resourceCost = resourceCost; }

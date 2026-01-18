@@ -76,7 +76,6 @@ export namespace Models
 		void setIsVisible(const bool& isVisible);
 		void setIsAvailable(const bool& isAvailable);
 
-		virtual void displayCardInfo() override;
 	};
 
 	export class __declspec(dllexport) CardBuilder

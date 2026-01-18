@@ -8,6 +8,7 @@ import Core.Player;
 import Core.Board;
 import Models.Player;
 import Models.Card;
+import Models.AgeCard;
 import Models.Wonder;
 import Models.Token;
 
@@ -235,12 +236,131 @@ namespace Core {
         std::cout << "[1] Continue Previous Game\n";
         std::cout << "Choice: ";
     }
+
+    // ANSI/color and cost helpers copied from Models for exact same formatting
+    static const char* colorAnsi(const Models::ColorType c) {
+        switch (c) {
+        case Models::ColorType::BROWN: return "\x1b[38;5;94m"; // brown-ish
+        case Models::ColorType::GREY: return "\x1b[90m";
+        case Models::ColorType::RED: return "\x1b[31m";
+        case Models::ColorType::GREEN: return "\x1b[32m";
+        case Models::ColorType::YELLOW: return "\x1b[33m";
+        case Models::ColorType::BLUE: return "\x1b[34m";
+        case Models::ColorType::PURPLE: return "\x1b[35m";
+        default: return "\x1b[0m";
+        }
+    }
+    static const char* resetAnsi() { return "\x1b[0m"; }
+
+    static std::string costAbbrev(const std::unordered_map<Models::ResourceType, uint8_t>& rc) {
+        auto abbrev = [](Models::ResourceType r) -> std::string {
+            switch (r) {
+            case Models::ResourceType::WOOD: return "W";
+            case Models::ResourceType::STONE: return "S";
+            case Models::ResourceType::CLAY: return "C";
+            case Models::ResourceType::PAPYRUS: return "P";
+            case Models::ResourceType::GLASS: return "G";
+            default: return "?";
+            }
+        };
+        std::string s;
+        bool first = true;
+        for (auto& kv : rc) {
+            if (!first) s += ','; first = false;
+            s += abbrev(kv.first);
+            s += ':';
+            s += std::to_string(kv.second);
+        }
+        return s;
+    }
+
+    static void displayBasicCardLine(const Models::Card& card) {
+        const char* cAnsi = colorAnsi(card.getColor());
+        const char* rAnsi = resetAnsi();
+        std::cout << cAnsi << card.getName() << rAnsi
+            << " | VP=" << static_cast<int>(card.getVictoryPoints())
+            << " | Cost=" << (!card.getResourceCost().empty() ? costAbbrev(card.getResourceCost()) : "FREE")
+            << " | Vis=" << (card.isVisible() ? 'Y' : 'N')
+            << " | Avl=" << (card.isAvailable() ? 'Y' : 'N')
+            << "\n";
+    }
+
+    void ConsolePrinter::displayCardInfo(const Models::Card& card) {
+        if (const auto* age = dynamic_cast<const Models::AgeCard*>(&card)) {
+            displayAgeCardInfo(*age);
+            return;
+        }
+        if (const auto* wonder = dynamic_cast<const Models::Wonder*>(&card)) {
+            displayWonderInfo(*wonder);
+            return;
+        }
+        displayBasicCardLine(card);
+    }
+
+    void ConsolePrinter::displayAgeCardInfo(const Models::AgeCard& ageCard) {
+        std::cout << "\n";
+        displayBasicCardLine(static_cast<const Models::Card&>(ageCard));
+
+        bool firstField = true;
+        auto sep = [&]() { if (!firstField) std::cout << " | "; firstField = false; };
+
+        const auto& prod = ageCard.getResourcesProduction();
+        if (!prod.empty()) {
+            sep();
+            std::cout << "Prod=";
+            bool first = true;
+            auto abbrev = [&](Models::ResourceType r) {
+                switch (r) {
+                case Models::ResourceType::WOOD: return 'W';
+                case Models::ResourceType::STONE: return 'S';
+                case Models::ResourceType::CLAY: return 'C';
+                case Models::ResourceType::PAPYRUS: return 'P';
+                case Models::ResourceType::GLASS: return 'G';
+                default: return '?';
+                }
+            };
+            for (const auto& kv : prod) {
+                if (!first) std::cout << ','; first = false;
+                std::cout << abbrev(kv.first) << ':' << static_cast<int>(kv.second);
+            }
+        }
+
+        if (ageCard.getShieldPoints() > 0) { sep(); std::cout << "SP=" << static_cast<int>(ageCard.getShieldPoints()); }
+
+        if (ageCard.getScientificSymbols().has_value()) { sep(); std::cout << "Sci=" << Models::ScientificSymbolTypeToString(ageCard.getScientificSymbols().value()); }
+
+        if (ageCard.getHasLinkingSymbol().has_value()) { sep(); std::cout << "HasLS=" << Models::LinkingSymbolTypeToString(ageCard.getHasLinkingSymbol().value()); }
+        if (ageCard.getRequiresLinkingSymbol().has_value()) { sep(); std::cout << "ReqLS=" << Models::LinkingSymbolTypeToString(ageCard.getRequiresLinkingSymbol().value()); }
+
+        const auto& trade = ageCard.getTradeRules();
+        if (!trade.empty()) {
+            bool any = false;
+            std::string tr;
+            for (const auto& kv : trade) {
+                if (kv.second) {
+                    if (any) tr.push_back(',');
+                    tr += Models::ResourceTypeToString(static_cast<Models::ResourceType>(kv.first));
+                    any = true;
+                }
+            }
+            if (any) { sep(); std::cout << "TR=" << tr; }
+        }
+
+        std::cout << "\n";
+    }
+
+    void ConsolePrinter::displayWonderInfo(const Models::Wonder& wonder) {
+        displayBasicCardLine(static_cast<const Models::Card&>(wonder));
+        std::cout << " Resource Production: " << Models::ResourceTypeToString(wonder.getResourceProduction()) << "\n";
+        std::cout << " Shield Points: " << static_cast<int>(wonder.getShieldPoints()) << "\n";
+        std::cout << " Constructed: " << (wonder.IsConstructed() ? "Yes" : "No") << "\n";
+    }
     
     void ConsolePrinter::displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) {
         std::cout << "\n=== AVAILABLE CARDS ===\n";
         for (size_t i = 0; i < cards.size(); ++i) {
             std::cout << "[" << i << "] ";
-            cards[i].get().displayCardInfo();
+            displayCardInfo(cards[i].get());
         }
     }
     
@@ -260,7 +380,7 @@ namespace Core {
         std::cout << "\n=== AVAILABLE WONDERS ===\n";
         for (size_t i = 0; i < wonders.size(); ++i) {
             std::cout << "[" << i << "] ";
-            wonders[i].get().displayCardInfo();
+            displayWonderInfo(wonders[i].get());
         }
     }
     
