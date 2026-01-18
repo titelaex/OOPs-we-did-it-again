@@ -354,8 +354,6 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 			continue;
 		}
 
-		// After building a card, check for a scientific "pair".
-		// NOTE: do not use `card` (it was the node card before the action; it may have been moved out).
 		if (action == 0 && cur && cur->m_player) {
 			const auto& inventory = cur->m_player->getOwnedCards();
 			if (!inventory.empty() && inventory.back()) {

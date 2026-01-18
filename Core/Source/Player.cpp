@@ -376,7 +376,6 @@ void Core::Player::payForWonder(std::unique_ptr<Models::Wonder>& wonder, const s
     std::unordered_map<Models::ResourceType, uint8_t> opponentBrownGreyProduction;
     bool opponentCheckNeeded = false;
 
-	//verify if we need to check opponent production at all
     for (const auto& [resource, amount] : missingResources) {
         if (getTradeDiscount(resource) == -1) {
             opponentCheckNeeded = true;
@@ -1083,8 +1082,6 @@ void Core::Player::takeNewCard(std::optional<std::reference_wrapper<IPlayerDecis
 
 	size_t choice = 0;
 	if (decisionMaker.has_value()) {
-		// If an MCTS-based AI is playing, pick from discard using weight-driven scoring
-		// (so WeightOptimizer affects this decision too).
 		if (auto* mctsDM = dynamic_cast<MCTSDecisionMaker*>(&decisionMaker->get())) {
 			AIConfig cfg(mctsDM->getPlaystyle());
 			const auto w = cfg.getWeights();
@@ -1094,7 +1091,6 @@ void Core::Player::takeNewCard(std::optional<std::reference_wrapper<IPlayerDecis
 				double score = 0.0;
 				score += static_cast<double>(card->getVictoryPoints()) * w.victoryPointValue;
 
-				// Colors roughly map to existing weights.
 				switch (card->getColor()) {
 				case Models::ColorType::BROWN:
 				case Models::ColorType::GREY:

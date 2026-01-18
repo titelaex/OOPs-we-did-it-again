@@ -2,9 +2,6 @@
 #include <QObject>
 #include <memory>
 #include <QDebug> 
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QApplication>
-#include <QtCore/QTimer>
 #include <QtCore/QString>
 
 import Models.Player;
@@ -48,20 +45,6 @@ public:
     void onVictoryAchieved(const Core::VictoryEvent& e) override {
         qDebug() << "[GameListenerBridge] onVictoryAchieved: winner=" << e.winnerName.c_str() << " type=" << e.victoryType.c_str();
         emit victoryAchievedSignal(e.winnerPlayerID, QString::fromStdString(e.winnerName), QString::fromStdString(e.victoryType), e.winnerScore, e.loserScore);
-
-        QString winner = QString::fromStdString(e.winnerName);
-        QString type = QString::fromStdString(e.victoryType);
-        int winnerScore = e.winnerScore;
-        int loserScore = e.loserScore;
-        QTimer::singleShot(0, this, [this, winner, type, winnerScore, loserScore]() {
-            QApplication::beep();
-            QString details = QString("%1 a castigat!\n\nTip victorie: %2\nScor castigator: %3\nScor invins: %4")
-                .arg(winner)
-                .arg(type)
-                .arg(winnerScore)
-                .arg(loserScore);
-            QMessageBox::information(nullptr, "Joc terminat", details, QMessageBox::Ok);
-        });
     }
     void onGameStarted(int gm, Core::Playstyle p1, Core::Playstyle p2) override {}
     void onGameEnded() override {}

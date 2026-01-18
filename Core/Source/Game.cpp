@@ -201,8 +201,6 @@ namespace Core {
 					+ static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
 					+ static_cast<uint32_t>(ptsRef.m_wonderVictoryPoints)
 					+ static_cast<uint32_t>(ptsRef.m_progressVictoryPoints);
-				// totalCoins is not const, so we need to call it on a non-const reference
-				// Extract coins tuple first, then call totalCoins on the original non-const player
 				auto coins = player.getRemainingCoins();
 				uint8_t totalCoins = const_cast<Models::Player&>(player).totalCoins(coins);
 				pts += static_cast<uint32_t>(totalCoins / 3);
@@ -1019,7 +1017,6 @@ namespace Core {
 							(void)res;
 							score -= static_cast<double>(amt) * w.resourceValue * 0.5;
 						}
-						// Light parsing of on-play action labels for extra signal.
 						for (const auto& act : wonder.getOnPlayActions()) {
 							const std::string& label = act.second;
 							if (label.find("takeNewCard") != std::string::npos) score += 1.0 * w.economyPriority;
@@ -1279,7 +1276,6 @@ namespace Core {
 				auto& gs = GameState::getInstance();
 				std::shared_ptr<Player> curPtr = playerOneTurn ? gs.GetPlayer1() : gs.GetPlayer2();
 				Core::setCurrentPlayer(curPtr);
-				// Ensure GameState reflects the current loop turn before any AI reads it (e.g. MCTS capture).
 				gs.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
 
 				IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
@@ -1366,7 +1362,6 @@ namespace Core {
 						action = curDecisionMaker.selectCardAction();
 					}
 					else {
-						// Try the MCTS-chosen action once; if it fails (e.g. affordability), fall back to SELL.
 						if (!mctsActionUsed) {
 							mctsActionUsed = true;
 						}
@@ -2218,6 +2213,8 @@ namespace Core {
 	bool Game::applyTreeCardAction(int age, int nodeIndex, int action, std::optional<size_t> wonderIndex)
 	{
 		auto& gs = GameState::getInstance();
+		if (gs.hasEnded()) return false;
+
 		auto p1 = gs.GetPlayer1();
 		auto p2 = gs.GetPlayer2();
 		auto cur = Core::getCurrentPlayer();
@@ -2336,6 +2333,45 @@ namespace Core {
 		}
 
 		Game::updateTreeAfterPick(age, nodeIndex);
+
+		auto notifyVictoryUi = [&](int winnerId, const std::string& victoryType) {
+			int score1 = (p1 && p1->m_player) ? static_cast<int>(p1->m_player->getTotalVictoryPoints()) : 0;
+			int score2 = (p2 && p2->m_player) ? static_cast<int>(p2->m_player->getTotalVictoryPoints()) : 0;
+
+			Core::VictoryEvent ev;
+			ev.winnerPlayerID = winnerId;
+			ev.victoryType = victoryType;
+
+			if (winnerId == 0 && p1 && p1->m_player) ev.winnerName = p1->m_player->getPlayerUsername();
+			else if (winnerId == 1 && p2 && p2->m_player) ev.winnerName = p2->m_player->getPlayerUsername();
+			else ev.winnerName = "Tie";
+
+			if (winnerId == 0) { ev.winnerScore = score1; ev.loserScore = score2; }
+			else if (winnerId == 1) { ev.winnerScore = score2; ev.loserScore = score1; }
+			else { ev.winnerScore = score1; ev.loserScore = score2; }
+
+			gs.setVictory(winnerId, victoryType, ev.winnerScore, ev.loserScore);
+
+			gs.getEventNotifier().notifyVictoryAchieved(ev);
+			Game::getNotifier().notifyVictoryAchieved(ev);
+		};
+
+		{
+			const int mv = checkImmediateMilitaryVictory();
+			if (mv != -1) {
+				notifyVictoryUi(mv, "Military Supremacy");
+				return true;
+			}
+		}
+
+		{
+			const int sv = (p1 && p2) ? checkImmediateScientificVictory(*p1, *p2) : -1;
+			if (sv != -1) {
+				notifyVictoryUi(sv, "Scientific Supremacy");
+				return true;
+			}
+		}
+
 		return true;
 	}
 

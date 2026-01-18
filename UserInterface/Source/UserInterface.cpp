@@ -201,13 +201,9 @@ void UserInterface::setupCenterPanel(QSplitter* splitter)
 	m_centerContainer = new QWidget(splitter);
 	m_centerContainer->setObjectName("centerContainer"); 
 	
-	// Background image: prefer Qt resources, then fall back to local project files.
-	// NOTE: `Resource.qrc` lists it as `Resources/images/background.jpg` (no prefix),
-	// so the resource path is `:/Resources/images/background.jpg`.
 	auto resolveBackgroundUrl = []() -> QString {
 		const QStringList candidates = {
 			":/Resources/images/background.jpg",
-			// older/alternate resource layouts (just in case)
 			":/images/background.jpg",
 		};
 
