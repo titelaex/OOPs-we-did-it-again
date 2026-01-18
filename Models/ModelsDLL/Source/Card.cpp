@@ -74,10 +74,9 @@ namespace Models {
 	}
 	bool Card::IsConstructed() const { return false; }
 
-	// Helpers for compact display
 	static const char* colorAnsi(ColorType c) {
 		switch (c) {
-		case ColorType::BROWN: return "\x1b[38;5;94m"; // brown-ish
+		case ColorType::BROWN: return "\x1b[38;5;94m"; 
 		case ColorType::GREY: return "\x1b[90m";
 		case ColorType::RED: return "\x1b[31m";
 		case ColorType::GREEN: return "\x1b[32m";
