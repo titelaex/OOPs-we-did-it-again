@@ -787,7 +787,7 @@ namespace Core {
 		{
 			std::vector<std::unique_ptr<Models::Card>> selected;
 			auto& pool = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getUnusedAgeTwoCards());
-		 size_t take = std::min<size_t>(20, pool.size());
+			size_t take = std::min<size_t>(20, pool.size());
 		 size_t i = 0;
 		 while (i < pool.size() && selected.size() < take) {
 			 if (!pool[i]) { ++i; continue; }
@@ -987,7 +987,11 @@ namespace Core {
 				if (dynamic_cast<Models::Wonder*>(wondersPool[idx].get())) { found = true; break; }
 			}
 			if (!found) break;
+<<<<<<< HEAD
 		 std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+=======
+			std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 			wondersPool.erase(wondersPool.begin() + idx);
 			Models::Wonder* raw = static_cast<Models::Wonder*>(cardPtr.release());
 			availableWonders.emplace_back(raw);
@@ -1077,6 +1081,7 @@ namespace Core {
 					std::unique_ptr<Models::Token> t = std::move(military.back());
 					military.pop_back();
 					if (t) {
+<<<<<<< HEAD
 						std::string tokenName = t->getName();
 						std::string tokenDesc = t->getDescription();
 
@@ -1091,6 +1096,9 @@ namespace Core {
 							tokenEvent.tokenDescription = tokenDesc;
 							Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
 						}
+=======
+						if (receiver.m_player) receiver.m_player->addToken(std::move(t));
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 					}
 				}
 				break;
@@ -1143,6 +1151,7 @@ namespace Core {
 				auto card = node->getCard();
 				if (card && node->isAvailable() && card->isAvailable()) {
 					availableIndex.push_back(i);
+<<<<<<< HEAD
 				}
 			}
 
@@ -1647,12 +1656,182 @@ namespace Core {
 				continue;
 			}
 
+=======
+				}
+			}
+
+			if (availableIndex.empty()) {
+				DisplayRequestEvent completeEvent;
+				completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				completeEvent.context = phaseName + " completed.";
+				notifier.notifyDisplayRequested(completeEvent);
+				currentPhase++;
+				nrOfRounds = 1;
+				continue;
+			}
+
+			DisplayRequestEvent availEvent;
+			availEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			availEvent.context = phaseName + ": " + std::to_string(availableIndex.size()) + " cards available";
+			notifier.notifyDisplayRequested(availEvent);
+
+			for (size_t k = 0; k < availableIndex.size(); ++k) {
+				size_t index = availableIndex[k];
+				const auto& node = (*nodes)[index];
+				auto card = node->getCard();
+				DisplayRequestEvent cardEvent;
+				cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				cardEvent.context = "\n[" + std::to_string(k) + "] ";
+				notifier.notifyDisplayRequested(cardEvent);
+				if (card) {
+					card->displayCardInfo();
+					if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+						if (ageCard->getScientificSymbols().has_value()) {
+						 cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
+						 notifier.notifyDisplayRequested(cardEvent);
+						}
+					}
+				}
+			}
+
+			Player& cur = playerOneTurn ? p1 : p2;
+			Player& opp = playerOneTurn ? p2 : p1;
+
+			Core::setCurrentPlayer(&cur);
+
+			IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
+
+			displayPlayerResources(cur, playerOneTurn ? "Player1" : "Player2");
+			DisplayRequestEvent promptEvent;
+			promptEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			promptEvent.context = std::string(playerOneTurn ? "Player1" : "Player2") + " choose index (0-" + std::to_string(availableIndex.size() - 1) + "): ";
+			notifier.notifyDisplayRequested(promptEvent);
+
+			size_t choice = curDecisionMaker.selectCard(availableIndex);
+			if (choice >= availableIndex.size()) choice = 0;
+			size_t chosenNodeIndex = availableIndex[choice];
+
+			std::unique_ptr<Models::Card> cardPtr = (*nodes)[chosenNodeIndex]->releaseCard();
+			if (!cardPtr) {
+				DisplayRequestEvent errEvent;
+				errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+				errEvent.context = "Node releaseCard failed.";
+				notifier.notifyDisplayRequested(errEvent);
+				continue;
+			}
+
+			std::string cardName = cardPtr->getName();
+			displayCardDetails(cardPtr.get());
+			uint8_t shields = getShieldPointsFromCard(cardPtr.get());
+
+			std::optional<Models::ScientificSymbolType> symbolToCheck;
+			bool potentialPair = false;
+			if (auto ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+				symbolToCheck = ageCard->getScientificSymbols();
+				if (symbolToCheck.has_value()) potentialPair = true;
+			}
+
+			DisplayRequestEvent choiceEvent;
+			choiceEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			choiceEvent.context = " You chose " + std::string(cardPtr->getName()) + " . Action: [0]=build, [1]=sell, [2]=wonder";
+			notifier.notifyDisplayRequested(choiceEvent);
+			int action = curDecisionMaker.selectCardAction();
+			int attemptCount = 0;
+			const int maxAttempts = 3;
+			bool cancelled = false;
+
+			while (attemptCount < maxAttempts && cardPtr) {
+				performCardAction(action, cur, opp, cardPtr, board, &curDecisionMaker);
+
+				if (cardPtr) {
+					attemptCount++;
+					bool isAI = (dynamic_cast<HumanDecisionMaker*>(&curDecisionMaker) == nullptr);
+
+					if (isAI) {
+						DisplayRequestEvent retryEvent;
+						retryEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						retryEvent.context = "[AI] Action " + std::to_string(action) + " failed. Retrying...";
+						notifier.notifyDisplayRequested(retryEvent);
+
+						if (attemptCount >= 2) {
+							DisplayRequestEvent discardEvent;
+							discardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							discardEvent.context = "Forcing discard.";
+							notifier.notifyDisplayRequested(discardEvent);
+
+							auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+							discarded.push_back(std::move(cardPtr));
+							break;
+						}
+						action = 1;
+					}
+					else {
+						DisplayRequestEvent cancelEvent;
+						cancelEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						cancelEvent.context = "*** ACTION CANCELLED ***";
+						notifier.notifyDisplayRequested(cancelEvent);
+
+						(*nodes)[chosenNodeIndex]->setCard(std::move(cardPtr));
+						cancelled = true;
+						break;
+					}
+				}
+
+				if (!cardPtr && action == 0 && potentialPair) {
+				 int realCount = 0;
+				 auto targetSymbol = symbolToCheck.value();
+				 const auto& inventory = cur.m_player->getOwnedCards();
+
+				 for (const auto& ownedCardPtr : inventory) {
+					 if (auto ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+						 auto sym = ageCard->getScientificSymbols();
+						 if (sym.has_value() && sym.value() == targetSymbol) {
+							realCount++;
+						 }
+					 }
+				 }
+
+				 if (realCount == 2) {
+					 DisplayRequestEvent pairEvent;
+					 pairEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+					 pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
+					 notifier.notifyDisplayRequested(pairEvent);
+
+					 cur.chooseProgressTokenFromBoard(&curDecisionMaker);
+				 }
+				}
+			}
+
+			if (cancelled) {
+				continue;
+			}
+
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 			if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
 				continue;
 			}
 
+<<<<<<< HEAD
 			// Centralized backend rule+notifier updates (shared with UI)
 			Game::updateTreeAfterPick(currentPhase, static_cast<int>(chosenNodeIndex));
+=======
+			if (auto takenNode = (*nodes)[chosenNodeIndex]) {
+				auto checkParent = [](const std::shared_ptr<Node>& p) {
+					if (p) {
+						auto c1 = p->getChild1();
+						auto c2 = p->getChild2();
+						bool empty1 = (!c1 || c1->getCard() == nullptr);
+						bool empty2 = (!c2 || c2->getCard() == nullptr);
+						if (empty1 && empty2 && p->getCard()) {
+							p->getCard()->setIsAvailable(true);
+							p->getCard()->setIsVisible(true);
+						}
+					}
+				};
+				checkParent(takenNode->getParent1());
+				checkParent(takenNode->getParent2());
+			}
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 
 			if (logger) {
 				MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
@@ -1961,7 +2140,11 @@ void Game::announceVictory(int winner, const std::string& victoryType, const Pla
 		winnerName = p1.m_player->getPlayerUsername();
 	}
 	else if (winner == 1 && p2.m_player) {
+<<<<<<< HEAD
  		winnerName = p2.m_player->getPlayerUsername();
+=======
+		winnerName = p2.m_player->getPlayerUsername();
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 	}
 	else if (winner == 2) {
 		winnerName = "TIE";
@@ -2220,6 +2403,7 @@ void Game::initGame() {
 	if (p2Decisions) delete p2Decisions;
 	if (logger) delete logger;
 }
+<<<<<<< HEAD
 void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 	{
 		auto& board = Board::getInstance();
@@ -2493,3 +2677,6 @@ void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
 	}
 
 } // namespace Core
+=======
+}
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)

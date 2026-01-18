@@ -14,7 +14,10 @@ import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
 import Core.AIConfig;
 import Core.IGameListener;
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 export namespace Core {
     export struct WonderTradeCostLine {
         Models::ResourceType resource = Models::ResourceType::NO_RESOURCE;
@@ -52,6 +55,7 @@ export namespace Core {
         static void displayPlayerHands(const Player& p1, const Player& p2);
         static void displayTurnStatus(const Player& p1, const Player& p2);
         static void announceVictory(int winner, const std::string& victoryType, const Player& p1, const Player& p2);
+<<<<<<< HEAD
 
         // Backend-owned helper: after a node is emptied, reveal newly-unlocked parents and notify listeners.
         static void updateTreeAfterPick(int age, int emptiedNodeIndex);
@@ -67,5 +71,7 @@ export namespace Core {
         static WonderTradeCostBreakdown computeWonderTradeCost(const Player& cur,
             const Models::Wonder& wonder,
             const Player& opp);
+=======
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
     };
 }

@@ -64,6 +64,7 @@ void Core::playTurnForCurrentPlayer()
 	if (!cp) return;
 	std::cout << "Playing an extra turn for player\n";
 }
+<<<<<<< HEAD
 void Core::discardOpponentCardOfColor(Models::ColorType color)
 {
 	Core::Player* cp = getCurrentPlayer();
@@ -99,6 +100,71 @@ void Core::discardOpponentCardOfColor(Models::ColorType color)
 		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
 		discarded.push_back(std::move(moved));
 	}
+=======
+void Core::drawTokenForCurrentPlayer()
+{
+	Core::Player* cp = getCurrentPlayer();
+	if (!cp) return;
+	std::vector<std::unique_ptr<Models::Token>> combined;
+	auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
+	auto& militaryTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getMilitaryTokens());
+	for (auto& t : progressTokens) combined.push_back(std::move(t));
+	for (auto& t : militaryTokens) combined.push_back(std::move(t));
+	if (combined.empty()) return;
+	std::random_device rd; std::mt19937 gen(rd());
+	std::shuffle(combined.begin(), combined.end(), gen);
+	size_t pickCount = std::min<size_t>(3, combined.size());
+	std::cout << "Choose a token: \n";
+	for (size_t i = 0; i < pickCount; ++i) std::cout << "[" << i << "] " << combined[i]->getName() << "\n";
+	size_t choice = 0; std::cin >> choice; if (choice >= pickCount) choice = 0;
+	auto chosen = std::move(combined[choice]);
+	if (chosen) cp->m_player->addToken(std::move(chosen));
+	std::vector<std::unique_ptr<Models::Token>> newProgress;
+	std::vector<std::unique_ptr<Models::Token>> newMilitary;
+	for (auto& tptr : combined) {
+		if (!tptr) continue;
+		if (tptr->getType() == Models::TokenType::PROGRESS) newProgress.push_back(std::move(tptr));
+		else newMilitary.push_back(std::move(tptr));
+	}
+	Board::getInstance().setProgressTokens(std::move(newProgress));
+	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
+}
+void Core::discardOpponentCardOfColor(Models::ColorType color)
+{
+	Core::Player* cp = getCurrentPlayer();
+	if (!cp) return;
+	Core::Player* opponent = getOpponentPlayer();
+	if (!opponent) return;
+	auto& owned = opponent->m_player->getOwnedCards();
+	std::vector<size_t> candidates;
+	for (size_t i = 0; i < owned.size(); ++i) {
+		if (!owned[i]) continue;
+		if (owned[i]->getColor() == color) candidates.push_back(i);
+	}
+	if (candidates.empty()) return;
+	std::cout << "Choose opponent card to discard:\n";
+	for (size_t idx = 0; idx < candidates.size(); ++idx) {
+		size_t i = candidates[idx];
+		std::cout << "[" << idx << "] " << owned[i]->getName() << "\n";
+	}
+	size_t choice = 0; std::cin >> choice; if (choice >= candidates.size()) choice = 0;
+	size_t removeIdx = candidates[choice];
+	auto moved = opponent->m_player->removeOwnedCardAt(removeIdx);
+	if (moved)
+	{
+		Core::Game::getNotifier().notifyCardDiscarded({
+			static_cast<int>(cp->m_player->getkPlayerId()),  
+			cp->m_player->getPlayerUsername(),
+			moved->getName(),                               
+			-1,
+			Models::ColorTypeToString(moved->getColor()),    
+			{"Opponent card destroyed"}                      
+			});
+
+		auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Board::getInstance().getDiscardedCards());
+		discarded.push_back(std::move(moved));
+	}
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 }
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {
@@ -967,6 +1033,7 @@ void Core::Player::takeNewCard()
  cp->m_player->addCard(std::move(card));
  cp->m_player->getOwnedCards().back()->onPlay();
  std::cout << "Card \"" << cp->m_player->getOwnedCards().back()->getName() << "\" constructed for free.\n";
+<<<<<<< HEAD
 }
 void Core::drawTokenForCurrentPlayer()
 {
@@ -1010,4 +1077,6 @@ void Core::drawTokenForCurrentPlayer()
 	}
 	Board::getInstance().setProgressTokens(std::move(newProgress));
 	Board::getInstance().setMilitaryTokens(std::move(newMilitary));
+=======
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
 }

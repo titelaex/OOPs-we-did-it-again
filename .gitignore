@@ -416,5 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+<<<<<<< HEAD
 
 */summary.csv
+=======
+>>>>>>> parent of 5f22777 (Solved all Core Game issues and implemented ranges and views for tryWidthdraw)
