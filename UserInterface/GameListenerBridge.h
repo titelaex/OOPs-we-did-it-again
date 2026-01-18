@@ -62,6 +62,10 @@ public:
     void displayMessage(const std::string& m) override {}
     void displayError(const std::string& e) override {}
     void displayWarning(const std::string& w) override {}
+
+    void displayCardInfo(const Models::Card& card) override {}
+    void displayAgeCardInfo(const Models::AgeCard& ageCard) override {}
+    void displayWonderInfo(const Models::Wonder& wonder) override {}
     
 private:
     std::shared_ptr<GameListenerBridge> m_gameListener;
