@@ -5,7 +5,6 @@
 import Core.IGameListener;
 
 namespace {
-    // Function to map color names from the core to UI hex colors
     QString getHexColorForCard(const QString& colorName) {
         if (colorName.compare("BROWN", Qt::CaseInsensitive) == 0) return "#7C4A1C";
         if (colorName.compare("GREY", Qt::CaseInsensitive) == 0) return "#374151";
@@ -14,7 +13,7 @@ namespace {
         if (colorName.compare("GREEN", Qt::CaseInsensitive) == 0) return "#065F46";
         if (colorName.compare("BLUE", Qt::CaseInsensitive) == 0) return "#0369A1";
         if (colorName.compare("PURPLE", Qt::CaseInsensitive) == 0) return "#4C1D95";
-        return "#374151"; // Default color
+        return "#374151"; 
     }
 }
 
@@ -41,7 +40,6 @@ public:
             });
     }
 
-    // --- Game event no-ops ---
     void onCardBuilt(const Core::CardEvent&) override {}
     void onWonderBuilt(const Core::WonderEvent&) override {}
     void onTreeNodeChanged(const Core::TreeNodeEvent&) override {}
@@ -111,7 +109,7 @@ void DiscardedCardsWidget::setupUi()
     m_cardsList = new QListWidget(this);
     m_cardsList->setViewMode(QListWidget::IconMode);
     m_cardsList->setFlow(QListWidget::LeftToRight);
-    m_cardsList->setWrapping(false); // Scroll orizontal
+    m_cardsList->setWrapping(false); 
     m_cardsList->setSpacing(8);
     m_cardsList->setStyleSheet("QListWidget { background-color: rgba(20, 20, 20, 100); border: 1px solid #444; border-radius: 4px; }");
     m_cardsList->setFixedHeight(120);

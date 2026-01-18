@@ -537,7 +537,6 @@ namespace Core {
 			DisplayRequestEvent debugEvent;
 			debugEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
 
-			// Find the tokens CSV file using the same logic as other CSV files
 			auto findExistingPath = [](const std::vector<std::string>& candidates) -> std::string {
 				for (const auto& p : candidates) {
 					try { if (std::filesystem::exists(p)) return p; }
@@ -890,7 +889,6 @@ namespace Core {
 				const Node* ch1 = n->getChild1().get();
 				const Node* ch2 = n->getChild2().get();
 				event.context = "  Parents: (" + idxOf(p1) + ") " + nameOf(p1) + ", (" + idxOf(p2) + ") " + nameOf(p2);
-				//std::unique_ptr<Models::Card> cardPtr = std::move(wondersPool[idx]);
 				notifier.notifyDisplayRequested(event);
 				event.context = "  Children: (" + idxOf(ch1) + ") " + nameOf(ch1) + ", (" + idxOf(ch2) + ") " + nameOf(ch2);
 				notifier.notifyDisplayRequested(event);
@@ -2072,7 +2070,6 @@ namespace Core {
 		auto updateAndNotifyParent = [&](const std::shared_ptr<Node>& parent) {
 			if (!parent) return;
 
-			// Rule: if both children empty -> parent becomes available+visible
 			auto c1 = parent->getChild1();
 			auto c2 = parent->getChild2();
 			bool empty1 = (!c1 || c1->getCard() == nullptr);
@@ -2105,7 +2102,6 @@ namespace Core {
 		auto p2 = gs.GetPlayer2();
 		Core::Player* cur = Core::getCurrentPlayer();
 		if (!cur) {
-			// fallback to state turn flag
 			cur = gs.isPlayer1Turn() ? p1.get() : p2.get();
 			Core::setCurrentPlayer(cur);
 		}
@@ -2132,7 +2128,6 @@ namespace Core {
 			notifier.notifyDisplayRequested(ev);
 		};
 
-		// Perform action, reusing existing rules from Player.
 		switch (action) {
 		case 0: {
 			if (!cur->canAffordCard(cardPtr.get(), opp->m_player)) {
@@ -2165,10 +2160,8 @@ namespace Core {
 
 			size_t chosenIdx = candidates.front();
 			if (wonderIndex.has_value()) {
-				// If UI provided an index into candidates, use it.
 				size_t wi = wonderIndex.value();
 				if (wi < candidates.size()) chosenIdx = candidates[wi];
-				// If UI provided an absolute index into owned, accept it too.
 				else if (wi < owned.size()) chosenIdx = wi;
 			}
 
@@ -2194,16 +2187,13 @@ namespace Core {
 		}
 		}
 
-		// If action failed, put card back.
 		if (cardPtr) {
 			node->setCard(std::move(cardPtr));
 			return false;
 		}
 
-		// Check for shields and move pawn if card was built
-		if (action == 0) {  // Build action
+		if (action == 0) { 
 			uint8_t shields = 0;
-			// Get shields from the card that was just built
 			if (cur->m_player) {
 				const auto& ownedCards = cur->m_player->getOwnedCards();
 				if (!ownedCards.empty()) {
@@ -2215,14 +2205,12 @@ namespace Core {
 			}
 			
 			if (shields > 0) {
-				// Determine which player built the card
 				bool isPlayer1 = (cur == p1.get());
 				int steps = isPlayer1 ? static_cast<int>(shields) : -static_cast<int>(shields);
 				Game::movePawn(steps);
 			}
 		}
 
-		// Successful: tree updates + notifier.
 		Game::updateTreeAfterPick(age, nodeIndex);
 		return true;
 	}
@@ -2318,4 +2306,4 @@ namespace Core {
 		return out;
 	}
 
-} // namespace Core
+} 

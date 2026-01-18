@@ -20,7 +20,6 @@ public:
 	void refresh();
 	void setPawnPosition(int position);
 	
-	// Enable/disable token selection mode
 	void enableTokenSelection(std::function<void(int)> onTokenClicked);
 	void disableTokenSelection();
 
@@ -31,7 +30,7 @@ protected:
 	void resizeEvent(QResizeEvent* event) override;
 
 private:
-	int m_pawnPosition = -1; // -1 means use board position, >= 0 means override
+	int m_pawnPosition = -1; 
 	QGraphicsView* m_view{ nullptr };
 	QGraphicsScene* m_scene{ nullptr };
 	bool m_tokenSelectionEnabled = false;

@@ -15,7 +15,6 @@ QSize CardSpineDelegate::sizeHint(const QStyleOptionViewItem& option, const QMod
 {
 	Q_UNUSED(option);
 	Q_UNUSED(index);
-	// Match the fixed section height (32px)
 	return QSize(20, 45);
 }
 

@@ -474,7 +474,6 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		return;
 	}
 	
-	// Check if card is available (must be in the last row of the tree)
 	if (!card->isAvailable())
 	{
 		std::cout << "Card \"" << card->getName() << "\" is not available for building\n";
@@ -863,7 +862,6 @@ namespace Core {
 		while (std::getline(in, line)) {
 			if (line.empty()) continue;
 			auto columns = splitCsvLine(line);
-			// std::cout << "CSV Column count: " << columns.size() << "\n";
 			if (columns.size() < 2 || columns[0] != "Player") {
 				in.seekg(-static_cast<std::streamoff>(line.length()) - 1, std::ios_base::cur);
 				break;
@@ -996,7 +994,6 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 	pairEvent.context = "Choose a progress token from the board:";
 	notifier.notifyDisplayRequested(pairEvent);
 
-	// Build list of available token indices
 	std::vector<size_t> tokenIndices;
 	for (size_t i = 0; i < availableTokens.size(); ++i) {
 		if (availableTokens[i]) {
@@ -1010,10 +1007,8 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 
 	size_t choice = 0;
 	if (decisionMaker) {
-		// Use decision maker (works for both human and AI)
 		choice = decisionMaker->selectProgressToken(tokenIndices);
 	} else {
-		// Fallback to console input if no decision maker
 		bool valid = false;
 		while (!valid) {
 			std::cout << "Your choice (0-" << availableTokens.size() - 1 << "): ";
@@ -1040,10 +1035,8 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 		choiceEvent.context = "You chose the token: " + tokenName + "\n";
 		notifier.notifyDisplayRequested(choiceEvent);
 		
-		// Add token to player
 		m_player->addToken(std::move(chosenToken));
 		
-		// Notify that a token was acquired
 		Core::TokenEvent tokenEvent;
 		tokenEvent.playerID = static_cast<int>(m_player->getkPlayerId());
 		tokenEvent.playerName = m_player->getPlayerUsername();

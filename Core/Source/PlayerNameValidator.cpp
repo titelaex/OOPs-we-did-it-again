@@ -4,10 +4,6 @@ import <regex>;
 
 namespace Core {
     bool PlayerNameValidator::isValid(const std::string& name) {
-        // Regex pattern: ^[a-zA-Z]+$
-        // ^ - start of string
-        // [a-zA-Z]+ - one or more letters (uppercase or lowercase)
-        // $ - end of string
         std::regex namePattern("^[a-zA-Z]+$");
         return std::regex_match(name, namePattern);
     }
@@ -26,7 +22,6 @@ namespace Core {
         bool firstAttempt = true;
         
         while (true) {
-            // Display rules before first attempt
             if (firstAttempt) {
                 displayRules();
                 firstAttempt = false;
@@ -39,7 +34,6 @@ namespace Core {
                 std::cout << "Name accepted: '" << name << "'\n\n";
                 return name;
             } else {
-                // Validation failed - show error and rules again
                 std::cout << "\nERROR: Invalid name entered!\n";
                 displayRules();
             }

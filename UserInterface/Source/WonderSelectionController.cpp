@@ -144,7 +144,6 @@ void WonderSelectionController::onWonderSelected(int index)
             loadNextBatch();
         }
         else {
-            // Selection complete - notify parent
             if (m_widget) {
                 m_widget->setTurnMessage("");
                 m_widget->hide();

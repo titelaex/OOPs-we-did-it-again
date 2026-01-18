@@ -77,12 +77,10 @@ uint8_t Wonder::getWondersBuilt() { return wondersBuilt; }
 uint8_t Wonder::incrementWondersBuilt() { return ++wondersBuilt; }
 void Wonder::resetWondersBuilt() { wondersBuilt = 0; }
 
-// Core Wonder-specific getters
 const uint8_t& Wonder::getShieldPoints() const { return m_shieldPoints; }
 const ResourceType& Wonder::getResourceProduction() const { return m_resourceProduction; }
 bool Wonder::IsConstructed() const { return isConstructed; }
 
-// Non-applicable getters return neutral defaults
 const std::unordered_map<ResourceType, uint8_t>& Wonder::getResourcesProduction() const {
 	static const std::unordered_map<ResourceType, uint8_t> empty{};
 	return empty;
@@ -100,7 +98,6 @@ const std::unordered_map<TradeRuleType,bool>& Wonder::getTradeRules() const {
 	static const std::unordered_map<TradeRuleType,bool> empty{}; return empty;
 }
 const Age& Wonder::getAge() const {
-	// Wonders do not have an Age in this model; return a neutral default
 	static const Age kNeutral = Age::NO_AGE;
 	return kNeutral;
 }

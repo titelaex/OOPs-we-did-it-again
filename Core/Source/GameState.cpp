@@ -63,7 +63,7 @@ namespace Core {
         GameStateSerializer::saveGame(false);
     }
     
-    void GameState::loadGameState(const std::string& /*filename*/, int saveNumber) {
+    void GameState::loadGameState(const std::string&, int saveNumber) {
         if (saveNumber <= 0) {
             saveNumber = GameStateSerializer::getHighestSaveNumber();
         }

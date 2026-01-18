@@ -237,10 +237,9 @@ namespace Core {
         std::cout << "Choice: ";
     }
 
-    // ANSI/color and cost helpers copied from Models for exact same formatting
     static const char* colorAnsi(const Models::ColorType c) {
         switch (c) {
-        case Models::ColorType::BROWN: return "\x1b[38;5;94m"; // brown-ish
+        case Models::ColorType::BROWN: return "\x1b[38;5;94m"; 
         case Models::ColorType::GREY: return "\x1b[90m";
         case Models::ColorType::RED: return "\x1b[31m";
         case Models::ColorType::GREEN: return "\x1b[32m";

@@ -25,8 +25,8 @@ public:
 	void refreshStats();
 	void refreshWonders();
 	void refreshCards();
-	void refreshTokens(); // Add method to refresh tokens display
-	void refreshUsername(); // Add method to refresh username display
+	void refreshTokens();
+	void refreshUsername();
 
 private:
 	std::shared_ptr<Core::Player> m_player;
@@ -36,7 +36,7 @@ private:
 	QGridLayout* m_wondersGrid = nullptr;
 	QLabel* m_coinsLabel = nullptr;
 	QLabel* m_vpLabel = nullptr;
-	QLabel* m_usernameLabel = nullptr; // Store username label for updates
+	QLabel* m_usernameLabel = nullptr;
 
 	QListWidget* m_cardsBrown = nullptr;
 	QListWidget* m_cardsGrey = nullptr;
@@ -46,7 +46,7 @@ private:
 	QListWidget* m_cardsBlue = nullptr;
 	QListWidget* m_cardsPurple = nullptr;
 	
-	QWidget* m_tokensSection = nullptr; // Store tokens section for refresh
+	QWidget* m_tokensSection = nullptr; 
 
 	void buildUi();
 	void addStatsRow();
@@ -58,7 +58,6 @@ private:
 	QString QStringBuilder(const std::string& s) const;
 	QString ColorToCss(Models::ColorType c) const;
 
-	// store color section widgets so we can add temporary played-card labels
 	std::unordered_map<Models::ColorType, QWidget*> m_colorSections;
 
 public:

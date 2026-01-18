@@ -62,7 +62,6 @@ namespace Models
 		Player() = default;
 		~Player() = default;
 		uint8_t totalCoins(const std::tuple<uint8_t, uint8_t, uint8_t>& coins);
-		// replace these three declarations:
 		void addCard(std::unique_ptr<Card> card);
 		void addWonder(std::unique_ptr<Wonder> wonder);
 		void addToken(std::unique_ptr<Token> token);

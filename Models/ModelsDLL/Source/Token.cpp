@@ -25,7 +25,6 @@ uint8_t Token::getShieldPoints() const noexcept { return m_shieldPoints; }
 const std::vector<std::pair<std::function<void()>, std::string>>& Token::getOnPlayActions() const noexcept { return m_onPlayActions; }
 void Token::setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions) { m_onPlayActions = std::move(actions); }
 
-// Setters for deserialization
 void Token::setType(TokenType type) { m_type = type; }
 void Token::setName(const std::string& name) { m_name = name; }
 void Token::setDescription(const std::string& description) { m_description = description; }
@@ -171,33 +170,20 @@ namespace
 
 std::ostream& Models::operator<<(std::ostream& os, const Token& t)
 {
-	// type
 	os << csvEscape(tokenTypeToString(t.getType())) << ',';
-
-	// name
 	os << csvEscape(t.getName()) << ',';
-
-	// description
 	os << csvEscape(t.getDescription()) << ',';
-
-	// coins
 	os << csvEscape(coinsTupleToString(t.getCoins())) << ',';
-
-	// victoryPoints
 	os << '"';
 	if (t.getVictoryPoints() > 0) {
 		os << static_cast<int>(t.getVictoryPoints());
 	}
 	os << '"' << ',';
-
-	// shieldPoints
 	os << '"';
 	if (t.getShieldPoints() > 0) {
 		os << static_cast<int>(t.getShieldPoints());
 	}
 	os << '"' << ',';
-
-	// onPlayActions
 	os << csvEscape(actionPairVectorToString(t.getOnPlayActions()));
 
 	return os;
@@ -215,26 +201,16 @@ std::istream& Models::operator>>(std::istream& is, Token& t)
 		is.setstate(std::ios::failbit);
 		return is;
 	}
-
-	// Parse type
 	std::string typeStr = csvUnescape(fields[0]);
 	try {
 		t.setType(tokenTypeFromString(typeStr));
 	} catch (...) {
 		t.setType(TokenType::PROGRESS);
 	}
-
-	// Parse name
 	t.setName(csvUnescape(fields[1]));
-
-	// Parse description
 	t.setDescription(csvUnescape(fields[2]));
-
-	// Parse coins
 	std::string coinsStr = csvUnescape(fields[3]);
 	t.setCoins(ParseCoinsField(coinsStr));
-
-	// Parse victoryPoints
 	std::string victoryStr = csvUnescape(fields[4]);
 	if (!victoryStr.empty()) {
 		try {
@@ -245,8 +221,6 @@ std::istream& Models::operator>>(std::istream& is, Token& t)
 	} else {
 		t.setVictoryPoints(0);
 	}
-
-	// Parse shieldPoints
 	std::string shieldStr = csvUnescape(fields[5]);
 	if (!shieldStr.empty()) {
 		try {
@@ -257,9 +231,6 @@ std::istream& Models::operator>>(std::istream& is, Token& t)
 	} else {
 		t.setShieldPoints(0);
 	}
-
-	// onPlayActions - stored as strings, functions need to be rebound separately
-	// The caller should rebind actions based on action names if needed
 
 	return is;
 }

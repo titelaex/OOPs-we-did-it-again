@@ -61,7 +61,7 @@ QString PlayerPanelWidget::ColorToCss(Models::ColorType c) const {
 	case Models::ColorType::GREEN: return "#10B981";
 	case Models::ColorType::BLUE: return "#3B82F6";
 	case Models::ColorType::PURPLE: return "#8B5CF6";
-	default: return "#6B7280"; // gray
+	default: return "#6B7280"; 
 	}
 }
 
@@ -123,38 +123,31 @@ m_wondersGrid->addWidget(title,0,0,1,2);
 				QString name = QStringBuilder(w->getName());
 				bool built = w->IsConstructed();
 
-				// Try to load wonder image
 				QString imagePath = QString("Resources/wonders/%1.png").arg(name);
 				QPixmap wonderPixmap(imagePath);
 				
-				// If file system load fails, try from Qt resources
 				if (wonderPixmap.isNull()) {
 					imagePath = QString(":/wonders/%1.png").arg(name);
 					wonderPixmap = QPixmap(imagePath);
 				}
 				
 				if (!wonderPixmap.isNull()) {
-					// Scale image to fit the slot
 					QPixmap scaledPixmap = wonderPixmap.scaled(110, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 					slot->setPixmap(scaledPixmap);
-					slot->setText(""); // Clear text when showing image
+					slot->setText(""); 
 					
 					QString style;
 					if (built) {
-						// Gold border for constructed wonders
 						style = "border:3px solid #FFD700; border-radius:6px; padding:2px; background: transparent;";
 					} else {
-						// Brown border for unconstructed wonders
 						style = "1px solid #374151; border-radius:6px; padding:2px; background: transparent;";
 					}
 					slot->setStyleSheet(style);
 				} else {
-					// Fallback to text if no image
 					slot->setText(name + (built ? "\n✓" : ""));
 
 					QString style;
 					if (built) {
-						// Gold highlight for constructed wonders
 						style = QString(
 							"background: qlineargradient(x1:%1, y1:0, x2:%2, y2:0, stop:0 #FFD700, stop:1 #B8860B);"
 							"border:2px solid #8B6508; border-radius:6px; color:#111827; font-weight:700; font-size:10px; padding:2px;")
@@ -213,7 +206,6 @@ void PlayerPanelWidget::buildUi()
 	
 	if (m_player && m_player->m_player) {
 		QString playerUsername = QStringBuilder(m_player->m_player->getPlayerUsername());
-		// If username is empty or whitespace, use default
 		if (playerUsername.trimmed().isEmpty()) {
 			username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
 		} else {
@@ -223,7 +215,7 @@ void PlayerPanelWidget::buildUi()
 		username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
 	}
 
-	m_usernameLabel = new QLabel(username, this); // Store the label!
+	m_usernameLabel = new QLabel(username, this); 
 	m_usernameLabel->setStyleSheet("font-size:18px; font-weight: bold; margin-bottom:3px;");
 	m_usernameLabel->setAlignment(m_isLeftPanel ? Qt::AlignRight : Qt::AlignLeft);
 	m_layout->addWidget(m_usernameLabel);
@@ -242,7 +234,6 @@ void PlayerPanelWidget::refreshUsername()
 	
 	if (m_player && m_player->m_player) {
 		QString playerUsername = QStringBuilder(m_player->m_player->getPlayerUsername());
-		// If username is empty or whitespace, use default
 		if (playerUsername.trimmed().isEmpty()) {
 			username = m_isLeftPanel ? QString("Player 1") : QString("Player 2");
 		} else {
@@ -271,7 +262,6 @@ void PlayerPanelWidget::addWonderSection()
 
 void PlayerPanelWidget::addProgressTokensSection()
 {
-	// If section already exists, remove it first
 	if (m_tokensSection) {
 		m_layout->removeWidget(m_tokensSection);
 		delete m_tokensSection;
@@ -295,11 +285,9 @@ void PlayerPanelWidget::addProgressTokensSection()
 			
 			QString tokenName = QStringBuilder(t->getName());
 			
-			// Try to load token image
 			QString imagePath = QString("Resources/tokens/%1.png").arg(tokenName);
 			QPixmap tokenPixmap(imagePath);
 			
-			// If file system load fails, try from Qt resources
 			if (tokenPixmap.isNull()) {
 				imagePath = QString(":/tokens/%1.png").arg(tokenName);
 				tokenPixmap = QPixmap(imagePath);
@@ -311,12 +299,10 @@ void PlayerPanelWidget::addProgressTokensSection()
 			tokenLbl->setToolTip(tokenName);
 			
 			if (!tokenPixmap.isNull()) {
-				// Scale image to fit the circle
 				QPixmap scaledPixmap = tokenPixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 				tokenLbl->setPixmap(scaledPixmap);
 				tokenLbl->setStyleSheet(baseStyle + "border:2px solid #0ea5e9; border-radius:18px; background-color:#0284c7; padding:2px;");
 			} else {
-				// Fallback to initials if image not found
 				QString initials = tokenName.section(' ', 0, 0).left(2).toUpper();
 				tokenLbl->setText(initials);
 				tokenLbl->setStyleSheet(baseStyle + "border:2px dotted #9CA3AF; border-radius:18px; background-color:#4B5563;");
@@ -327,7 +313,6 @@ void PlayerPanelWidget::addProgressTokensSection()
 		}
 	}
 	
-	// Add empty placeholder slots
 	for (; rendered < 3; ++rendered) {
 		auto placeholder = new QLabel(QString(), m_tokensSection);
 		placeholder->setFixedSize(36, 36);
@@ -336,13 +321,11 @@ void PlayerPanelWidget::addProgressTokensSection()
 		tokensLayout->addWidget(placeholder);
 	}
 	
-	// Insert after stats row (position 1, after username which is 0)
 	m_layout->insertWidget(2, m_tokensSection);
 }
 
 void PlayerPanelWidget::refreshTokens()
 {
-	// Simply rebuild the tokens section
 	addProgressTokensSection();
 }
 
@@ -421,12 +404,10 @@ void PlayerPanelWidget::refreshCards()
 		QString name = QStringBuilder(uptr->getName());
 		auto* item = new QListWidgetItem(name);
 		item->setToolTip(name);
-		// Size will be set by SpineList::updateItemSizes()
 		item->setData(Qt::BackgroundRole, QColor(ColorToCss(uptr->getColor())));
 		list->addItem(item);
 	}
 	
-	// Force update of item sizes after adding items
 	for (auto* l : lists) {
 		if (l && l->count() > 0) {
 			if (auto* spine = dynamic_cast<SpineList*>(l)) {

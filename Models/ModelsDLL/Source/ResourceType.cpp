@@ -32,4 +32,4 @@ std::optional<ResourceType> StringToResourceType(const std::string& str) {
 }
 
 
-} // namespace Models
+}

@@ -13,7 +13,6 @@
 import Core.Board;
 import Models.Token;
 
-// Clickable token item class
 class ClickableTokenItem : public QGraphicsEllipseItem {
 public:
 	ClickableTokenItem(const QRectF& rect, int tokenIndex, std::function<void(int)> onClick)
@@ -22,7 +21,7 @@ public:
 		setAcceptHoverEvents(true);
 		setCursor(Qt::PointingHandCursor);
 		m_normalPen = pen();
-		m_hoverPen = QPen(QColor("#fbbf24"), 6); // Gold hover
+		m_hoverPen = QPen(QColor("#fbbf24"), 6); 
 	}
 
 protected:
@@ -82,19 +81,19 @@ void BoardWidget::enableTokenSelection(std::function<void(int)> onTokenClicked)
 {
 	m_tokenSelectionEnabled = true;
 	m_onTokenClicked = onTokenClicked;
-	refresh(); // Redraw with clickable tokens
+	refresh(); 
 }
 
 void BoardWidget::disableTokenSelection()
 {
 	m_tokenSelectionEnabled = false;
 	m_onTokenClicked = nullptr;
-	refresh(); // Redraw without clickable tokens
+	refresh(); 
 }
 
 void BoardWidget::refresh()
 {
-	drawBoard(); // Just redraw, don't clear here since drawBoard clears
+	drawBoard(); 
 }
 
 void BoardWidget::drawBoard()
@@ -119,7 +118,6 @@ void BoardWidget::drawBoard()
 	double y = boardY + boardHeight /2;
 	for (int i =0; i < kTrackSlots; ++i) track.emplace_back(startX + i * step, y);
 
-	// Main board - brown/tan color!
 	QPainterPath boardPath;
 	boardPath.moveTo(centerX - boardWidth /2 + endAngleWidth, boardY);
 	boardPath.lineTo(centerX + boardWidth /2 - endAngleWidth, boardY);
@@ -129,13 +127,11 @@ void BoardWidget::drawBoard()
 	boardPath.lineTo(centerX - boardWidth /2, boardY + boardHeight /2);
 	boardPath.closeSubpath();
 
-	// Brown gradient for the board
 	QLinearGradient baseGrad(0, boardY,0, boardY + boardHeight);
-	baseGrad.setColorAt(0, QColor("#d4a574")); // Light tan/brown
-	baseGrad.setColorAt(1, QColor("#a67c52")); // Darker brown
+	baseGrad.setColorAt(0, QColor("#d4a574")); 
+	baseGrad.setColorAt(1, QColor("#a67c52")); 
 	m_scene->addPath(boardPath, QPen(QColor("#8b6f47"),8), QBrush(baseGrad));
 
-	// Token bar - matching brown theme
 	qreal tokenBarWidth =1000;
 	qreal tokenBarHeight =140;
 	QPainterPath tokenPath;
@@ -147,7 +143,6 @@ void BoardWidget::drawBoard()
 
 	int pawnPos = (m_pawnPosition >= 0) ? m_pawnPosition : static_cast<int>(board.getPawnPos());
 
-	// Pawn track circles
 	for (int i =0; i < kTrackSlots; ++i) {
 		auto& p = track[i];
 		bool hasPawn = (i == pawnPos);
@@ -162,7 +157,6 @@ void BoardWidget::drawBoard()
 		e->setZValue(1);
 	}
 
-	// Dotted delimiters
 	QPen dottedPen(QColor("#8b6f47"),3, Qt::DotLine);
 	for (int i : {0,3,6,8,9,11,14,17}) {
 		qreal x_pos = track[i].x() + step /2.0;
@@ -171,7 +165,6 @@ void BoardWidget::drawBoard()
 
 	drawPawn(pawnPos,0, kTrackSlots -1);
 
-	// Progress tokens
 	const auto& tokens = board.getProgressTokens();
 	double circleSize =100.0;
 	double spacing =25.0;
@@ -184,18 +177,14 @@ void BoardWidget::drawBoard()
 		QRectF cRect(startTX + i * (circleSize + spacing), ty, circleSize, circleSize);
 		
 		if (i < static_cast<int>(tokens.size()) && tokens[i]) {
-			// Token exists - draw filled circle with image
 			const Models::Token* tok = tokens[i].get();
 			QString tokenName = QString::fromStdString(tok->getName());
 			
-			// Create circular clipping path for the image
 			QPainterPath circle;
 			circle.addEllipse(cRect);
 			
-			// Add background circle with border - make it clickable if selection is enabled
 			QGraphicsItem* ring = nullptr;
 			if (m_tokenSelectionEnabled && m_onTokenClicked) {
-				// Create a clickable item
 				auto* clickableRing = new ClickableTokenItem(cRect, i, m_onTokenClicked);
 				clickableRing->setPen(QPen(QColor("#8b6f47"),5));
 				clickableRing->setBrush(QBrush(QColor("#a67c52")));
@@ -209,7 +198,6 @@ void BoardWidget::drawBoard()
 				shadow->setColor(QColor(0,0,0,150));
 				clickableRing->setGraphicsEffect(shadow);
 			} else {
-				// Non-clickable ring
 				auto* pathRing = m_scene->addPath(circle, QPen(QColor("#8b6f47"),5), QBrush(QColor("#a67c52")));
 				pathRing->setZValue(3);
 				ring = pathRing;
@@ -221,29 +209,23 @@ void BoardWidget::drawBoard()
 				pathRing->setGraphicsEffect(shadow);
 			}
 			
-			// Load and display token image
-			// Try loading from file system first (easier for development)
 			QString imagePath = QString("Resources/tokens/%1.png").arg(tokenName);
 			QPixmap tokenPixmap(imagePath);
 			
-			// If file system load fails, try from Qt resources
 			if (tokenPixmap.isNull()) {
 				imagePath = QString(":/tokens/%1.png").arg(tokenName);
 				tokenPixmap = QPixmap(imagePath);
 			}
 			
-			// Images are ready!
-			bool useImages = true; // Set to false if you want to use letter fallback
+			bool useImages = true; 
 			
 			if (useImages && !tokenPixmap.isNull()) {
-				// Scale image to fill the entire circle (100x100)
 				QPixmap scaledPixmap = tokenPixmap.scaled(
 					circleSize, circleSize,
 					Qt::KeepAspectRatio,
 					Qt::SmoothTransformation
 				);
 				
-				// Center the image in the circle
 				auto* pixmapItem = m_scene->addPixmap(scaledPixmap);
 				pixmapItem->setPos(
 					cRect.center().x() - scaledPixmap.width() / 2.0,
@@ -251,15 +233,11 @@ void BoardWidget::drawBoard()
 				);
 				pixmapItem->setZValue(4);
 				
-				// Make image clickable too if selection is enabled
 				if (m_tokenSelectionEnabled && m_onTokenClicked) {
 					pixmapItem->setAcceptedMouseButtons(Qt::LeftButton);
 					pixmapItem->setCursor(Qt::PointingHandCursor);
-					// Note: QGraphicsPixmapItem doesn't have click events by default,
-					// so clicks will go through to the ring below
 				}
 			} else {
-				// Fallback to letter if image not found
 				QString icon = tokenName.left(1).toUpper();
 				QGraphicsTextItem* iconText = m_scene->addText(icon, QFont("Segoe UI",36, QFont::Bold));
 				iconText->setDefaultTextColor(QColor("#e9d5ff"));
@@ -268,14 +246,12 @@ void BoardWidget::drawBoard()
 				iconText->setZValue(4);
 			}
 			
-			// Add token name label below
 			QGraphicsTextItem* t = m_scene->addText(tokenName, QFont("Segoe UI",11, QFont::Bold));
 			t->setDefaultTextColor(QColor("#3d2817"));
 			QRectF tb = t->boundingRect();
 			t->setPos(cRect.center().x() - tb.width() /2.0, cRect.bottom() +5);
 			t->setZValue(4);
 		} else {
-			// Empty slot - draw placeholder like player panel
 			QPainterPath emptyCircle;
 			emptyCircle.addEllipse(cRect);
 			auto* placeholder = m_scene->addPath(emptyCircle, 
