@@ -1,4 +1,4 @@
-﻿export module Core.TrainingLogger;
+export module Core.TrainingLogger;
 import <string>;
 import <vector>;
 import <memory>;

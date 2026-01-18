@@ -1,4 +1,4 @@
-﻿export module Core.WeightOptimizer;
+export module Core.WeightOptimizer;
 import <string>;
 import <vector>;
 import <unordered_map>;

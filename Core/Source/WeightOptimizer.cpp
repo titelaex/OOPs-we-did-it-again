@@ -1,4 +1,5 @@
-﻿module Core.WeightOptimizer;
+#include <cmath>
+module Core.WeightOptimizer;
 import <string>;
 import <vector>;
 import <fstream>;
@@ -8,7 +9,6 @@ import <iomanip>;
 import <algorithm>;
 import <unordered_map>;
 import Core.AIConfig;
-#include <cmath>
 namespace Core {
 WeightOptimizer::WeightOptimizer() {
     m_weights[Playstyle::BRITNEY] = Core::getDefaultWeights(Playstyle::BRITNEY);
@@ -202,20 +202,20 @@ void WeightOptimizer::adjustWeightBasedOnPerformance(Playstyle style, const Play
         if (militaryRatio > 0.5) {
             weights.militaryPriority += adjustmentMagnitude * 0.5;
             weights.wonderMilitaryBonus += adjustmentMagnitude * 0.3;
-            std::cout << "  ↑ Increased military focus (winning via military)\n";
+            std::cout << "  ? Increased military focus (winning via military)\n";
         }
         if (scientificRatio > 0.5) {
             weights.sciencePriority += adjustmentMagnitude * 0.5;
-            std::cout << "  ↑ Increased science focus\n";
+            std::cout << "  ? Increased science focus\n";
         }
         if (civilianRatio > 0.5) {
             weights.victoryPointValue += adjustmentMagnitude * 0.5;
             weights.wonderVPBonus += adjustmentMagnitude * 0.3;
-            std::cout << "  ↑ Increased VP focus\n";
+            std::cout << "  ? Increased VP focus\n";
         }
     }
     if (winRate < 0.4) {
-        std::cout << "  ⚖ Rebalancing weights (poor performance)\n";
+        std::cout << "  ? Rebalancing weights (poor performance)\n";
         balanceWeights(weights);
     }
     weights.normalizeWeights();

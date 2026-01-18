@@ -1,0 +1,729 @@
+{
+  "saveNumber": 8,
+  "gameMetadata": {
+    "gameMode": 1,
+    "trainingMode": false,
+    "player1Playstyle": "Britney",
+    "player2Playstyle": "Britney",
+    "currentPhase": 3,
+    "currentRound": 12,
+    "isPlayer1Turn": true,
+    "lastAction": {
+      "playerName": "AI_P1",
+      "actionType": "0",
+      "cardName": "Observatory",
+      "round": 0,
+      "phase": 0,
+      "effectsApplied": [
+        "getVictoryPoints",
+        "getScientificSymbol"
+
+      ]
+
+    }
+
+  },
+  "board": {
+    "pawnPosition": 8,
+    "pawnTrack": "0000000000100000000"
+
+  },
+  "progressTokens": [
+    {
+      "name": "Urbanism",
+      "description": "Immediately take 6 coins from the Bank. Each time you construct a Building for free through linking (free construction condition chain) you gain 4 coins",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Architecture",
+      "description": "Any furure Wonders built by you will cost 2 fewer resources.At each construction you are free to choose which resources this rebate affects.",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Masonry",
+      "description": "Any future blue cards constructed by you will cost 2 fewer resources.",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Law",
+      "description": "Is worth a scientific symbol",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Strategy",
+      "description": "Once this token enters play your new military Buildings (red cards) will benefit from 1 extra Shield.",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    }
+
+  ],
+  "militaryTokens": [
+
+  ],
+  "age1Tree": [
+    {
+      "index": 0,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 0]
+    },
+    {
+      "index": 3,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 4,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 1]
+    },
+    {
+      "index": 5,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 2]
+    },
+    {
+      "index": 6,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 3]
+    },
+    {
+      "index": 7,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [3, 4]
+    },
+    {
+      "index": 8,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [4, 4]
+    },
+    {
+      "index": 9,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 5]
+    },
+    {
+      "index": 10,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 6]
+    },
+    {
+      "index": 11,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [6, 7]
+    },
+    {
+      "index": 12,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [7, 8]
+    },
+    {
+      "index": 13,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [8, 8]
+    },
+    {
+      "index": 14,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 9]
+    },
+    {
+      "index": 15,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 10]
+    },
+    {
+      "index": 16,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [10, 11]
+    },
+    {
+      "index": 17,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 18,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 19,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 13]
+    }
+
+  ],
+  "age2Tree": [
+    {
+      "index": 0,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 3,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 4,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 5,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 6,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 7,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 2]
+    },
+    {
+      "index": 8,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 3]
+    },
+    {
+      "index": 9,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [3, 4]
+    },
+    {
+      "index": 10,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [4, 5]
+    },
+    {
+      "index": 11,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [6, 7]
+    },
+    {
+      "index": 12,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [7, 8]
+    },
+    {
+      "index": 13,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [8, 9]
+    },
+    {
+      "index": 14,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 10]
+    },
+    {
+      "index": 15,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 16,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 17,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 14]
+    },
+    {
+      "index": 18,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [15, 16]
+    },
+    {
+      "index": 19,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [16, 17]
+    }
+
+  ],
+  "age3Tree": [
+    {
+      "index": 0,
+      "cardName": "Traders Guild",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "Pantheon",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 0]
+    },
+    {
+      "index": 3,
+      "cardName": "Study",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 4,
+      "cardName": "Arsenal",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 1]
+    },
+    {
+      "index": 5,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 2]
+    },
+    {
+      "index": 6,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 3]
+    },
+    {
+      "index": 7,
+      "cardName": "Palace",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [3, 4]
+    },
+    {
+      "index": 8,
+      "cardName": "Circus",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [4, 4]
+    },
+    {
+      "index": 9,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 6]
+    },
+    {
+      "index": 10,
+      "cardName": "Senate",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [7, 8]
+    },
+    {
+      "index": 11,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 9]
+    },
+    {
+      "index": 12,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 9]
+    },
+    {
+      "index": 13,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [10, 10]
+    },
+    {
+      "index": 14,
+      "cardName": "Armory",
+      "isEmpty": false,
+      "isAvailable": true,
+      "isVisible": true,
+      "parents": [10, 10]
+    },
+    {
+      "index": 15,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 16,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 17,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 14]
+    },
+    {
+      "index": 18,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [15, 16]
+    },
+    {
+      "index": 19,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [16, 17]
+    }
+
+  ],
+  "player1": {
+    "id": 1,
+    "username": "AI_P1",
+    "remainingCoins": {"gold": 0, "silver": 0, "bronze": 2},
+    "totalCoins": 12,
+    "permanentResources": [
+      {"type": "GLASS", "amount": 2},
+      {"type": "PAPYRUS", "amount": 4},
+      {"type": "STONE", "amount": 1},
+      {"type": "WOOD", "amount": 6}
+
+    ],
+    "tradingResources": [
+
+    ],
+    "scientificSymbols": [
+      {"type": "PENDULUM", "amount": 1},
+      {"type": "FEATHER", "amount": 1},
+      {"type": "WHEEL", "amount": 1},
+      {"type": "MOJAR", "amount": 1},
+      {"type": "CLOCK", "amount": 1},
+      {"type": "GLOBE", "amount": 1}
+
+    ],
+    "tradeRules": [
+      "Stone"
+
+    ],
+    "tokensOwnedBitset": "0000000000",
+    "builtCards": [
+      "Altar",
+      "Stable",
+      "Press",
+      "Stone Reserve",
+      "Workshop",
+      "Scriptorium",
+      "Apothecary",
+      "Logging Camp",
+      "Brewery",
+      "Drying Room",
+      "Courthouse",
+      "Dispensary",
+      "Caravansery",
+      "Sawmill",
+      "Archery Range",
+      "Academy",
+      "Fortifications",
+      "Moneylenders Guild",
+      "Port",
+      "Observatory"
+
+    ],
+    "wonders": [
+      "The Great Lighthouse",
+      "The Great Library",
+      "The Hanging Gardens",
+      "The Temple of Artemis"
+
+    ],
+    "ownedTokens": [
+
+    ],
+    "points": {
+      "military": 5,
+      "building": 36,
+      "wonder": 0,
+      "progress": 0,
+      "total": 41
+
+    }
+
+  },
+  "player2": {
+    "id": 2,
+    "username": "AI_P2",
+    "remainingCoins": {"gold": 0, "silver": 0, "bronze": 2},
+    "totalCoins": 12,
+    "permanentResources": [
+      {"type": "CLAY", "amount": 3},
+      {"type": "STONE", "amount": 2},
+      {"type": "GLASS", "amount": 2}
+
+    ],
+    "tradingResources": [
+
+    ],
+    "scientificSymbols": [
+      {"type": "PENDULUM", "amount": 1}
+
+    ],
+    "tradeRules": [
+      "Clay"
+
+    ],
+    "tokensOwnedBitset": "0000000000",
+    "builtCards": [
+      "Clay Pit",
+      "Clay Reserve",
+      "Stone Pit",
+      "Baths",
+      "Theater",
+      "Palisade",
+      "Barracks",
+      "Rostrum",
+      "Aqueduct",
+      "Laboratory",
+      "Glass-Blower",
+      "Customs House",
+      "Pretorium",
+      "Obelisk",
+      "Scientists Guild",
+      "Chamber Of Commerce"
+
+    ],
+    "wonders": [
+      "The Colossus",
+      "Circus Maximus",
+      "The Appian Way",
+      "The Mausoleum"
+
+    ],
+    "ownedTokens": [
+      "Military Loss 5",
+      "Military Loss 2"
+
+    ],
+    "points": {
+      "military": 8,
+      "building": 55,
+      "wonder": 0,
+      "progress": 0,
+      "total": 63
+
+    }
+
+  },
+  "unusedCards": [
+    {"age": "AGE_I", "name": "Quarry"},
+    {"age": "AGE_I", "name": "Garrison"},
+    {"age": "AGE_I", "name": "Lumber Yard"},
+    {"age": "AGE_II", "name": "Temple"},
+    {"age": "AGE_II", "name": "School"},
+    {"age": "AGE_II", "name": "Library"},
+    {"age": "AGE_III", "name": "Siege Workshop"},
+    {"age": "AGE_III", "name": "Gardens"},
+    {"age": "AGE_III", "name": "Town Hall"},
+    {"age": "GUILD", "name": "Magistrates Guild"},
+    {"age": "GUILD", "name": "Shipowners Guild"},
+    {"age": "GUILD", "name": "Tacticians Guild"},
+    {"age": "GUILD", "name": "Builders Guild"},
+    {"age": "WONDER", "name": "The Pyramids"},
+    {"age": "WONDER", "name": "Piraeus"},
+    {"age": "WONDER", "name": "The Sphinx"},
+    {"age": "WONDER", "name": "The Statue of Zeus"}
+
+  ],
+  "discardedCards": [
+    "Tavern",
+    "Guard Tower",
+    "Wood Reserve",
+    "Pharmacist",
+    "Forum",
+    "Glassworks",
+    "Horse Breeders",
+    "Shelf Quarry",
+    "Parade Ground",
+    "Statue",
+    "Arena",
+    "University",
+    "Lighthouse"
+
+  ]
+
+}

@@ -1,4 +1,4 @@
-﻿export module Core.AIConfig;
+export module Core.AIConfig;
 import <string>;
 import <fstream>;
 import <sstream>;

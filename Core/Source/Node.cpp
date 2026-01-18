@@ -1,7 +1,9 @@
-﻿module Core.Node;
+module Core.Node;
 import Models.Card;
 import <utility>;
 import <memory>;
+import <optional>;
+import <functional>;
 import Core.Node;
 
 namespace Core {
@@ -41,14 +43,16 @@ void Node::setChild2(const std::shared_ptr<Node>& child)
     }
 }
 
-Models::Card* Node::getCard()
+std::optional<std::reference_wrapper<Models::Card>> Node::getCard()
 {
-	return m_card.get();
+	if (!m_card) return std::nullopt;
+	return std::ref(*m_card);
 }
 
-const Models::Card* Node::getCard() const
+std::optional<std::reference_wrapper<const Models::Card>> Node::getCard() const
 {
-    return m_card.get();
+    if (!m_card) return std::nullopt;
+	return std::cref(*m_card);
 }
 
 Models::Card* Node::getCardRaw() const
@@ -71,8 +75,8 @@ bool Node::isAvailable() const
     if (!m_card) return false;
     auto c1 = m_child1.lock();
     auto c2 = m_child2.lock();
-    bool c1Empty = (!c1) || (c1->getCard() == nullptr);
-    bool c2Empty = (!c2) || (c2->getCard() == nullptr);
+    bool c1Empty = (!c1) || !c1->getCard().has_value();
+    bool c2Empty = (!c2) || !c2->getCard().has_value();
     return c1Empty && c2Empty;
 }
 

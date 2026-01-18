@@ -1,14 +1,10 @@
-﻿export module Core.PlayerDecisionMaker;
+export module Core.PlayerDecisionMaker;
 import <vector>;
 import <cstdint>;
 import <memory>;
 import <string>;
 import Core.AIConfig;
 import Core.MCTS;
-namespace Core {
-    struct MCTSGameState;
-    struct MCTSAction;
-}
 export namespace Core {
     struct IPlayerDecisionMaker {
         virtual ~IPlayerDecisionMaker() = default;
@@ -39,6 +35,9 @@ export namespace Core {
         size_t selectProgressToken(const std::vector<size_t>& available) override;
         size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
+        
+        
+        MCTSAction selectTurnAction();
         void setPlaystyle(Playstyle style);
         void setIterations(int count);
         void setExplorationConstant(double constant);
@@ -78,6 +77,8 @@ export namespace Core {
         size_t selectProgressToken(const std::vector<size_t>& available) override;
         size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
+        
+        MCTSAction selectTurnAction();
         void setSimulationCount(unsigned int count);
         void setExplorationConstant(double constant);
         void setMaxDepth(unsigned int depth);

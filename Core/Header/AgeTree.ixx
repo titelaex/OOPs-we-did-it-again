@@ -1,4 +1,4 @@
-﻿export module Core.AgeTree;
+export module Core.AgeTree;
 import Core.Node;
 import Models.Card;
 import <vector>;

@@ -1,4 +1,4 @@
-﻿module Core.Board;
+module Core.Board;
 import Core.Node;
 import Models.AgeCard;
 import Models.GuildCard;
@@ -64,8 +64,8 @@ std::deque<Models::Card*> Board::getAvailableCardsByAge(int age) const
     {
         if (!node) continue;
         auto card = node->getCard();
-        if (!card) continue;
-        if (card->isAvailable()) available.push_back(card);
+        if (!card.has_value()) continue;
+        if (card->get().isAvailable()) available.push_back(&card->get());
     }
     return available;
 }
@@ -162,8 +162,8 @@ static void displayAgeCards(const char* title, const std::vector<std::shared_ptr
 		auto& n = nodes[i];
 		if (!n) continue;
 		auto c = n->getCard();
-		if (!c) continue;
-		c->displayCardInfo();
+		if (!c.has_value()) continue;
+		c->get().displayCardInfo();
 	}
 }
 void Board::displayEntireBoard()
@@ -221,14 +221,15 @@ namespace Core {
                 }
                 
                 out << "TreeNode," << age << "," << i << ",";
-                if (node->getCard()) {
-                    streamCardByType(out, node->getCard());
+                auto nodeCard = node->getCard();
+                if (nodeCard.has_value()) {
+                    streamCardByType(out, &nodeCard->get());
                 } else {
                     out << "EMPTY";
                 }
                 
                 out << "|Available:" << (node->isAvailable() ? "1" : "0");
-                out << "|Visible:" << (node->getCard() && node->getCard()->isVisible() ? "1" : "0");
+                out << "|Visible:" << (nodeCard.has_value() && nodeCard->get().isVisible() ? "1" : "0");
                 
                 auto p1 = node->getParent1();
                 auto p2 = node->getParent2();
@@ -521,11 +522,11 @@ namespace Core {
 							
 						 if (node) {
 							 auto card = node->getCard();
-							 if (card) {
+							 if (card.has_value()) {
 								 if (key == "Available") {
-									 card->setIsAvailable(value == "1");
+									 card->get().setIsAvailable(value == "1");
 								 } else if (key == "Visible") {
-									 card->setIsVisible(value == "1");
+									 card->get().setIsVisible(value == "1");
 								 }
 							 }
 						 }

@@ -1,4 +1,4 @@
-﻿export module Core.Board;
+export module Core.Board;
 import <bitset>;
 import <vector>;
 import <memory>;

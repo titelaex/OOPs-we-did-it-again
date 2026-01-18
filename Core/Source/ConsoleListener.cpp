@@ -1,4 +1,4 @@
-﻿module Core.ConsoleListener;
+module Core.ConsoleListener;
 import <iostream>;
 import <iomanip>;
 import <sstream>;
@@ -442,7 +442,7 @@ namespace Core {
         
         std::cout << "Military Track: P1 [";
         for (int i = 0; i <= 18; ++i) {
-            if (i == pawnPos) std::cout << "●";
+            if (i == pawnPos) std::cout << "?";
             else if (i == 9) std::cout << "|";
             else std::cout << "-";
         }
@@ -491,7 +491,7 @@ namespace Core {
         int pawnPos = board.getPawnPos();
         std::cout << "\nMilitary: P1 [";
         for (int i = 0; i <= 18; ++i) {
-            if (i == pawnPos) std::cout << "●";
+            if (i == pawnPos) std::cout << "?";
             else if (i == 9) std::cout << "|";
             else std::cout << "-";
         }

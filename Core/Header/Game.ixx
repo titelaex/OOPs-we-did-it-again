@@ -1,8 +1,9 @@
-﻿export module Core.Game;
+export module Core.Game;
 import <memory>;
 import <vector>;
 import <string>;
 import <optional>;
+import <functional>;
 import <unordered_map>;
 import Core.Board;
 import Core.Node;
@@ -43,10 +44,11 @@ export namespace Core {
         static void playAllPhases(Player& p1, Player& p2,
                                  IPlayerDecisionMaker& p1Decisions,
                                  IPlayerDecisionMaker& p2Decisions,
-                                 TrainingLogger* logger = nullptr);
+                                 std::optional<std::reference_wrapper<TrainingLogger>> logger = std::nullopt);
         
         static void wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2, 
-                                    IPlayerDecisionMaker* p1Decisions = nullptr, IPlayerDecisionMaker* p2Decisions = nullptr);
+                                    std::optional<std::reference_wrapper<IPlayerDecisionMaker>> p1Decisions = std::nullopt, 
+                                    std::optional<std::reference_wrapper<IPlayerDecisionMaker>> p2Decisions = std::nullopt);
         static void debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool);
         static void awardMilitaryTokenIfPresent(Player& receiver, Player& opponent);
         static void handleOpponentCardDiscard(Player& cardOwner, Player& discardingPlayer,

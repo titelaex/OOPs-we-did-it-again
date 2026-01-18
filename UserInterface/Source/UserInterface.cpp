@@ -1,4 +1,4 @@
-﻿#include "BoardWidget.h"
+#include "BoardWidget.h"
 #include "UserInterface.h"
 #include "PlayerPanelWidget.h"
 #include "WonderSelectionWidget.h"
@@ -26,6 +26,7 @@
 #include <QtWidgets/QMessageBox>
 
 
+#include <QtCore/QPointer>
 
 import Core.Board;
 import Core.Game;
@@ -275,18 +276,23 @@ void UserInterface::startWonderSelection()
 		this);
 
 	m_wonderController->onSelectionComplete = [this]() {
-		showPhaseTransitionMessage();
+		showPhaseTransitionMessage(1);
 	};
 
 	m_wonderController->start();
 }
 
-void UserInterface::showPhaseTransitionMessage()
+void UserInterface::showPhaseTransitionMessage(int age)
 {
 	if (m_centerMiddle && m_centerMiddle->layout()) {
 		QLayoutItem* item;
 		while ((item = m_centerMiddle->layout()->takeAt(0)) != nullptr) {
-			if (item->widget()) item->widget()->deleteLater();
+			if (item->widget()) {
+				if (item->widget() == m_ageTreeWidget) {
+					m_ageTreeWidget = nullptr;
+				}
+				item->widget()->deleteLater();
+			}
 			delete item;
 		}
 		delete m_centerMiddle->layout();
@@ -294,7 +300,7 @@ void UserInterface::showPhaseTransitionMessage()
 	auto* msgLayout = new QVBoxLayout(m_centerMiddle);
 	msgLayout->setContentsMargins(8,8,8,8);
 
-	QLabel* phaseMsg = new QLabel("Sa inceapa epocile!", m_centerMiddle);
+	QLabel* phaseMsg = new QLabel(QString("Phase %1 incepe").arg(age), m_centerMiddle);
 	phaseMsg->setAlignment(Qt::AlignCenter);
 	phaseMsg->setStyleSheet("color: white;");
 	QFont f = phaseMsg->font();
@@ -307,8 +313,8 @@ void UserInterface::showPhaseTransitionMessage()
 	m_centerMiddle->update();
 	QApplication::processEvents();
 
-	QTimer::singleShot(1800, this, [this]() {
-		showAgeTree(1);
+	QTimer::singleShot(1800, this, [this, age]() {
+		showAgeTree(age);
 	});
 }
 
@@ -357,13 +363,13 @@ void UserInterface::showAgeTree(int age)
 		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
 	}
 
-	Core::Player* coreCur = Core::getCurrentPlayer();
+	auto coreCur = Core::getCurrentPlayer();
 	auto& gs = Core::GameState::getInstance();
-	auto p1 = gs.GetPlayer1().get();
-	auto p2 = gs.GetPlayer2().get();
+	auto p1 = gs.GetPlayer1();
+	auto p2 = gs.GetPlayer2();
 	
 	if (coreCur) {
-		m_currentPlayerIndex = (coreCur == p1) ?0 :1;
+		m_currentPlayerIndex = (coreCur.get() == p1.get()) ?0 :1;
 	} else {
 		m_currentPlayerIndex =0;
 		if (p1) Core::setCurrentPlayer(p1);
@@ -379,21 +385,25 @@ void UserInterface::showAgeTree(int age)
 		}
 		if (m_boardWidget) m_boardWidget->refresh();
 
-		if (m_ageTreeWidget && m_ageTreeWidget->getCurrentAge() == 1) {
-			QTimer::singleShot(0, this, [this]() {
-				auto& board = Core::Board::getInstance();
-				const auto& nodes = board.getAge1Nodes();
-				bool anyAvailable = false;
-				for (const auto& n : nodes) {
-					if (!n) continue;
-					auto* c = n->getCard();
-					if (!c) continue;
-					if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
-				}
-				if (!anyAvailable) {
-					this->showAgeTree(2);
-				}
-			});
+		if (m_ageTreeWidget) {
+			int currentAge = m_ageTreeWidget->getCurrentAge();
+			if (currentAge < 3) {
+				QTimer::singleShot(0, this, [this, currentAge]() {
+					auto& board = Core::Board::getInstance();
+					const auto& nodes = (currentAge == 1) ? board.getAge1Nodes() : board.getAge2Nodes();
+					bool anyAvailable = false;
+					for (const auto& n : nodes) {
+						if (!n) continue;
+						auto cardOpt = n->getCard();
+						if (!cardOpt.has_value()) continue;
+						auto& c = cardOpt->get();
+						if (n->isAvailable() && c.isAvailable()) { anyAvailable = true; break; }
+					}
+					if (!anyAvailable) {
+						showPhaseTransitionMessage(currentAge + 1);
+					}
+					});
+			}
 		}
 	};
 
@@ -494,34 +504,8 @@ void UserInterface::onWonderSelected(int index)
 			m_centerWidget->setTurnMessage("");
 			if (m_centerWidget) m_centerWidget->hide();
 
-			if (m_centerMiddle) {
-				if (auto* existing = m_centerMiddle->layout()) {
-					QLayoutItem* item;
-					while ((item = existing->takeAt(0)) != nullptr) {
-						if (item->widget()) delete item->widget();
-						delete item;
-					}
-				}
-				else {
-					m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
-				}
-				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
-				msgLayout->setContentsMargins(8,8,8,8);
-				msgLayout->setSpacing(0);
+			showPhaseTransitionMessage(1);
 
-				QLabel* phaseMsg = new QLabel("Phase 1 incepe", m_centerMiddle);
-				phaseMsg->setAlignment(Qt::AlignCenter);
-				phaseMsg->setStyleSheet(""); 
-				QFont f = phaseMsg->font();
-				f.setPointSize(24);
-				f.setBold(true);
-				phaseMsg->setFont(f);
-				msgLayout->addWidget(phaseMsg);
-
-				QTimer::singleShot(1800, this, [this]() {
-					showAgeTree(1);
-					});
-			}
 		}
 	}
 	if (m_currentBatch.size() >1)
@@ -574,27 +558,7 @@ void UserInterface::finishAction(int age, bool parentBecameAvailable)
 			if (n->isAvailable() && n->getCard()) { anyAvailable = true; break; }
 		}
 		if (!anyAvailable) {
-			if (m_centerMiddle) {
-				if (auto* existing = m_centerMiddle->layout()) {
-					QLayoutItem* it;
-					while ((it = existing->takeAt(0)) != nullptr) {
-						if (it->widget()) delete it->widget();
-						delete it;
-					}
-					delete existing;
-				} else {
-					m_centerMiddle->setLayout(new QVBoxLayout(m_centerMiddle));
-				}
-				auto* msgLayout = qobject_cast<QVBoxLayout*>(m_centerMiddle->layout());
-				msgLayout->setContentsMargins(8,8,8,8);
-				msgLayout->setSpacing(0);
-				QLabel* phaseMsg = new QLabel("Phase 2 incepe", m_centerMiddle);
-				phaseMsg->setAlignment(Qt::AlignCenter);
-				QFont f = phaseMsg->font(); f.setPointSize(24); f.setBold(true);
-				phaseMsg->setFont(f);
-				msgLayout->addWidget(phaseMsg);
-				QTimer::singleShot(1800, this, [this]() { this->showAgeTree(2); });
-			}
+			showPhaseTransitionMessage(2);
 		}
 	}
 }

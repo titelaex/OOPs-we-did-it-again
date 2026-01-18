@@ -1,4 +1,6 @@
-﻿module Core.MCTS;
+#include <cmath>
+#include <limits>
+module Core.MCTS;
 import <vector>;
 import <memory>;
 import <random>;
@@ -6,8 +8,6 @@ import <algorithm>;
 import <iostream>;
 import <sstream>;
 import <fstream>;
-#include <cmath>
-#include <limits>
 import Core.Player;
 import Core.Board;
 import Core.GameState;
@@ -272,6 +272,10 @@ MCTSGameState MCTS::captureGameState(int currentPhase, bool isPlayer1Turn) {
         state.player1.cardCount = static_cast<uint8_t>(p1->getOwnedCards().size());
         state.player1.wonderCount = static_cast<uint8_t>(p1->getOwnedWonders().size());
         state.player1.tokenCount = static_cast<uint8_t>(p1->getOwnedTokens().size());
+        for (const auto& w : p1->getOwnedWonders()) {
+            if (!w) continue;
+            state.player1.ownedWonders.push_back(extractCardInfo(w.get()));
+        }
         for (const auto& card : p1->getOwnedCards()) {
             if (!card) continue;
             switch (card->getColor()) {
@@ -299,6 +303,10 @@ MCTSGameState MCTS::captureGameState(int currentPhase, bool isPlayer1Turn) {
         state.player2.cardCount = static_cast<uint8_t>(p2->getOwnedCards().size());
         state.player2.wonderCount = static_cast<uint8_t>(p2->getOwnedWonders().size());
         state.player2.tokenCount = static_cast<uint8_t>(p2->getOwnedTokens().size());
+        for (const auto& w : p2->getOwnedWonders()) {
+            if (!w) continue;
+            state.player2.ownedWonders.push_back(extractCardInfo(w.get()));
+        }
         for (const auto& card : p2->getOwnedCards()) {
             if (!card) continue;
             switch (card->getColor()) {
@@ -362,19 +370,19 @@ std::vector<MCTSAction> MCTS::getLegalActions(const MCTSGameState& state, int cu
         if (!node) continue;
         if (!node->isAvailable()) continue;
         const auto card = node->getCard();
-        if (!card) continue;
+        if (!card.has_value()) continue;
         MCTSAction buildAction;
         buildAction.cardNodeIndex = i;
         buildAction.actionType = 0;
-        buildAction.cardName = card->getName();
-        buildAction.cardColor = card->getColor();
-        buildAction.expectedVP = card->getVictoryPoints();
+        buildAction.cardName = card->get().getName();
+        buildAction.cardColor = card->get().getColor();
+        buildAction.expectedVP = card->get().getVictoryPoints();
         actions.push_back(buildAction);
         MCTSAction sellAction;
         sellAction.cardNodeIndex = i;
         sellAction.actionType = 1;
-        sellAction.cardName = card->getName();
-        sellAction.cardColor = card->getColor();
+        sellAction.cardName = card->get().getName();
+        sellAction.cardColor = card->get().getColor();
         actions.push_back(sellAction);
         const PlayerInfo& currentPlayer = state.getCurrentPlayer();
         for (size_t w = 0; w < currentPlayer.ownedWonders.size(); ++w) {
@@ -383,8 +391,8 @@ std::vector<MCTSAction> MCTS::getLegalActions(const MCTSGameState& state, int cu
                 wonderAction.cardNodeIndex = i;
                 wonderAction.actionType = 2;
                 wonderAction.wonderIndex = w;
-                wonderAction.cardName = card->getName();
-                wonderAction.cardColor = card->getColor();
+                wonderAction.cardName = card->get().getName();
+                wonderAction.cardColor = card->get().getColor();
                 wonderAction.expectedVP = currentPlayer.ownedWonders[w].victoryPoints;
                 actions.push_back(wonderAction);
             }
