@@ -365,8 +365,8 @@ void UserInterface::showAgeTree(int age)
 	// Create age tree widget and insert it into the middle panel
 	m_ageTreeWidget = new AgeTreeWidget(m_centerMiddle);
 	m_ageTreeWidget->setPlayerPanels(m_leftPanel, m_rightPanel);
+	m_ageTreeWidget->setGameListener(m_gameListener.get());
 	
-	// Connect token selection requests from AgeTreeWidget to BoardWidget
 	m_ageTreeWidget->onRequestTokenSelection = [this](std::function<void(int)> onTokenClicked) {
 		if (m_boardWidget) {
 			m_boardWidget->enableTokenSelection(onTokenClicked);
@@ -378,7 +378,7 @@ void UserInterface::showAgeTree(int age)
 			m_boardWidget->disableTokenSelection();
 		}
 	};
-	
+
 	if (m_centerMiddle && m_centerMiddle->layout()) {
 		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
 	}

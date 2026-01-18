@@ -43,55 +43,7 @@ void AgeCard::setRequiresLinkingSymbol(const std::optional<LinkingSymbolType>& r
 void AgeCard::setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules) { m_tradeRules = tradeRules; }
 void AgeCard::setAge(const Age& age) { m_age = age; }
 
-void AgeCard::displayCardInfo() {
-	std::cout << "\n";
-	Card::displayCardInfo();
 
-	bool firstField = true;
-	auto sep = [&]() { if (!firstField) std::cout << " | "; firstField = false; };
-
-	if (!m_resourceProduction.empty()) {
-		sep();
-		std::cout << "Prod=";
-		bool first = true;
-		auto abbrev = [&](ResourceType r) {
-			switch (r) {
-			case ResourceType::WOOD: return 'W';
-			case ResourceType::STONE: return 'S';
-			case ResourceType::CLAY: return 'C';
-			case ResourceType::PAPYRUS: return 'P';
-			case ResourceType::GLASS: return 'G';
-			default: return '?';
-			}
-		};
-		for (const auto& kv : m_resourceProduction) {
-			if (!first) std::cout << ','; first = false;
-			std::cout << abbrev(kv.first) << ':' << static_cast<int>(kv.second);
-		}
-	}
-
-	if (m_shieldPoints > 0) { sep(); std::cout << "SP=" << static_cast<int>(m_shieldPoints); }
-
-	if (m_scientificSymbols.has_value()) { sep(); std::cout << "Sci=" << ScientificSymbolTypeToString(m_scientificSymbols.value()); }
-
-	if (m_hasLinkingSymbol.has_value()) { sep(); std::cout << "HasLS=" << LinkingSymbolTypeToString(m_hasLinkingSymbol.value()); }
-	if (m_requiresLinkingSymbol.has_value()) { sep(); std::cout << "ReqLS=" << LinkingSymbolTypeToString(m_requiresLinkingSymbol.value()); }
-
-	if (!m_tradeRules.empty()) {
-		bool any = false;
-		std::string tr;
-		for (const auto& kv : m_tradeRules) {
-			if (kv.second) {
-				if (any) tr.push_back(',');
-				tr += ResourceTypeToString(static_cast<ResourceType>(kv.first));
-				any = true;
-			}
-		}
-		if (any) { sep(); std::cout << "TR=" << tr; }
-	}
-
-	std::cout << "\n";
-}
 
 namespace
 {

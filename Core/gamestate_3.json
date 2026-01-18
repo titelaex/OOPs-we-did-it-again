@@ -1,0 +1,694 @@
+{
+  "saveNumber": 3,
+  "gameMetadata": {
+    "gameMode": 3,
+    "trainingMode": true,
+    "player1Playstyle": "Britney",
+    "player2Playstyle": "Spears",
+    "currentPhase": 20,
+    "currentRound": 1,
+    "isPlayer1Turn": false,
+    "lastAction": {
+      "playerName": "AI_P2",
+      "actionType": "1",
+      "cardName": "Clay Reserve",
+      "round": 1,
+      "phase": 20,
+      "effectsApplied": [
+        "getTradeRule",
+        "payCoins"
+
+      ]
+
+    }
+
+  },
+  "board": {
+    "pawnPosition": 9,
+    "pawnTrack": "0000000000100000000"
+
+  },
+  "progressTokens": [
+    {
+      "name": "Agriculture",
+      "description": "Take 6 coins from the bank",
+      "victoryPoints": 4,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Masonry",
+      "description": "Any future blue cards constructed by you will cost 2 fewer resources.",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Economy",
+      "description": "You get the money spent by your opponent when they trade for resources",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Philosophy",
+      "description": "The token is worth 7 victory points.",
+      "victoryPoints": 7,
+      "shieldPoints": 0
+    },
+    {
+      "name": "Law",
+      "description": "Is worth a scientific symbol",
+      "victoryPoints": 0,
+      "shieldPoints": 0
+    }
+
+  ],
+  "militaryTokens": [
+    {
+      "name": "Military Loss 2",
+      "description": "Your opponent loses 2 coins"
+    }
+
+  ],
+  "age1Tree": [
+    {
+      "index": 0,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 0]
+    },
+    {
+      "index": 3,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 4,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 1]
+    },
+    {
+      "index": 5,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 2]
+    },
+    {
+      "index": 6,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 3]
+    },
+    {
+      "index": 7,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [3, 4]
+    },
+    {
+      "index": 8,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [4, 4]
+    },
+    {
+      "index": 9,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 5]
+    },
+    {
+      "index": 10,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 6]
+    },
+    {
+      "index": 11,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [6, 7]
+    },
+    {
+      "index": 12,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [7, 8]
+    },
+    {
+      "index": 13,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [8, 8]
+    },
+    {
+      "index": 14,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 9]
+    },
+    {
+      "index": 15,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [9, 10]
+    },
+    {
+      "index": 16,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [10, 11]
+    },
+    {
+      "index": 17,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 18,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 19,
+      "cardName": "EMPTY",
+      "isEmpty": true,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 13]
+    }
+
+  ],
+  "age2Tree": [
+    {
+      "index": 0,
+      "cardName": "Caravansery",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "Horse Breeders",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "Brickyard",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 3,
+      "cardName": "School",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 4,
+      "cardName": "Drying Room",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 5,
+      "cardName": "Walls",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 6,
+      "cardName": "Parade Ground",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 7,
+      "cardName": "Library",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 2]
+    },
+    {
+      "index": 8,
+      "cardName": "Shelf Quarry",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [2, 3]
+    },
+    {
+      "index": 9,
+      "cardName": "Rostrum",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [3, 4]
+    },
+    {
+      "index": 10,
+      "cardName": "Glass-Blower",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [4, 5]
+    },
+    {
+      "index": 11,
+      "cardName": "Laboratory",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [6, 7]
+    },
+    {
+      "index": 12,
+      "cardName": "Barracks",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [7, 8]
+    },
+    {
+      "index": 13,
+      "cardName": "Archery Range",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [8, 9]
+    },
+    {
+      "index": 14,
+      "cardName": "Sawmill",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [9, 10]
+    },
+    {
+      "index": 15,
+      "cardName": "Dispensary",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 16,
+      "cardName": "Statue",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 17,
+      "cardName": "Forum",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 14]
+    },
+    {
+      "index": 18,
+      "cardName": "Customs House",
+      "isEmpty": false,
+      "isAvailable": true,
+      "isVisible": true,
+      "parents": [15, 16]
+    },
+    {
+      "index": 19,
+      "cardName": "Temple",
+      "isEmpty": false,
+      "isAvailable": true,
+      "isVisible": true,
+      "parents": [16, 17]
+    }
+
+  ],
+  "age3Tree": [
+    {
+      "index": 0,
+      "cardName": "Senate",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 1,
+      "cardName": "Arsenal",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": []
+    },
+    {
+      "index": 2,
+      "cardName": "Shipowners Guild",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 0]
+    },
+    {
+      "index": 3,
+      "cardName": "Traders Guild",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [0, 1]
+    },
+    {
+      "index": 4,
+      "cardName": "Siege Workshop",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [1, 1]
+    },
+    {
+      "index": 5,
+      "cardName": "Town Hall",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [2, 2]
+    },
+    {
+      "index": 6,
+      "cardName": "Armory",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [2, 3]
+    },
+    {
+      "index": 7,
+      "cardName": "Academy",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [3, 4]
+    },
+    {
+      "index": 8,
+      "cardName": "Observatory",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [4, 4]
+    },
+    {
+      "index": 9,
+      "cardName": "Port",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [5, 6]
+    },
+    {
+      "index": 10,
+      "cardName": "Lighthouse",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [7, 8]
+    },
+    {
+      "index": 11,
+      "cardName": "Obelisk",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [9, 9]
+    },
+    {
+      "index": 12,
+      "cardName": "Circus",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [9, 9]
+    },
+    {
+      "index": 13,
+      "cardName": "Palace",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [10, 10]
+    },
+    {
+      "index": 14,
+      "cardName": "Gardens",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": true,
+      "parents": [10, 10]
+    },
+    {
+      "index": 15,
+      "cardName": "Chamber Of Commerce",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [11, 12]
+    },
+    {
+      "index": 16,
+      "cardName": "Pantheon",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [12, 13]
+    },
+    {
+      "index": 17,
+      "cardName": "Pretorium",
+      "isEmpty": false,
+      "isAvailable": false,
+      "isVisible": false,
+      "parents": [13, 14]
+    },
+    {
+      "index": 18,
+      "cardName": "Tacticians Guild",
+      "isEmpty": false,
+      "isAvailable": true,
+      "isVisible": true,
+      "parents": [15, 16]
+    },
+    {
+      "index": 19,
+      "cardName": "Study",
+      "isEmpty": false,
+      "isAvailable": true,
+      "isVisible": true,
+      "parents": [16, 17]
+    }
+
+  ],
+  "player1": {
+    "id": 1,
+    "username": "AI_P1",
+    "remainingCoins": {"gold": 2, "silver": 1, "bronze": 0},
+    "totalCoins": 5,
+    "permanentResources": [
+      {"type": "STONE", "amount": 3},
+      {"type": "PAPYRUS", "amount": 2},
+      {"type": "WOOD", "amount": 2}
+
+    ],
+    "tradingResources": [
+
+    ],
+    "scientificSymbols": [
+      {"type": "FEATHER", "amount": 1}
+
+    ],
+    "tradeRules": [
+      "Stone"
+
+    ],
+    "tokensOwnedBitset": "0000000000",
+    "builtCards": [
+      "Scriptorium",
+      "Garrison",
+      "Quarry",
+      "Press",
+      "Palisade",
+      "Lumber Yard",
+      "Stone Reserve"
+
+    ],
+    "wonders": [
+      "The Appian Way",
+      "The Great Lighthouse",
+      "The Great Library",
+      "Piraeus"
+
+    ],
+    "ownedTokens": [
+      "Military Loss 5"
+
+    ],
+    "points": {
+      "military": 2,
+      "building": 3,
+      "wonder": 0,
+      "progress": 0,
+      "total": 5
+
+    }
+
+  },
+  "player2": {
+    "id": 2,
+    "username": "AI_P2",
+    "remainingCoins": {"gold": 2, "silver": 0, "bronze": 0},
+    "totalCoins": 2,
+    "permanentResources": [
+      {"type": "WOOD", "amount": 2},
+      {"type": "GLASS", "amount": 2},
+      {"type": "STONE", "amount": 2},
+      {"type": "CLAY", "amount": 2}
+
+    ],
+    "tradingResources": [
+
+    ],
+    "scientificSymbols": [
+
+    ],
+    "tradeRules": [
+
+    ],
+    "tokensOwnedBitset": "0000000000",
+    "builtCards": [
+      "Logging Camp",
+      "Glassworks",
+      "Altar",
+      "Guard Tower",
+      "Stone Pit",
+      "Clay Pool"
+
+    ],
+    "wonders": [
+      "The Sphinx",
+      "The Hanging Gardens",
+      "The Pyramids",
+      "The Statue of Zeus"
+
+    ],
+    "ownedTokens": [
+
+    ],
+    "points": {
+      "military": 1,
+      "building": 12,
+      "wonder": 0,
+      "progress": 0,
+      "total": 13
+
+    }
+
+  },
+  "unusedCards": [
+    {"age": "AGE_I", "name": "Tavern"},
+    {"age": "AGE_I", "name": "Pharmacist"},
+    {"age": "AGE_I", "name": "Apothecary"},
+    {"age": "AGE_II", "name": "Aqueduct"},
+    {"age": "AGE_II", "name": "Courthouse"},
+    {"age": "AGE_II", "name": "Brewery"},
+    {"age": "AGE_III", "name": "University"},
+    {"age": "AGE_III", "name": "Arena"},
+    {"age": "AGE_III", "name": "Fortifications"},
+    {"age": "GUILD", "name": "Magistrates Guild"},
+    {"age": "GUILD", "name": "Scientists Guild"},
+    {"age": "GUILD", "name": "Builders Guild"},
+    {"age": "GUILD", "name": "Moneylenders Guild"},
+    {"age": "WONDER", "name": "The Temple of Artemis"},
+    {"age": "WONDER", "name": "The Colossus"},
+    {"age": "WONDER", "name": "The Mausoleum"},
+    {"age": "WONDER", "name": "Circus Maximus"}
+
+  ],
+  "discardedCards": [
+    "Theater",
+    "Baths",
+    "Clay Pit",
+    "Stable",
+    "Clay Reserve"
+
+  ]
+
+}

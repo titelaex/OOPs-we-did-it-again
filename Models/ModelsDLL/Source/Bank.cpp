@@ -1,4 +1,6 @@
 module Models.Bank;
+import <ranges>;
+import <numeric>;
 import <chrono>;
 import <algorithm>;
 import <random>;
@@ -34,20 +36,26 @@ bool Bank::tryWithdraw(uint32_t amount) noexcept {
 	uint8_t availableThrees = std::get<1>(m_coins);
 	uint8_t availableSixes = std::get<2>(m_coins);
 	uint8_t maxSixes = static_cast<uint8_t>(std::min<uint32_t>(availableSixes, amount / 6u));
-	for (int s = static_cast<int>(maxSixes); s >= 0; --s) {
+
+	auto tryWithdrawCombination = [&](int s) {
 		uint32_t remAfterSix = amount - static_cast<uint32_t>(s) * 6u;
 		uint8_t maxThrees = static_cast<uint8_t>(std::min<uint32_t>(availableThrees, remAfterSix / 3u));
-		for (int t = static_cast<int>(maxThrees); t >= 0; --t) {
-			uint32_t rem = remAfterSix - static_cast<uint32_t>(t) * 3u;
-			if (rem <= availableOnes) {
-				std::get<2>(m_coins) = static_cast<uint8_t>(availableSixes - s);
-				std::get<1>(m_coins) = static_cast<uint8_t>(availableThrees - t);
-				std::get<0>(m_coins) = static_cast<uint8_t>(availableOnes - rem);
-				return true;
-			}
-		}
-	}
-	return false;
+
+		return std::ranges::any_of(std::views::iota(0, static_cast<int>(maxThrees) + 1) | std::views::reverse,
+			[&](int t) {
+				uint32_t rem = remAfterSix - static_cast<uint32_t>(t) * 3u;
+				if (rem <= availableOnes) {
+					std::get<2>(m_coins) = static_cast<uint8_t>(availableSixes - s);
+					std::get<1>(m_coins) = static_cast<uint8_t>(availableThrees - t);
+					std::get<0>(m_coins) = static_cast<uint8_t>(availableOnes - rem);
+					return true;
+				}
+				return false;
+			});
+		};
+
+	return std::ranges::any_of(std::views::iota(0, static_cast<int>(maxSixes) + 1) | std::views::reverse,
+		tryWithdrawCombination);
 }
 
 void Bank::deposit(uint32_t amount) noexcept {

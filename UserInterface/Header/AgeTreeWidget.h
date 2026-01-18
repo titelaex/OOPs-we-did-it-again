@@ -7,48 +7,55 @@
 #include <QtCore/QObject>
 #include <functional>
 #include <unordered_map>
+#include <vector>
 
 class QGraphicsProxyWidget;
+class QGraphicsRectItem;
+class QGraphicsTextItem;
 class PlayerPanelWidget;
+class GameListenerBridge;
 
 class AgeTreeWidget : public QWidget
 {
 public:
-    explicit AgeTreeWidget(QWidget* parent = nullptr);
-    ~AgeTreeWidget();
-    void showAgeTree(int age);
-    void fitAgeTree();
+	explicit AgeTreeWidget(QWidget* parent = nullptr);
+	~AgeTreeWidget();
+	void showAgeTree(int age);
+	void fitAgeTree();
 
-    int getCurrentAge() const { return m_currentAge; }
+	int getCurrentAge() const { return m_currentAge; }
 
-    // Set player panels for refreshing after actions
-    void setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right);
+	// Set player panels for refreshing after actions
+	void setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right);
 
-    // Set current player index (0 or 1)
-    void setCurrentPlayerIndex(int index);
-    int getCurrentPlayerIndex() const { return m_currentPlayerIndex; }
+	// Set current player index (0 or 1)
+	void setCurrentPlayerIndex(int index);
+	int getCurrentPlayerIndex() const { return m_currentPlayerIndex; }
+	void setGameListener(GameListenerBridge* listener);
 
-    // Callbacks for UI coordination
-    std::function<void(int nodeIndex, int age)> onLeafClicked; // Called when user clicks a card
-    std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; // Called after successful action
+	// Callbacks for UI coordination
+	std::function<void(int nodeIndex, int age)> onLeafClicked; // Called when user clicks a card
+	std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; // Called after successful action
 
-    // Callback for requesting token selection from the board
-    std::function<void(std::function<void(int)>)> onRequestTokenSelection;
-    std::function<void()> onDisableTokenSelection;
+	// Callback for requesting token selection from the board
+	std::function<void(std::function<void(int)>)> onRequestTokenSelection;
+	std::function<void()> onDisableTokenSelection;
 
 protected:
-    bool eventFilter(QObject* obj, QEvent* event) override;
+	bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-    void handleLeafClicked(int nodeIndex, int age);
-    void refreshPanels();
+	void handleLeafClicked(int nodeIndex, int age);
+	void refreshPanels();
+	void onTreeNodeEmptied(int ageIndex, int nodeIndex);
+	void onBoardRefreshRequested();
 
-    QGraphicsView* m_view{ nullptr };
-    QGraphicsScene* m_scene{ nullptr };
-    std::unordered_map<QWidget*, QGraphicsProxyWidget*> m_proxyMap;
+	QGraphicsView* m_view{ nullptr };
+	QGraphicsScene* m_scene{ nullptr };
+	std::unordered_map<QWidget*, QGraphicsProxyWidget*> m_proxyMap;
 
-    PlayerPanelWidget* m_leftPanel{ nullptr };
-    PlayerPanelWidget* m_rightPanel{ nullptr };
-    int m_currentPlayerIndex{ 0 };
-    int m_currentAge{ 1 };
+	PlayerPanelWidget* m_leftPanel{ nullptr };
+	PlayerPanelWidget* m_rightPanel{ nullptr };
+	int m_currentPlayerIndex{ 0 };
+	int m_currentAge{ 1 };
 };

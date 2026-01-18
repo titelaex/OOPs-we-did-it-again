@@ -59,7 +59,7 @@ namespace Models
 		void setTradeRules(const std::unordered_map<TradeRuleType, bool>& tradeRules);
 		void setAge(const Age& age);
 		void onDiscard();
-		void displayCardInfo();
+
 	};
 
 	export __declspec(dllexport) std::ostream& operator<<(std::ostream& os, const AgeCard& card);
