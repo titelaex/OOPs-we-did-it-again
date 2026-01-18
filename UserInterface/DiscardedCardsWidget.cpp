@@ -4,6 +4,20 @@
 
 import Core.IGameListener;
 
+namespace {
+    // Function to map color names from the core to UI hex colors
+    QString getHexColorForCard(const QString& colorName) {
+        if (colorName.compare("BROWN", Qt::CaseInsensitive) == 0) return "#7C4A1C";
+        if (colorName.compare("GREY", Qt::CaseInsensitive) == 0) return "#374151";
+        if (colorName.compare("RED", Qt::CaseInsensitive) == 0) return "#7F1D1D";
+        if (colorName.compare("YELLOW", Qt::CaseInsensitive) == 0) return "#FCD34D";
+        if (colorName.compare("GREEN", Qt::CaseInsensitive) == 0) return "#065F46";
+        if (colorName.compare("BLUE", Qt::CaseInsensitive) == 0) return "#0369A1";
+        if (colorName.compare("PURPLE", Qt::CaseInsensitive) == 0) return "#4C1D95";
+        return "#374151"; // Default color
+    }
+}
+
 class DiscardObserver : public Core::IGameListener {
 public:
     DiscardObserver(DiscardedCardsWidget* widget) : m_widget(widget) {}
@@ -107,7 +121,7 @@ void DiscardedCardsWidget::addDiscardedCard(const QString& cardName, const QStri
 {
     QListWidgetItem* item = new QListWidgetItem(m_cardsList);
     item->setData(Qt::DisplayRole, cardName);
-    item->setData(Qt::UserRole, cardColor);
+    item->setData(Qt::UserRole, getHexColorForCard(cardColor));
 
     item->setSizeHint(QSize(75, 110));
 
