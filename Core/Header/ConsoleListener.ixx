@@ -2,6 +2,7 @@ export module Core.ConsoleListener;
 import Core.IGameListener;
 import Core.Player;
 import Models.Card;
+import Models.AgeCard;
 import Models.Wonder;
 import Models.Token;
 import <memory>;
@@ -51,6 +52,8 @@ export namespace Core {
         void displayPlaystyleMenu(const std::string& playerName) override;
         void displayAvailableSaves(const std::vector<int>& saveNumbers) override;
         void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) override;
+        void displayCardInfo(const Models::Card& card) override;
+        void displayAgeCardInfo(const Models::AgeCard& ageCard) override;
         void displayCardSelectionPrompt();
         void displayActionMenu();
         void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders) override;
@@ -63,6 +66,7 @@ export namespace Core {
         void displayMessage(const std::string& message) override;
         void displayError(const std::string& error) override;
         void displayWarning(const std::string& warning) override;
+        void displayWonderInfo(const Models::Wonder& wonder) override;
         
     private:
         void displayContinueGamePrompt();
@@ -110,6 +114,9 @@ export namespace Core {
         void displayPlaystyleMenu(const std::string& playerName) override {}
         void displayAvailableSaves(const std::vector<int>& saveNumbers) override {}
         void displayAvailableCards(const std::deque<std::reference_wrapper<Models::Card>>& cards) override {}
+        void displayCardInfo(const Models::Card& card) override {}
+        void displayAgeCardInfo(const Models::AgeCard& ageCard) override {}
+        void displayWonderInfo(const Models::Wonder& wonder) override {}
         void displayWonderList(const std::vector<std::reference_wrapper<Models::Wonder>>& wonders) override {}
         void displayPlayerHands(const Player& p1, const Player& p2) override {}
         void displayTurnStatus(const Player& p1, const Player& p2) override {}
