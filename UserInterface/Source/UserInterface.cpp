@@ -356,13 +356,13 @@ void UserInterface::showAgeTree(int age)
 		m_centerMiddle->layout()->addWidget(m_ageTreeWidget);
 	}
 
-	Core::Player* coreCur = Core::getCurrentPlayer();
+	auto coreCur = Core::getCurrentPlayer();
 	auto& gs = Core::GameState::getInstance();
-	auto p1 = gs.GetPlayer1().get();
-	auto p2 = gs.GetPlayer2().get();
+	auto p1 = gs.GetPlayer1();
+	auto p2 = gs.GetPlayer2();
 	
 	if (coreCur) {
-		m_currentPlayerIndex = (coreCur == p1) ?0 :1;
+		m_currentPlayerIndex = (coreCur.get() == p1.get()) ?0 :1;
 	} else {
 		m_currentPlayerIndex =0;
 		if (p1) Core::setCurrentPlayer(p1);
@@ -385,9 +385,9 @@ void UserInterface::showAgeTree(int age)
 				bool anyAvailable = false;
 				for (const auto& n : nodes) {
 					if (!n) continue;
-					auto* c = n->getCard();
-					if (!c) continue;
-					if (n->isAvailable() && c->isAvailable()) { anyAvailable = true; break; }
+					auto c = n->getCard();
+					if (!c.has_value()) continue;
+					if (n->isAvailable() && c->get().isAvailable()) { anyAvailable = true; break; }
 				}
 				if (!anyAvailable) {
 					this->showAgeTree(2);

@@ -1,4 +1,6 @@
-﻿module Core.Game;
+#include <exception>
+#include <filesystem>
+module Core.Game;
 import <vector>;
 import <string>;
 import <random>;
@@ -9,8 +11,7 @@ import <fstream>;
 import <sstream>;
 import <functional>;
 import <memory>;
-#include <exception>
-#include <filesystem>
+import <optional>;
 import Core.PlayerDecisionMaker;
 import Core.TrainingLogger;
 import Core.MCTS;
@@ -192,37 +193,43 @@ namespace Core {
 				return 0;
 				};
 
-			auto calculateScore = [&](Models::Player* mp)->uint32_t {
-				if (!mp) return 0;
-				const auto& ptsRef = mp->getPoints();
+			auto calculateScore = [&](std::optional<std::reference_wrapper<const Models::Player>> mp)->uint32_t {
+				if (!mp.has_value()) return 0;
+				const auto& player = mp->get();
+				const auto& ptsRef = player.getPoints();
 				uint32_t pts = getMilitaryVP(pawnPos)
 					+ static_cast<uint32_t>(ptsRef.m_buildingVictoryPoints)
 					+ static_cast<uint32_t>(ptsRef.m_wonderVictoryPoints)
 					+ static_cast<uint32_t>(ptsRef.m_progressVictoryPoints);
-				uint8_t totalCoins = mp->totalCoins(mp->getRemainingCoins());
+				// totalCoins is not const, so we need to call it on a non-const reference
+				// Extract coins tuple first, then call totalCoins on the original non-const player
+				auto coins = player.getRemainingCoins();
+				uint8_t totalCoins = const_cast<Models::Player&>(player).totalCoins(coins);
 				pts += static_cast<uint32_t>(totalCoins / 3);
 				return pts;
 				};
 
-			Models::Player* m1 = p1.m_player.get();
-			Models::Player* m2 = p2.m_player.get();
+			std::optional<std::reference_wrapper<const Models::Player>> m1;
+			if (p1.m_player) m1 = std::cref(*p1.m_player);
+			std::optional<std::reference_wrapper<const Models::Player>> m2;
+			if (p2.m_player) m2 = std::cref(*p2.m_player);
 			uint32_t total1 = calculateScore(m1);
 			uint32_t total2 = calculateScore(m2);
 			if (total1 > total2) return 0;
 			if (total2 > total1) return 1;
 
-			uint32_t b1 = m1 ? m1->getBlueBuildingVictoryPoints() : 0;
-			uint32_t b2 = m2 ? m2->getBlueBuildingVictoryPoints() : 0;
+			uint32_t b1 = m1.has_value() ? m1->get().getBlueBuildingVictoryPoints() : 0;
+			uint32_t b2 = m2.has_value() ? m2->get().getBlueBuildingVictoryPoints() : 0;
 			if (b1 > b2) return 0;
 			if (b2 > b1) return 1;
 			return -1;
 		}
-		void performCardAction(int action, Player& cur, Player& opp, std::unique_ptr<Models::Card>& cardPtr, Board& board, IPlayerDecisionMaker* decisionMaker = nullptr) {
+		void performCardAction(int action, Player& cur, Player& opp, std::unique_ptr<Models::Card>& cardPtr, Board& board, std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker = std::nullopt) {
 			if (!cardPtr) return;
 
 			switch (action) {
 			case 0: {
-				if (!cur.canAffordCard(cardPtr.get(), opp.m_player)) {
+				if (!cur.canAffordCard(*cardPtr, opp.m_player)) {
 					auto& notifier = GameState::getInstance().getEventNotifier();
 					DisplayRequestEvent event;
 					event.displayType = DisplayRequestEvent::Type::ERROR;
@@ -295,7 +302,7 @@ namespace Core {
 					notifier.notifyDisplayRequested(cardEvent);
 				}
 
-				size_t wchoice = decisionMaker ? decisionMaker->selectWonder(candidates) : 0;
+				size_t wchoice = decisionMaker.has_value() ? decisionMaker->get().selectWonder(candidates) : 0;
 				std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[candidates[wchoice]];
 				if (!cur.canAffordWonder(chosenWonderPtr, opp.m_player)) {
 					auto& notifier = GameState::getInstance().getEventNotifier();
@@ -318,12 +325,11 @@ namespace Core {
 			break;
 			}
 		}
-		uint8_t getShieldPointsFromCard(const Models::Card* card, const Core::Player* player = nullptr) {
-			if (!card) return 0;
-			if (auto ac = dynamic_cast<const Models::AgeCard*>(card)) {
+		uint8_t getShieldPointsFromCard(const Models::Card& card, std::optional<std::reference_wrapper<const Player>> player = std::nullopt) {
+			if (auto ac = dynamic_cast<const Models::AgeCard*>(&card)) {
 				uint8_t shields = static_cast<uint8_t>(ac->getShieldPoints());
-				if (player && player->m_player && player->m_player->hasToken(Models::TokenIndex::STRATEGY)) {
-					if (card->getColor() == Models::ColorType::RED) {
+				if (player.has_value() && player->get().m_player && player->get().m_player->hasToken(Models::TokenIndex::STRATEGY)) {
+					if (card.getColor() == Models::ColorType::RED) {
 						shields += 1;
 					}
 				}
@@ -331,8 +337,7 @@ namespace Core {
 			}
 			return 0;
 		}
-		void displayCardDetails(const Models::Card* card) {
-			if (!card) return;
+		void displayCardDetails(const Models::Card& card) {
 			auto& notifier = GameState::getInstance().getEventNotifier();
 
 			DisplayRequestEvent event;
@@ -340,13 +345,13 @@ namespace Core {
 			event.context = "\n=== CARD DETAILS ===";
 			notifier.notifyDisplayRequested(event);
 
-			event.context = "Name: " + std::string(card->getName());
+			event.context = "Name: " + std::string(card.getName());
 			notifier.notifyDisplayRequested(event);
 
-			event.context = "Color: " + Models::ColorTypeToString(card->getColor());
+			event.context = "Color: " + Models::ColorTypeToString(card.getColor());
 			notifier.notifyDisplayRequested(event);
 
-			const auto& resCost = card->getResourceCost();
+			const auto& resCost = card.getResourceCost();
 			event.context = "Resource Cost: ";
 			if (resCost.empty()) {
 				event.context += "FREE";
@@ -361,7 +366,7 @@ namespace Core {
 			}
 			notifier.notifyDisplayRequested(event);
 
-			if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+			if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(&card)) {
 				uint8_t coinCost = ageCard->getCoinCost();
 				if (coinCost > 0) {
 					event.context = "Coin Cost: " + std::to_string(coinCost);
@@ -369,11 +374,11 @@ namespace Core {
 				}
 			}
 
-			if (card->getVictoryPoints() > 0) {
-				event.context = "Victory Points: " + std::to_string(card->getVictoryPoints());
+			if (card.getVictoryPoints() > 0) {
+				event.context = "Victory Points: " + std::to_string(card.getVictoryPoints());
 				notifier.notifyDisplayRequested(event);
 			}
-			if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+			if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(&card)) {
 				const auto& resProd = ageCard->getResourcesProduction();
 				if (!resProd.empty()) {
 					event.context = "Produces: ";
@@ -407,7 +412,7 @@ namespace Core {
 					notifier.notifyDisplayRequested(event);
 				}
 			}
-			if (auto* wonder = dynamic_cast<const Models::Wonder*>(card)) {
+			if (auto* wonder = dynamic_cast<const Models::Wonder*>(&card)) {
 				if (wonder->getShieldPoints() > 0) {
 					event.context = "Shield Points: " + std::to_string(wonder->getShieldPoints());
 					notifier.notifyDisplayRequested(event);
@@ -612,9 +617,9 @@ namespace Core {
 				const size_t rowCount = rowPattern[row];
 				for (size_t col = 0; col < rowCount && idx < nodes.size(); ++col, ++idx) {
 					if (auto node = nodes[idx]) {
-						if (auto card = node->getCard()) {
-							card->setIsVisible(rowVisible);
-							card->setIsAvailable(isLastRow);
+						if (auto card = node->getCard(); card.has_value()) {
+							card->get().setIsVisible(rowVisible);
+							card->get().setIsAvailable(isLastRow);
 						}
 					}
 				}
@@ -876,13 +881,13 @@ namespace Core {
 			auto nameOf = [&](const Node* ptr) -> std::string {
 				if (!ptr) return "-";
 				auto c = ptr->getCard();
-				return c ? c->getName() : std::string{ "<none>" };
+				return c.has_value() ? c->get().getName() : std::string{ "<none>" };
 				};
 			for (size_t i = 0; i < nodes.size(); ++i) {
 				const auto& n = nodes[i];
 				if (!n) continue;
 				auto c = n->getCard();
-				event.context = "[" + std::to_string(i) + "] " + (c ? c->getName() : std::string{ "<none>" });
+				event.context = "[" + std::to_string(i) + "] " + (c.has_value() ? c->get().getName() : std::string{ "<none>" });
 				notifier.notifyDisplayRequested(event);
 				const Node* p1 = n->getParent1().get();
 				const Node* p2 = n->getParent2().get();
@@ -898,15 +903,25 @@ namespace Core {
 		printNodes("Age II", Board::getInstance().getAge2Nodes());
 		printNodes("Age III", Board::getInstance().getAge3Nodes());
 	}
-	void Game::wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2, IPlayerDecisionMaker* p1Decisions, IPlayerDecisionMaker* p2Decisions) {
-		bool deleteP1 = false, deleteP2 = false;
-		if (!p1Decisions) {
-			p1Decisions = new HumanDecisionMaker();
-			deleteP1 = true;
+	void Game::wonderSelection(std::shared_ptr<Core::Player>& p1, std::shared_ptr<Core::Player>& p2, 
+	                           std::optional<std::reference_wrapper<IPlayerDecisionMaker>> p1Decisions, 
+	                           std::optional<std::reference_wrapper<IPlayerDecisionMaker>> p2Decisions) {
+		std::unique_ptr<IPlayerDecisionMaker> p1DecisionsOwner;
+		std::unique_ptr<IPlayerDecisionMaker> p2DecisionsOwner;
+		IPlayerDecisionMaker* p1DecisionsPtr = nullptr;
+		IPlayerDecisionMaker* p2DecisionsPtr = nullptr;
+		
+		if (!p1Decisions.has_value()) {
+			p1DecisionsOwner = std::make_unique<HumanDecisionMaker>();
+			p1DecisionsPtr = p1DecisionsOwner.get();
+		} else {
+			p1DecisionsPtr = &p1Decisions->get();
 		}
-		if (!p2Decisions) {
-			p2Decisions = new HumanDecisionMaker();
-			deleteP2 = true;
+		if (!p2Decisions.has_value()) {
+			p2DecisionsOwner = std::make_unique<HumanDecisionMaker>();
+			p2DecisionsPtr = p2DecisionsOwner.get();
+		} else {
+			p2DecisionsPtr = &p2Decisions->get();
 		}
 		auto& notifier = GameState::getInstance().getEventNotifier();
 		std::random_device rd;
@@ -964,7 +979,7 @@ namespace Core {
 				if (availableWonders.empty()) break;
 
 				bool isPlayer1 = playerOrder[i];
-				IPlayerDecisionMaker* decisionMaker = isPlayer1 ? p1Decisions : p2Decisions;
+				IPlayerDecisionMaker* decisionMaker = isPlayer1 ? p1DecisionsPtr : p2DecisionsPtr;
 				std::shared_ptr<Core::Player> currentPlayer = isPlayer1 ? p1 : p2;
 
 				std::string playerName = currentPlayer->m_player ? currentPlayer->m_player->getPlayerUsername() : (isPlayer1 ? "Player 1" : "Player 2");
@@ -987,7 +1002,47 @@ namespace Core {
 
 				std::vector<size_t> wonderIndices;
 				for (size_t j = 0, end = availableWonders.size(); j < end; ++j) wonderIndices.push_back(j);
-				size_t choice = decisionMaker->selectCard(wonderIndices);
+
+				size_t choice = 0;
+				if (auto* mctsDM = dynamic_cast<MCTSDecisionMaker*>(decisionMaker)) {
+					AIConfig cfg(mctsDM->getPlaystyle());
+					const auto w = cfg.getWeights();
+
+					auto scoreWonder = [&](const Models::Wonder& wonder) -> double {
+						double score = 0.0;
+						score += static_cast<double>(wonder.getVictoryPoints()) * w.victoryPointValue * w.wonderVPBonus;
+						score += static_cast<double>(wonder.getShieldPoints()) * w.militaryPriority * w.wonderMilitaryBonus;
+						if (wonder.getResourceProduction() != Models::ResourceType::NO_RESOURCE) {
+							score += 1.0 * w.resourceValue;
+						}
+						for (const auto& [res, amt] : wonder.getResourceCost()) {
+							(void)res;
+							score -= static_cast<double>(amt) * w.resourceValue * 0.5;
+						}
+						// Light parsing of on-play action labels for extra signal.
+						for (const auto& act : wonder.getOnPlayActions()) {
+							const std::string& label = act.second;
+							if (label.find("takeNewCard") != std::string::npos) score += 1.0 * w.economyPriority;
+							if (label.find("drawToken") != std::string::npos) score += 1.0 * w.sciencePriority;
+							if (label.find("discard") != std::string::npos) score += 1.0 * w.opponentDenial;
+							if (label.find("playAnotherTurn") != std::string::npos) score += 1.0 * w.wonderEconomyBonus;
+						}
+						return score;
+					};
+
+					double bestScore = -1e18;
+					for (size_t j = 0; j < availableWonders.size(); ++j) {
+						if (!availableWonders[j]) continue;
+						double s = scoreWonder(*availableWonders[j]);
+						if (s > bestScore) {
+							bestScore = s;
+							choice = j;
+						}
+					}
+				}
+				else {
+					choice = decisionMaker->selectCard(wonderIndices);
+				}
 
 				currentPlayer->chooseWonder(availableWonders, static_cast<uint8_t>(choice));
 
@@ -1025,9 +1080,6 @@ namespace Core {
 		completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
 		completeEvent.context = "\n+-----------------------------------+\n|   WONDER SELECTION COMPLETE!     |\n+-----------------------------------+\n";
 		notifier.notifyDisplayRequested(completeEvent);
-
-		if (deleteP1) delete p1Decisions;
-		if (deleteP2) delete p2Decisions;
 	}
 	void Game::debugWonders(const std::vector<std::unique_ptr<Models::Card>>& pool) {
 		auto& notifier = GameState::getInstance().getEventNotifier();
@@ -1142,7 +1194,7 @@ namespace Core {
 	void Game::playAllPhases(Player& p1, Player& p2,
 		IPlayerDecisionMaker& p1Decisions,
 		IPlayerDecisionMaker& p2Decisions,
-		TrainingLogger* logger)
+		std::optional<std::reference_wrapper<TrainingLogger>> logger)
 	{
 		GameState& gameState = GameState::getInstance();
 		auto& notifier = gameState.getEventNotifier();
@@ -1187,7 +1239,7 @@ namespace Core {
 					const auto& node = (*nodes)[i];
 					if (!node) continue;
 					auto card = node->getCard();
-					if (card && node->isAvailable() && card->isAvailable()) {
+					if (card.has_value() && node->isAvailable() && card->get().isAvailable()) {
 						availableIndex.push_back(i);
 					}
 				}
@@ -1210,9 +1262,9 @@ namespace Core {
 					cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
 					cardEvent.context = "\n[" + std::to_string(k) + "] ";
 					notifier.notifyDisplayRequested(cardEvent);
-					if (card) {
-						notifier.notifyDisplayCardInfo(*card);
-						if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+					if (card.has_value()) {
+						notifier.notifyDisplayCardInfo(card->get());
+						if (auto ageCard = dynamic_cast<const Models::AgeCard*>(&card->get())) {
 							if (ageCard->getScientificSymbols().has_value()) {
 								cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
 								notifier.notifyDisplayRequested(cardEvent);
@@ -1224,7 +1276,11 @@ namespace Core {
 				Player& cur = playerOneTurn ? p1 : p2;
 				Player& opp = playerOneTurn ? p2 : p1;
 
-				Core::setCurrentPlayer(&cur);
+				auto& gs = GameState::getInstance();
+				std::shared_ptr<Player> curPtr = playerOneTurn ? gs.GetPlayer1() : gs.GetPlayer2();
+				Core::setCurrentPlayer(curPtr);
+				// Ensure GameState reflects the current loop turn before any AI reads it (e.g. MCTS capture).
+				gs.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
 
 				IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
 
@@ -1236,9 +1292,38 @@ namespace Core {
 				promptEvent.context = currentPlayerName + " choose index (0-" + std::to_string(availableIndex.size() - 1) + "): ";
 				notifier.notifyDisplayRequested(promptEvent);
 
-				size_t choice = curDecisionMaker.selectCard(availableIndex);
-				if (choice >= availableIndex.size()) choice = 0;
-				size_t chosenNodeIndex = availableIndex[choice];
+				size_t chosenNodeIndex = 0;
+				int action = 0;
+				std::optional<size_t> mctsWonderOwnedIndex = std::nullopt;
+				bool isMctsDriven = false;
+
+				if (auto* mctsDM = dynamic_cast<MCTSDecisionMaker*>(&curDecisionMaker)) {
+					isMctsDriven = true;
+					MCTSAction mctsAction = mctsDM->selectTurnAction();
+					chosenNodeIndex = mctsAction.cardNodeIndex;
+					action = mctsAction.actionType;
+					mctsWonderOwnedIndex = mctsAction.wonderIndex;
+
+					if (std::find(availableIndex.begin(), availableIndex.end(), chosenNodeIndex) == availableIndex.end()) {
+						chosenNodeIndex = availableIndex.front();
+					}
+				}
+				else if (auto* aiDM = dynamic_cast<AIDecisionMaker*>(&curDecisionMaker)) {
+					isMctsDriven = true;
+					MCTSAction mctsAction = aiDM->selectTurnAction();
+					chosenNodeIndex = mctsAction.cardNodeIndex;
+					action = mctsAction.actionType;
+					mctsWonderOwnedIndex = mctsAction.wonderIndex;
+
+					if (std::find(availableIndex.begin(), availableIndex.end(), chosenNodeIndex) == availableIndex.end()) {
+						chosenNodeIndex = availableIndex.front();
+					}
+				}
+				else {
+					size_t choice = curDecisionMaker.selectCard(availableIndex);
+					if (choice >= availableIndex.size()) choice = 0;
+					chosenNodeIndex = availableIndex[choice];
+				}
 
 				std::unique_ptr<Models::Card> cardPtr = (*nodes)[chosenNodeIndex]->releaseCard();
 				if (!cardPtr) {
@@ -1250,8 +1335,8 @@ namespace Core {
 				}
 
 				std::string cardName = cardPtr->getName();
-				displayCardDetails(cardPtr.get());
-				uint8_t shields = getShieldPointsFromCard(cardPtr.get(), &cur);
+				displayCardDetails(*cardPtr);
+				uint8_t shields = getShieldPointsFromCard(*cardPtr, std::cref(cur));
 
 				std::vector<std::string> effects;
 				if (auto ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
@@ -1275,13 +1360,24 @@ namespace Core {
 
 				bool actionSucceeded = false;
 				bool cancelled = false;
-				int action = 0;
+				bool mctsActionUsed = false;
 				while (!actionSucceeded && cardPtr) {
-					action = curDecisionMaker.selectCardAction();
+					if (!isMctsDriven) {
+						action = curDecisionMaker.selectCardAction();
+					}
+					else {
+						// Try the MCTS-chosen action once; if it fails (e.g. affordability), fall back to SELL.
+						if (!mctsActionUsed) {
+							mctsActionUsed = true;
+						}
+						else {
+							action = 1;
+						}
+					}
 
 					switch (action) {
 					case 0: {
-						if (!cur.canAffordCard(cardPtr.get(), opp.m_player)) {
+						if (!cur.canAffordCard(*cardPtr, opp.m_player)) {
 							DisplayRequestEvent errEvent;
 							errEvent.displayType = DisplayRequestEvent::Type::ERROR;
 							errEvent.context = "Cannot afford this card. Choose another action: [0]=build, [1]=sell, [2]=wonder";
@@ -1341,8 +1437,21 @@ namespace Core {
 							notifier2.notifyDisplayRequested(cardEvent);
 						}
 
-						size_t wchoice = curDecisionMaker.selectWonder(candidates);
-						if (wchoice >= candidates.size()) wchoice = 0;
+						size_t wchoice = 0;
+						if (isMctsDriven && mctsWonderOwnedIndex.has_value()) {
+							size_t desiredOwnedIdx = mctsWonderOwnedIndex.value();
+							auto it = std::find(candidates.begin(), candidates.end(), desiredOwnedIdx);
+							if (it != candidates.end()) {
+								wchoice = static_cast<size_t>(std::distance(candidates.begin(), it));
+							}
+							else {
+								wchoice = 0;
+							}
+						}
+						else {
+							wchoice = curDecisionMaker.selectWonder(candidates);
+							if (wchoice >= candidates.size()) wchoice = 0;
+						}
 						std::unique_ptr<Models::Wonder>& chosenWonderPtr = owned[candidates[wchoice]];
 
 						if (!cur.canAffordWonder(chosenWonderPtr, opp.m_player)) {
@@ -1388,7 +1497,7 @@ namespace Core {
 							pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
 							notifier.notifyDisplayRequested(pairEvent);
 
-							cur.chooseProgressTokenFromBoard(&curDecisionMaker);
+							cur.chooseProgressTokenFromBoard(std::ref(curDecisionMaker));
 						}
 					}
 				}
@@ -1397,7 +1506,7 @@ namespace Core {
 					continue;
 				}
 
-				if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
+				if ((*nodes)[chosenNodeIndex]->getCard().has_value()) {
 					continue;
 				}
 
@@ -1406,11 +1515,13 @@ namespace Core {
 						if (p) {
 							auto c1 = p->getChild1();
 							auto c2 = p->getChild2();
-							bool empty1 = (!c1 || c1->getCard() == nullptr);
-							bool empty2 = (!c2 || c2->getCard() == nullptr);
-							if (empty1 && empty2 && p->getCard()) {
-								p->getCard()->setIsAvailable(true);
-								p->getCard()->setIsVisible(true);
+							bool empty1 = (!c1 || !c1->getCard().has_value());
+							bool empty2 = (!c2 || !c2->getCard().has_value());
+							if (empty1 && empty2) {
+								if (auto card = p->getCard(); card.has_value()) {
+									card->get().setIsAvailable(true);
+									card->get().setIsVisible(true);
+								}
 							}
 						}
 						};
@@ -1428,13 +1539,15 @@ namespace Core {
 				);
 
 				if (logger) {
-					MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
+					MCTSGameState state = MCTS::captureGameState(currentPhase, playerOneTurn);
 					MCTSAction mctsAction;
 					mctsAction.cardNodeIndex = chosenNodeIndex;
 					mctsAction.actionType = action;
 					mctsAction.cardName = cardName;
 					TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
-					logger->logTurn(turn);
+					if (logger.has_value()) {
+						logger->get().logTurn(turn);
+					}
 				}
 
 				gameState.saveGameState("");
@@ -1811,11 +1924,11 @@ namespace Core {
 		Core::ConsoleReader reader;
 
 		bool trainingMode = false;
-		IPlayerDecisionMaker* p1Decisions = nullptr;
-		IPlayerDecisionMaker* p2Decisions = nullptr;
+		std::unique_ptr<IPlayerDecisionMaker> p1Decisions;
+		std::unique_ptr<IPlayerDecisionMaker> p2Decisions;
 		Core::Playstyle p1Playstyle = Core::Playstyle::BRITNEY;
 		Core::Playstyle p2Playstyle = Core::Playstyle::BRITNEY;
-		TrainingLogger* logger = nullptr;
+		std::unique_ptr<TrainingLogger> logger;
 
 		std::vector<int> existingSaves = GameStateSerializer::getAllSaveNumbers();
 
@@ -1838,13 +1951,15 @@ namespace Core {
 				auto p1Ptr = gameState.GetPlayer1();
 				auto p2Ptr = gameState.GetPlayer2();
 
-				p1Decisions = new Core::HumanDecisionMaker();
-				p2Decisions = new Core::HumanDecisionMaker();
+				p1Decisions = std::make_unique<Core::HumanDecisionMaker>();
+				p2Decisions = std::make_unique<Core::HumanDecisionMaker>();
 
-				playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, logger);
+				if (logger) {
+					playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, std::ref(*logger));
+				} else {
+					playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, std::nullopt);
+				}
 
-				delete p1Decisions;
-				delete p2Decisions;
 				return;
 			}
 		}
@@ -1877,8 +1992,8 @@ namespace Core {
 
 			int aiStyle = reader.selectPlaystyle();
 			p2Playstyle = (aiStyle == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
-			p1Decisions = new Core::HumanDecisionMaker();
-			p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+			p1Decisions = std::make_unique<Core::HumanDecisionMaker>();
+			p2Decisions = std::make_unique<Core::MCTSDecisionMaker>(p2Playstyle, 1000, 1.414, 20);
 
 			DisplayRequestEvent infoEvent;
 			infoEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
@@ -1919,11 +2034,11 @@ namespace Core {
 			gameState.GetPlayer1()->m_player = std::make_unique<Models::Player>(1, "AI_P1");
 			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, "AI_P2");
 
-			p1Decisions = new Core::MCTSDecisionMaker(p1Playstyle, 1000, 1.414, 20);
-			p2Decisions = new Core::MCTSDecisionMaker(p2Playstyle, 1000, 1.414, 20);
+			p1Decisions = std::make_unique<Core::MCTSDecisionMaker>(p1Playstyle, 1000, 1.414, 20);
+			p2Decisions = std::make_unique<Core::MCTSDecisionMaker>(p2Playstyle, 1000, 1.414, 20);
 
 			if (trainingMode) {
-				logger = new TrainingLogger();
+				logger = std::make_unique<TrainingLogger>();
 			}
 
 			DisplayRequestEvent infoEvent;
@@ -1969,8 +2084,8 @@ namespace Core {
 			p1Playstyle = (p1Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
 			p2Playstyle = (p2Style == 1) ? Core::Playstyle::BRITNEY : Core::Playstyle::SPEARS;
 
-			p1Decisions = new Core::HumanAssistedDecisionMaker(p1Playstyle, 500);
-			p2Decisions = new Core::HumanAssistedDecisionMaker(p2Playstyle, 500);
+			p1Decisions = std::make_unique<Core::HumanAssistedDecisionMaker>(p1Playstyle, 500);
+			p2Decisions = std::make_unique<Core::HumanAssistedDecisionMaker>(p2Playstyle, 500);
 
 			DisplayRequestEvent infoEvent;
 			infoEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
@@ -1995,8 +2110,8 @@ namespace Core {
 			username = PlayerNameValidator::getValidatedName("Enter Player 2 username: ");
 			gameState.GetPlayer2()->m_player = std::make_unique<Models::Player>(2, username);
 
-			p1Decisions = new Core::HumanDecisionMaker();
-			p2Decisions = new Core::HumanDecisionMaker();
+			p1Decisions = std::make_unique<Core::HumanDecisionMaker>();
+			p2Decisions = std::make_unique<Core::HumanDecisionMaker>();
 
 			gameState.setGameMode(mode, false);
 			gameState.setPlayerPlaystyles(p1Playstyle, p2Playstyle);
@@ -2016,7 +2131,11 @@ namespace Core {
 
 		auto p1Ptr = gameState.GetPlayer1();
 		auto p2Ptr = gameState.GetPlayer2();
-		wonderSelection(p1Ptr, p2Ptr, p1Decisions, p2Decisions);
+		if (p1Decisions && p2Decisions) {
+			wonderSelection(p1Ptr, p2Ptr, std::ref(*p1Decisions), std::ref(*p2Decisions));
+		} else {
+			wonderSelection(p1Ptr, p2Ptr, std::nullopt, std::nullopt);
+		}
 
 		DisplayRequestEvent finishEvent;
 		finishEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
@@ -2037,11 +2156,11 @@ namespace Core {
 		startGameEvent.context = "=== GAME START ===";
 		notifier.notifyDisplayRequested(startGameEvent);
 
-		playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, logger);
-
-		if (p1Decisions) delete p1Decisions;
-		if (p2Decisions) delete p2Decisions;
-		if (logger) delete logger;
+		if (logger) {
+			playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, std::ref(*logger));
+		} else {
+			playAllPhases(*p1Ptr, *p2Ptr, *p1Decisions, *p2Decisions, std::nullopt);
+		}
 	}
 	
 	void Game::updateTreeAfterPick(int age, int emptiedNodeIndex)
@@ -2072,12 +2191,12 @@ namespace Core {
 
 			auto c1 = parent->getChild1();
 			auto c2 = parent->getChild2();
-			bool empty1 = (!c1 || c1->getCard() == nullptr);
-			bool empty2 = (!c2 || c2->getCard() == nullptr);
+			bool empty1 = (!c1 || !c1->getCard().has_value());
+			bool empty2 = (!c2 || !c2->getCard().has_value());
 			if (empty1 && empty2) {
-				if (auto* pc = parent->getCard()) {
-					pc->setIsAvailable(true);
-					pc->setIsVisible(true);
+				if (auto pc = parent->getCard(); pc.has_value()) {
+					pc->get().setIsAvailable(true);
+					pc->get().setIsVisible(true);
 				}
 			}
 
@@ -2085,10 +2204,11 @@ namespace Core {
 			Core::TreeNodeEvent changedEvt;
 			changedEvt.ageIndex = age;
 			changedEvt.nodeIndex = pi;
-			changedEvt.cardName = parent->getCard() ? parent->getCard()->getName() : std::string();
-			changedEvt.isEmpty = (parent->getCard() == nullptr);
+			auto parentCard = parent->getCard();
+			changedEvt.cardName = parentCard.has_value() ? parentCard->get().getName() : std::string();
+			changedEvt.isEmpty = !parentCard.has_value();
 			changedEvt.isAvailable = parent->isAvailable();
-			changedEvt.isVisible = parent->getCard() ? parent->getCard()->isVisible() : false;
+			changedEvt.isVisible = parentCard.has_value() ? parentCard->get().isVisible() : false;
 			Core::Game::getNotifier().notifyTreeNodeChanged(changedEvt);
 		};
 
@@ -2100,13 +2220,13 @@ namespace Core {
 		auto& gs = GameState::getInstance();
 		auto p1 = gs.GetPlayer1();
 		auto p2 = gs.GetPlayer2();
-		Core::Player* cur = Core::getCurrentPlayer();
+		auto cur = Core::getCurrentPlayer();
 		if (!cur) {
-			cur = gs.isPlayer1Turn() ? p1.get() : p2.get();
+			cur = gs.isPlayer1Turn() ? p1 : p2;
 			Core::setCurrentPlayer(cur);
 		}
 		if (!cur || !cur->m_player) return false;
-		Core::Player* opp = (cur == p1.get()) ? p2.get() : p1.get();
+		auto opp = (cur.get() == p1.get()) ? p2 : p1;
 		if (!opp || !opp->m_player) return false;
 
 		auto& board = Board::getInstance();
@@ -2115,7 +2235,7 @@ namespace Core {
 		auto node = nodes[static_cast<size_t>(nodeIndex)];
 		if (!node) return false;
 		if (!node->isAvailable()) return false;
-		if (!node->getCard()) return false;
+		if (!node->getCard().has_value()) return false;
 
 		std::unique_ptr<Models::Card> cardPtr = node->releaseCard();
 		if (!cardPtr) return false;
@@ -2130,7 +2250,7 @@ namespace Core {
 
 		switch (action) {
 		case 0: {
-			if (!cur->canAffordCard(cardPtr.get(), opp->m_player)) {
+			if (!cur->canAffordCard(*cardPtr, opp->m_player)) {
 				notifyError("You cannot afford to build this card.");
 				break;
 			}
@@ -2145,6 +2265,10 @@ namespace Core {
 		case 2: {
 			if (Models::Wonder::getWondersBuilt() >= Models::Wonder::MaxWonders) {
 				notifyError("Cannot build a wonder: maximum of 7 wonders have already been built.");
+				break;
+			}
+			if (!cur->m_player) {
+				notifyError("Player data is invalid.");
 				break;
 			}
 
@@ -2205,7 +2329,7 @@ namespace Core {
 			}
 			
 			if (shields > 0) {
-				bool isPlayer1 = (cur == p1.get());
+				bool isPlayer1 = (cur.get() == p1.get());
 				int steps = isPlayer1 ? static_cast<int>(shields) : -static_cast<int>(shields);
 				Game::movePawn(steps);
 			}

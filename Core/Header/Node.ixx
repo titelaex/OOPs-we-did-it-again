@@ -2,6 +2,8 @@
 import Models.Card;
 import <memory>;
 import <utility>;
+import <optional>;
+import <functional>;
 export namespace Core {
 	class Node : public std::enable_shared_from_this<Node> {
 	private:
@@ -26,9 +28,9 @@ export namespace Core {
 		std::shared_ptr<Node> getChild2() const;
 		void setChild1(const std::shared_ptr<Node>& child);
 		void setChild2(const std::shared_ptr<Node>& child);
-		Models::Card* getCard();
-		const Models::Card* getCard() const;
-		Models::Card* getCardRaw() const;
+		std::optional<std::reference_wrapper<Models::Card>> getCard();
+		std::optional<std::reference_wrapper<const Models::Card>> getCard() const;
+		Models::Card* getCardRaw() const; // Kept for backward compatibility if needed
 		void setCard(std::unique_ptr<Models::Card> card);
 		std::unique_ptr<Models::Card> releaseCard();
 		bool isAvailable() const;

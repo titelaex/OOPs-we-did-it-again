@@ -1,5 +1,5 @@
-﻿module Core.Player;
 #include <compare>
+module Core.Player;
 import <iostream>;
 import <vector>;
 import <tuple>;
@@ -24,11 +24,23 @@ import Core.PlayerDecisionMaker;
 
 namespace Core {
 namespace {
-thread_local Player* g_current_player = nullptr;
+thread_local std::shared_ptr<Player> g_current_player = nullptr;
 }
 
-void setCurrentPlayer(Player* p) { g_current_player = p; }
-Player* getCurrentPlayer() { return g_current_player; }
+void setCurrentPlayer(std::shared_ptr<Player> p) { g_current_player = p; }
+std::shared_ptr<Player> getCurrentPlayer() { return g_current_player; }
+
+std::shared_ptr<Player> getOpponentPlayer()
+{
+	std::shared_ptr<Player> cp = getCurrentPlayer();
+    if (!cp) return nullptr;
+	auto& gs = GameState::getInstance();
+	std::shared_ptr<Player> p1 = gs.GetPlayer1();
+	std::shared_ptr<Player> p2 = gs.GetPlayer2();
+    if (p1 == cp) return p2;
+    if (p2 == cp) return p1;
+    return nullptr;
+}
 }
 namespace {
     void streamCardByType(std::ostream& out, const Models::Card* card)
@@ -48,27 +60,16 @@ namespace {
         }
     }
 }
-Core::Player* Core::getOpponentPlayer()
-{
-    Core::Player* cp = getCurrentPlayer();
-    if (!cp) return nullptr;
-	auto& gs = Core::GameState::getInstance();
-	Core::Player* p1 = gs.GetPlayer1().get();
-	Core::Player* p2 = gs.GetPlayer2().get();
-    if (p1 == cp) return p2;
-    if (p2 == cp) return p1;
-    return nullptr;
-}
 
 void Core::playTurnForCurrentPlayer()
 {
-    Core::Player* cp = getCurrentPlayer();
+    auto cp = getCurrentPlayer();
     if (!cp) return;
     std::cout << "Playing an extra turn for player\n";
 }
-void Core::drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker)
+void Core::drawTokenForCurrentPlayer(std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
-    Core::Player* cp = getCurrentPlayer();
+    auto cp = getCurrentPlayer();
     if (!cp) return;
     std::vector<std::unique_ptr<Models::Token>> combined;
     auto& progressTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(Board::getInstance().getProgressTokens());
@@ -93,8 +94,8 @@ void Core::drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker)
 	}
 	
 	size_t choice = 0;
-	if (decisionMaker) {
-		choice = decisionMaker->selectProgressToken(tokenIndices);
+	if (decisionMaker.has_value()) {
+		choice = decisionMaker->get().selectProgressToken(tokenIndices);
 	}
 	
 	if (choice >= pickCount) choice = 0;
@@ -110,15 +111,15 @@ void Core::drawTokenForCurrentPlayer(IPlayerDecisionMaker* decisionMaker)
     Board::getInstance().setProgressTokens(std::move(newProgress));
     Board::getInstance().setMilitaryTokens(std::move(newMilitary));
 }
-void Core::discardOpponentCardOfColor(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
+void Core::discardOpponentCardOfColor(Models::ColorType color, std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
-	Core::Player* opponent = Core::getOpponentPlayer();
-	if (!opponent || !decisionMaker) return;
+	auto opponent = Core::getOpponentPlayer();
+	if (!opponent || !decisionMaker.has_value()) return;
 
-    Core::Player* cp = getCurrentPlayer();
+    auto cp = getCurrentPlayer();
     if (!cp) return;
 	
-	Game::handleOpponentCardDiscard(*opponent, *cp, color, *decisionMaker);
+	Game::handleOpponentCardDiscard(*opponent, *cp, color, decisionMaker->get());
     }
 void Core::Player::chooseWonder(std::vector<std::unique_ptr<Models::Wonder>>& availableWonders, uint8_t chosenIndex)
 {
@@ -527,7 +528,7 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 		m_player->addCard(std::move(card));
         return;
     }
-	if (!canAffordCard(card.get(), opponent))
+	if (!canAffordCard(*card, opponent))
     {
         std::cout << "Cannot afford to construct \"" << card->getName() << "\"->\n";
         return;
@@ -546,29 +547,29 @@ void Core::Player::playCardBuilding(std::unique_ptr<Models::Card>& card, std::un
 	m_player->addCard(std::move(card));
 }
 
-bool Core::Player::canAffordCard(const Models::Card* card, std::unique_ptr<Models::Player>& opponent)
+bool Core::Player::canAffordCard(const Models::Card& card, std::unique_ptr<Models::Player>& opponent)
 {
-    if (!card || !opponent)
+    if (!opponent)
         return false;
     
-    if (card->getResourceCost().empty())
+    if (card.getResourceCost().empty())
         return true;
-    if (card->getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
+    if (card.getRequiresLinkingSymbol() != Models::LinkingSymbolType::NO_SYMBOL)
     {
         for (const auto& ownedCard : m_player->getOwnedCards())
         {
-            if (ownedCard->getHasLinkingSymbol() == card->getRequiresLinkingSymbol())
+            if (ownedCard->getHasLinkingSymbol() == card.getRequiresLinkingSymbol())
                 return true;
         }
     }
-    const auto& cost = card->getResourceCost();
+    const auto& cost = card.getResourceCost();
     const auto& ownPermanent = m_player->getOwnedPermanentResources();
     const auto& ownTrading = m_player->getOwnedTradingResources();
     const auto& opponentProduction = opponent->getOwnedPermanentResources();
     uint8_t availableCoins = m_player->totalCoins(m_player->getRemainingCoins());
     
     bool hasMasonryToken = m_player->hasToken(Models::TokenIndex::MASONRY);
-    if (hasMasonryToken && card->getColor() == Models::ColorType::BLUE) {
+    if (hasMasonryToken && card.getColor() == Models::ColorType::BLUE) {
         availableCoins += 2;
     }
 
@@ -669,7 +670,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 
     for (const auto& act : oldActions) {
         builder.addOnPlayAction([act]() {
-            Core::Player* cp = getCurrentPlayer();
+            auto cp = getCurrentPlayer();
 			(void)cp;
 			if (act.first) act.first();
 			}, act.second);
@@ -679,7 +680,7 @@ void Core::Player::takeCard(std::unique_ptr<Models::Card> card)
 
     std::cout << "Player takes card: " << newCard->getName() << "\n";
     {
-        Core::Player* cp = getCurrentPlayer();
+        auto cp = getCurrentPlayer();
         newCard->onPlay();
     }
     m_player->addCard(std::move(newCard));
@@ -711,9 +712,9 @@ void Core::Player::subtractCoins(uint8_t amt)
 
 namespace Core
 {
-	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
+	void chooseTokenByIndex(std::vector<std::unique_ptr<Models::Token>>& tokens, std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
     {
-        Core::Player* cp = getCurrentPlayer();
+        auto cp = getCurrentPlayer();
         if (!cp) return;
 
         if (tokens.empty()) return;
@@ -733,8 +734,8 @@ namespace Core
         }
 
         size_t idx = 0;
-		if (decisionMaker) {
-			idx = decisionMaker->selectProgressToken(tokenIndices);
+		if (decisionMaker.has_value()) {
+			idx = decisionMaker->get().selectProgressToken(tokenIndices);
         }
 
 		if (idx >= tokens.size()) idx = 0;
@@ -742,9 +743,9 @@ namespace Core
         tokens.erase(tokens.begin() + idx);
         if (taken) cp->m_player->addToken(std::move(taken));
     }
-	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens, IPlayerDecisionMaker* decisionMaker)
+	void chooseTokenByName(std::vector<std::unique_ptr<Models::Token>>& tokens, std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 	{
-		Core::Player* cp = getCurrentPlayer();
+		auto cp = getCurrentPlayer();
 		if (!cp) return;
 		if (tokens.empty()) return;
 		auto& notifier = GameState::getInstance().getEventNotifier();
@@ -763,8 +764,8 @@ namespace Core
 		}
 		
 		size_t idx = 0;
-		if (decisionMaker) {
-			idx = decisionMaker->selectProgressToken(tokenIndices);
+		if (decisionMaker.has_value()) {
+			idx = decisionMaker->get().selectProgressToken(tokenIndices);
 		}
 		
 		if (idx >= tokenIndices.size()) idx = 0;
@@ -919,14 +920,14 @@ namespace Core {
 void Core::Player::setHasAnotherTurn(bool hasAnotherTurn)
 {
 	if (!hasAnotherTurn) return;
-	Core::Player* cp = getCurrentPlayer();
+	auto cp = getCurrentPlayer();
 	if (!cp) return;
 	std::cout << "Player gets an extra turn!\n";
 	Core::playTurnForCurrentPlayer();
 }
-void Core::Player::discardCard(Models::ColorType color, IPlayerDecisionMaker* decisionMaker)
+void Core::Player::discardCard(Models::ColorType color, std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
-	Core::Player* opponent = Core::getOpponentPlayer();
+	auto opponent = Core::getOpponentPlayer();
 	if (!opponent) return;
 	auto& owned = opponent->m_player->getOwnedCards();
 	std::vector<size_t> candidates;
@@ -957,8 +958,8 @@ void Core::Player::discardCard(Models::ColorType color, IPlayerDecisionMaker* de
 	}
 	
 	size_t choice = 0;
-	if (decisionMaker) {
-		choice = decisionMaker->selectCard(candidates);
+	if (decisionMaker.has_value()) {
+		choice = decisionMaker->get().selectCardToDiscard(candidates);
 	}
 	
 	if (choice >= candidates.size()) choice = 0;
@@ -968,11 +969,15 @@ void Core::Player::discardCard(Models::ColorType color, IPlayerDecisionMaker* de
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(Core::Board::getInstance().getDiscardedCards());
 	discarded.push_back(std::move(moved));
 }
-void Core::Player::drawToken(IPlayerDecisionMaker* decisionMaker)
+void Core::Player::drawToken(std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
-	Core::drawTokenForCurrentPlayer(decisionMaker);
+	if (decisionMaker.has_value()) {
+		Core::drawTokenForCurrentPlayer(decisionMaker);
+	} else {
+		Core::drawTokenForCurrentPlayer(std::nullopt);
+	}
 }
-void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMaker)
+void Core::Player::chooseProgressTokenFromBoard(std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
 	auto& board = Core::Board::getInstance();
 	auto& availableTokens = const_cast<std::vector<std::unique_ptr<Models::Token>>&>(board.getProgressTokens());
@@ -1006,8 +1011,8 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 	}
 
 	size_t choice = 0;
-	if (decisionMaker) {
-		choice = decisionMaker->selectProgressToken(tokenIndices);
+	if (decisionMaker.has_value()) {
+		choice = decisionMaker->get().selectProgressToken(tokenIndices);
 	} else {
 		bool valid = false;
 		while (!valid) {
@@ -1046,9 +1051,9 @@ void Core::Player::chooseProgressTokenFromBoard(IPlayerDecisionMaker* decisionMa
 		Core::Game::getNotifier().notifyTokenAcquired(tokenEvent);
 	}
 }
-void Core::Player::takeNewCard(IPlayerDecisionMaker* decisionMaker)
+void Core::Player::takeNewCard(std::optional<std::reference_wrapper<IPlayerDecisionMaker>> decisionMaker)
 {
-	Core::Player* cp = getCurrentPlayer();
+	auto cp = getCurrentPlayer();
 	if (!cp) return;
 	auto& board = Core::Board::getInstance();
 	auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
@@ -1077,8 +1082,66 @@ void Core::Player::takeNewCard(IPlayerDecisionMaker* decisionMaker)
 	}
 
 	size_t choice = 0;
-	if (decisionMaker) {
-		choice = decisionMaker->selectCard(cardIndices);
+	if (decisionMaker.has_value()) {
+		// If an MCTS-based AI is playing, pick from discard using weight-driven scoring
+		// (so WeightOptimizer affects this decision too).
+		if (auto* mctsDM = dynamic_cast<MCTSDecisionMaker*>(&decisionMaker->get())) {
+			AIConfig cfg(mctsDM->getPlaystyle());
+			const auto w = cfg.getWeights();
+
+			auto scoreCard = [&](const Models::Card* card) -> double {
+				if (!card) return -1e9;
+				double score = 0.0;
+				score += static_cast<double>(card->getVictoryPoints()) * w.victoryPointValue;
+
+				// Colors roughly map to existing weights.
+				switch (card->getColor()) {
+				case Models::ColorType::BROWN:
+				case Models::ColorType::GREY:
+					score += 1.0 * w.resourceValue;
+					break;
+				case Models::ColorType::BLUE:
+					score += 1.0 * w.victoryPointValue;
+					break;
+				case Models::ColorType::GREEN:
+					score += 1.0 * w.sciencePriority;
+					break;
+				case Models::ColorType::RED:
+					score += 1.0 * w.militaryPriority;
+					break;
+				case Models::ColorType::YELLOW:
+					score += 1.0 * w.economyPriority;
+					break;
+				default:
+					break;
+				}
+
+				if (auto* ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+					score += static_cast<double>(ageCard->getShieldPoints()) * w.militaryPriority;
+					if (ageCard->getScientificSymbols().has_value()) score += 1.5 * w.sciencePriority;
+					for (const auto& [res, amt] : ageCard->getResourcesProduction()) {
+						(void)res;
+						score += static_cast<double>(amt) * w.resourceValue;
+					}
+				}
+
+				return score;
+			};
+
+			double bestScore = -1e18;
+			for (size_t pos = 0; pos < cardIndices.size(); ++pos) {
+				size_t idx = cardIndices[pos];
+				if (idx >= discarded.size() || !discarded[idx]) continue;
+				double s = scoreCard(discarded[idx].get());
+				if (s > bestScore) {
+					bestScore = s;
+					choice = pos;
+				}
+			}
+		}
+		else {
+			choice = decisionMaker->get().selectCard(cardIndices);
+		}
 	}
 	
 	if (choice >= cardIndices.size()) choice = 0;

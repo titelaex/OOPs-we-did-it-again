@@ -1,4 +1,5 @@
-﻿module Core.TrainingLogger;
+﻿#include <ctime>
+module Core.TrainingLogger;
 import <string>;
 import <vector>;
 import <fstream>;
@@ -8,7 +9,6 @@ import <chrono>;
 import <memory>;
 import Core.AIConfig;
 import Core.MCTS;
-#include <ctime>
 namespace Core {
 TrainingLogger::TrainingLogger()
     : m_gameStarted(false)
