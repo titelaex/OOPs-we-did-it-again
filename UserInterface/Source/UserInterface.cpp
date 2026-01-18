@@ -337,9 +337,8 @@ void UserInterface::showAgeTree(int age)
 	// If an AgeTreeWidget already exists, reuse it to avoid deleting widgets
 	if (m_ageTreeWidget) {
 		m_ageTreeWidget->showAgeTree(age);
-		// keep the top turn banner visible for all phases
-		if (m_centerTop) m_centerTop->setVisible(true);
-		if (m_phaseBanner) m_phaseBanner->setVisible(true);
+		// ensure top/bottom visibility
+		if (m_centerTop) m_centerTop->setVisible(false);
 		if (m_centerBottom) m_centerBottom->setVisible(true);
 		return;
 	}
@@ -347,7 +346,6 @@ void UserInterface::showAgeTree(int age)
 	// Show panels
 	if (m_centerTop) m_centerTop->setVisible(true);
 	if (m_centerBottom) m_centerBottom->setVisible(true);
-	if (m_phaseBanner) m_phaseBanner->show();
 	
 	// Clear the middle container before inserting the age tree
 	if (m_centerMiddle) {
