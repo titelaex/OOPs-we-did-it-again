@@ -13,7 +13,7 @@ namespace Core {
         std::ifstream file(filename);
         
         if (!file.is_open()) {
-            return meta; // Return defaults if file doesn't exist
+            return meta; 
         }
         
         std::string line;

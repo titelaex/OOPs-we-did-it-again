@@ -21,18 +21,14 @@ public:
 
     int getCurrentAge() const { return m_currentAge; }
 
-    // Set player panels for refreshing after actions
     void setPlayerPanels(PlayerPanelWidget* left, PlayerPanelWidget* right);
 
-    // Set current player index (0 or 1)
     void setCurrentPlayerIndex(int index);
     int getCurrentPlayerIndex() const { return m_currentPlayerIndex; }
 
-    // Callbacks for UI coordination
-    std::function<void(int nodeIndex, int age)> onLeafClicked; // Called when user clicks a card
-    std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; // Called after successful action
+    std::function<void(int nodeIndex, int age)> onLeafClicked; 
+    std::function<void(int newPlayerIndex, const QString& playerName)> onPlayerTurnChanged; 
 
-    // Callback for requesting token selection from the board
     std::function<void(std::function<void(int)>)> onRequestTokenSelection;
     std::function<void()> onDisableTokenSelection;
 

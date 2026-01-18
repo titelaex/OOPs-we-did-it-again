@@ -8,7 +8,7 @@ import <fstream>;
 import <sstream>;
 import <stdexcept>;
 import <tuple>;
-import <ostream>; // for operator<< declaration
+import <ostream>;
 import <istream>;
 
 export namespace Models
@@ -43,7 +43,6 @@ export namespace Models
         const std::vector<std::pair<std::function<void()>, std::string>>& getOnPlayActions() const noexcept;
         void setOnPlayActions(std::vector<std::pair<std::function<void()>, std::string>> actions);
 
-        // Setters for deserialization
         void setType(TokenType type);
         void setName(const std::string& name);
         void setDescription(const std::string& description);

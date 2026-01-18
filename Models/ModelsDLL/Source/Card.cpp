@@ -40,7 +40,6 @@ namespace Models {
 		}
 	}
 
-	// Default neutral implementations for virtual getters
 	const std::unordered_map<ResourceType, uint8_t>& Card::getResourcesProduction() const {
 		static const std::unordered_map<ResourceType, uint8_t> empty{};
 		return empty;
@@ -91,7 +90,6 @@ namespace Models {
 	static const char* resetAnsi() { return "\x1b[0m"; }
 
 	static std::string costAbbrev(const std::unordered_map<ResourceType, uint8_t>& rc) {
-		// Legend: W=Wood, S=Stone, C=Clay, P=Papyrus, G=Glass
 		auto abbrev = [](ResourceType r) -> std::string {
 			switch (r) {
 			case ResourceType::WOOD: return "W";
@@ -114,7 +112,6 @@ namespace Models {
 	}
 
 	void Card::displayCardInfo() {
-		// [Name colored] | VP=n | Cost=W:1,S:2 | Vis=Y/N | Avl=Y/N
 		const char* cAnsi = colorAnsi(m_color);
 		const char* rAnsi = resetAnsi();
 		std::cout << cAnsi << m_name << rAnsi
@@ -193,7 +190,7 @@ namespace Models {
 			for (const auto& kv : map) {
 				if (!first) s += ",";
 
-				if (kv.first == ResourceType::NO_RESOURCE) continue; // skip NO_RESOURCE
+				if (kv.first == ResourceType::NO_RESOURCE) continue;
 
 				first = false;
 				s += ResourceTypeToString(kv.first);
@@ -230,69 +227,40 @@ namespace Models {
 
 	std::ostream& operator<<(std::ostream& out, const Card& card)
 	{
-		// name
 		out << '"' << csvEscape(card.getName()) << '"' << ',';
-
-		// resourceCost
 		out << '"' << csvEscape(resourceMapToString(card.getResourceCost())) << '"' << ',';
-
-		// resourceProduction
 		out << '"' << csvEscape(resourceMapToString(card.getResourcesProduction())) << '"' << ',';
-
-		// victoryPoints
 		out << '"';
 		if (card.getVictoryPoints() > 0) {
 			out << static_cast<int>(card.getVictoryPoints());
 		}
 		out << '"' << ',';
-
-		// shieldPoints
 		out << '"';
 		if (card.getShieldPoints() > 0) {
 			out << static_cast<int>(card.getShieldPoints());
 		}
 		out << '"' << ',';
-
-		// coinCost (placeholder - not stored in base Card)
 		out << "\"\",";
-
-		// scientificSymbols
 		out << '"';
 		if (card.getScientificSymbols().has_value()) {
 			out << ScientificSymbolTypeToString(card.getScientificSymbols().value());
 		}
 		out << '"' << ',';
-
-		// hasLinkingSymbol
 		out << '"';
 		if (card.getHasLinkingSymbol().has_value()) {
 			out << LinkingSymbolTypeToString(card.getHasLinkingSymbol().value());
 		}
 		out << '"' << ',';
-
-		// requiresLinkingSymbol
 		out << '"';
 		if (card.getRequiresLinkingSymbol().has_value()) {
 			out << LinkingSymbolTypeToString(card.getRequiresLinkingSymbol().value());
 		}
 		out << '"' << ',';
-
-		// tradeRules
 		out << csvEscape(tradeRuleMapToString(card.getTradeRules())) << ',';
-
-		// caption
 		out << csvEscape(card.getCaption()) << ',';
-
-		// color
 		out << csvEscape(ColorTypeToString(card.getColor())) << ',';
-
-		// age
 		out << csvEscape(ageToString(card.getAge())) << ',';
-
-		// onPlayActions
 		out << csvEscape(actionPairVectorToString(card.getOnPlayActions())) << ',';
-
-		// onDiscardActions
 		out << csvEscape(actionPairVectorToString(card.getOnDiscardActions()));
 
 		return out;

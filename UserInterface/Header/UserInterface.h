@@ -28,9 +28,9 @@ class UserInterface : public QMainWindow
 public:
 
 	enum class GameMode {
-		PvP,    // Player vs Player
-		PvAI,   // Player vs AI
-		AIvAI   // AI vs AI
+		PvP,    
+		PvAI,   
+		AIvAI   
 	};
 
 	explicit  UserInterface(QWidget* parent = nullptr);

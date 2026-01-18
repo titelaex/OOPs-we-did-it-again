@@ -23,8 +23,6 @@ public:
 
     void start();
     std::function<void()> onSelectionComplete;
-
-    // allow external callers to request loading next batch
     void loadNextBatch();
 
 private:

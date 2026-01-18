@@ -16,6 +16,7 @@ export namespace Core {
         virtual int selectCardAction() = 0;
         virtual size_t selectWonder(const std::vector<size_t>& candidates) = 0;
         virtual size_t selectProgressToken(const std::vector<size_t>& available) = 0;
+        virtual size_t selectCardToDiscard(const std::vector<size_t>& availableCards) = 0;
         virtual std::uint8_t selectStartingPlayer() = 0; 
     };
     struct HumanDecisionMaker : IPlayerDecisionMaker {
@@ -23,6 +24,7 @@ export namespace Core {
         int selectCardAction() override;
         size_t selectWonder(const std::vector<size_t>& candidates) override;
         size_t selectProgressToken(const std::vector<size_t>& available) override;
+        size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
     };
     struct MCTSDecisionMaker : IPlayerDecisionMaker {
@@ -35,6 +37,7 @@ export namespace Core {
         int selectCardAction() override;
         size_t selectWonder(const std::vector<size_t>& candidates) override;
         size_t selectProgressToken(const std::vector<size_t>& available) override;
+        size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
         void setPlaystyle(Playstyle style);
         void setIterations(int count);
@@ -56,6 +59,7 @@ export namespace Core {
         int selectCardAction() override;
         size_t selectWonder(const std::vector<size_t>& candidates) override;
         size_t selectProgressToken(const std::vector<size_t>& available) override;
+        size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
         void setSuggestionStyle(Playstyle style);
         Playstyle getSuggestionStyle() const;
@@ -72,6 +76,7 @@ export namespace Core {
         int selectCardAction() override;
         size_t selectWonder(const std::vector<size_t>& candidates) override;
         size_t selectProgressToken(const std::vector<size_t>& available) override;
+        size_t selectCardToDiscard(const std::vector<size_t>& availableCards) override;
         std::uint8_t selectStartingPlayer() override;
         void setSimulationCount(unsigned int count);
         void setExplorationConstant(double constant);
