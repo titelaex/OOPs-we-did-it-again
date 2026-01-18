@@ -161,7 +161,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header\AgeTreeWidget.h">
+    <QtMoc Include="Header\AgeTreeWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header\CardSpineDelegate.h">

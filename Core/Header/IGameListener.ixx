@@ -114,6 +114,7 @@ export namespace Core {
             WONDER_SELECTION_PROMPT,
             PROGRESS_TOKENS,
             TOKEN_SELECTION_PROMPT,
+            CARD_DISCARD_SELECTION_PROMPT,
             PLAYER_HANDS,
             TURN_STATUS,
             BOARD,
