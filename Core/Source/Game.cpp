@@ -1499,23 +1499,213 @@ namespace Core {
 					++nrOfRounds;
 					playerOneTurn = !playerOneTurn;
 				}
+			}
 
+			if (availableIndex.empty()) {
 				DisplayRequestEvent completeEvent;
 				completeEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
 				completeEvent.context = phaseName + " completed.";
 				notifier.notifyDisplayRequested(completeEvent);
-
 				currentPhase++;
 				nrOfRounds = 1;
+				continue;
 			}
 
-			g_last_active_was_player_one = !playerOneTurn;
+			DisplayRequestEvent availEvent;
+			availEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			availEvent.context = phaseName + ": " + std::to_string(availableIndex.size()) + " cards available";
+			notifier.notifyDisplayRequested(availEvent);
 
-			DisplayRequestEvent allPhaseEvent;
-			allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
-			allPhaseEvent.context = "=== All Phases Completed ===";
-			notifier.notifyDisplayRequested(allPhaseEvent);
+			for (size_t k = 0; k < availableIndex.size(); ++k) {
+				size_t index = availableIndex[k];
+				const auto& node = (*nodes)[index];
+				auto card = node->getCard();
+				DisplayRequestEvent cardEvent;
+				cardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+				cardEvent.context = "\n[" + std::to_string(k) + "] ";
+				notifier.notifyDisplayRequested(cardEvent);
+				if (card) {
+					card->displayCardInfo();
+					if (auto ageCard = dynamic_cast<const Models::AgeCard*>(card)) {
+						if (ageCard->getScientificSymbols().has_value()) {
+						 cardEvent.context = " Science: " + Models::ScientificSymbolTypeToString(ageCard->getScientificSymbols().value());
+						 notifier.notifyDisplayRequested(cardEvent);
+						}
+					}
+				}
+			}
+
+			Player& cur = playerOneTurn ? p1 : p2;
+			Player& opp = playerOneTurn ? p2 : p1;
+
+			Core::setCurrentPlayer(&cur);
+
+			IPlayerDecisionMaker& curDecisionMaker = playerOneTurn ? p1Decisions : p2Decisions;
+
+			displayPlayerResources(cur, playerOneTurn ? "Player1" : "Player2");
+			DisplayRequestEvent promptEvent;
+			promptEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			promptEvent.context = std::string(playerOneTurn ? "Player1" : "Player2") + " choose index (0-" + std::to_string(availableIndex.size() - 1) + "): ";
+			notifier.notifyDisplayRequested(promptEvent);
+
+			size_t choice = curDecisionMaker.selectCard(availableIndex);
+			if (choice >= availableIndex.size()) choice = 0;
+			size_t chosenNodeIndex = availableIndex[choice];
+
+			std::unique_ptr<Models::Card> cardPtr = (*nodes)[chosenNodeIndex]->releaseCard();
+			if (!cardPtr) {
+				DisplayRequestEvent errEvent;
+				errEvent.displayType = DisplayRequestEvent::Type::ERROR;
+				errEvent.context = "Node releaseCard failed.";
+				notifier.notifyDisplayRequested(errEvent);
+				continue;
+			}
+
+			std::string cardName = cardPtr->getName();
+			displayCardDetails(cardPtr.get());
+			uint8_t shields = getShieldPointsFromCard(cardPtr.get());
+
+			std::optional<Models::ScientificSymbolType> symbolToCheck;
+			bool potentialPair = false;
+			if (auto ageCard = dynamic_cast<Models::AgeCard*>(cardPtr.get())) {
+				symbolToCheck = ageCard->getScientificSymbols();
+				if (symbolToCheck.has_value()) potentialPair = true;
+			}
+
+			DisplayRequestEvent choiceEvent;
+			choiceEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			choiceEvent.context = " You chose " + std::string(cardPtr->getName()) + " . Action: [0]=build, [1]=sell, [2]=wonder";
+			notifier.notifyDisplayRequested(choiceEvent);
+			int action = curDecisionMaker.selectCardAction();
+			int attemptCount = 0;
+			const int maxAttempts = 3;
+			bool cancelled = false;
+
+			while (attemptCount < maxAttempts && cardPtr) {
+				performCardAction(action, cur, opp, cardPtr, board, &curDecisionMaker);
+
+				if (cardPtr) {
+					attemptCount++;
+					bool isAI = (dynamic_cast<HumanDecisionMaker*>(&curDecisionMaker) == nullptr);
+
+					if (isAI) {
+						DisplayRequestEvent retryEvent;
+						retryEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						retryEvent.context = "[AI] Action " + std::to_string(action) + " failed. Retrying...";
+						notifier.notifyDisplayRequested(retryEvent);
+
+						if (attemptCount >= 2) {
+							DisplayRequestEvent discardEvent;
+							discardEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+							discardEvent.context = "Forcing discard.";
+							notifier.notifyDisplayRequested(discardEvent);
+
+							auto& discarded = const_cast<std::vector<std::unique_ptr<Models::Card>>&>(board.getDiscardedCards());
+							discarded.push_back(std::move(cardPtr));
+							break;
+						}
+						action = 1;
+					}
+					else {
+						DisplayRequestEvent cancelEvent;
+						cancelEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+						cancelEvent.context = "*** ACTION CANCELLED ***";
+						notifier.notifyDisplayRequested(cancelEvent);
+
+						(*nodes)[chosenNodeIndex]->setCard(std::move(cardPtr));
+						cancelled = true;
+						break;
+					}
+				}
+
+				if (!cardPtr && action == 0 && potentialPair) {
+				 int realCount = 0;
+				 auto targetSymbol = symbolToCheck.value();
+				 const auto& inventory = cur.m_player->getOwnedCards();
+
+				 for (const auto& ownedCardPtr : inventory) {
+					 if (auto ageCard = dynamic_cast<Models::AgeCard*>(ownedCardPtr.get())) {
+						 auto sym = ageCard->getScientificSymbols();
+						 if (sym.has_value() && sym.value() == targetSymbol) {
+							realCount++;
+						 }
+					 }
+				 }
+
+				 if (realCount == 2) {
+					 DisplayRequestEvent pairEvent;
+					 pairEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+					 pairEvent.context = ">>> PAIR FOUND! Choose a token! <<<";
+					 notifier.notifyDisplayRequested(pairEvent);
+
+					 cur.chooseProgressTokenFromBoard(&curDecisionMaker);
+				 }
+				}
+			}
+
+			if (cancelled) {
+				continue;
+			}
+
+			if ((*nodes)[chosenNodeIndex]->getCard() != nullptr) {
+				continue;
+			}
+
+			// Centralized backend rule+notifier updates (shared with UI)
+			Game::updateTreeAfterPick(currentPhase, static_cast<int>(chosenNodeIndex));
+
+			if (logger) {
+				MCTSGameState state = MCTS::captureGameState(1, playerOneTurn);
+				MCTSAction mctsAction;
+				mctsAction.cardNodeIndex = chosenNodeIndex;
+				mctsAction.actionType = action;
+				mctsAction.cardName = cardName;
+				TurnRecord turn = createTurnRecord(state, mctsAction, nrOfRounds, 0.5, 0.5);
+				logger->logTurn(turn);
+			}
+
+			gameState.setCurrentPhase(currentPhase, nrOfRounds, playerOneTurn);
+			gameState.saveGameState("");
+
+			DisplayRequestEvent saveEvent;
+			saveEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+			saveEvent.context = "[AUTO-SAVE] " + phaseName + " Round " + std::to_string(nrOfRounds) + " saved.";
+			notifier.notifyDisplayRequested(saveEvent);
+
+			if (shields > 0) {
+				Game::movePawn(playerOneTurn ? (int)shields : -(int)shields);
+				awardMilitaryTokenIfPresent(cur);
+				int win = checkImmediateMilitaryVictory();
+				if (win != -1) {
+					gameState.setVictory(win, "Military Supremacy", 0, 0);
+					gameState.saveGameState("");
+					announceVictory(win, "Military Supremacy", p1, p2);
+					g_last_active_was_player_one = !playerOneTurn;
+					return;
+				}
+			}
+
+			int sv = checkImmediateScientificVictory(p1, p2);
+			if (sv != -1) {
+				gameState.setVictory(sv, "Scientific Supremacy", 0, 0);
+				gameState.saveGameState("");
+				announceVictory(sv, "Scientific Supremacy", p1, p2);
+				g_last_active_was_player_one = !playerOneTurn;
+				return;
+			}
+
+			displayPlayerHands(p1, p2);
+			displayTurnStatus(p1, p2);
+			++nrOfRounds;
+			playerOneTurn = !playerOneTurn;
 		}
+
+		g_last_active_was_player_one = !playerOneTurn;
+
+		DisplayRequestEvent allPhaseEvent;
+		allPhaseEvent.displayType = DisplayRequestEvent::Type::MESSAGE;
+		allPhaseEvent.context = "=== All Phases Completed ===";
+		notifier.notifyDisplayRequested(allPhaseEvent);
 	}
 
 
