@@ -321,22 +321,23 @@ void AgeTreeWidget::handleLeafClicked(int nodeIndex, int age)
 		break;
 	}
 
+	// Remove full tree rebuild; only hide picked card and update panels
 	refreshPanels();
 
-	m_currentPlayerIndex = (m_currentPlayerIndex == 0) ? 1 : 0;
-	auto newCur = (m_currentPlayerIndex == 0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
+	m_currentPlayerIndex = (m_currentPlayerIndex ==0) ?1 :0;
+	auto newCur = (m_currentPlayerIndex ==0) ? gs.GetPlayer1().get() : gs.GetPlayer2().get();
 	Core::setCurrentPlayer(newCur);
 
 	if (onPlayerTurnChanged) {
 		auto p1 = gs.GetPlayer1();
 		auto p2 = gs.GetPlayer2();
-		QString curName = (m_currentPlayerIndex == 0 && p1 && p1->m_player)
+		QString curName = (m_currentPlayerIndex ==0 && p1 && p1->m_player)
 			? QString::fromStdString(p1->m_player->getPlayerUsername())
 			: (p2 && p2->m_player) ? QString::fromStdString(p2->m_player->getPlayerUsername()) : QString("<unknown>");
 		onPlayerTurnChanged(m_currentPlayerIndex, curName);
 	}
 
-	QTimer::singleShot(0, this, [this, age]() { this->showAgeTree(age); });
+	hidePickedCard(nodeIndex);
 }
 
 void AgeTreeWidget::showAgeTree(int age)
@@ -367,6 +368,8 @@ void AgeTreeWidget::showAgeTree(int age)
 			m_scene = nullptr;
 		}
 		m_proxyMap.clear();
+		m_cardRects.clear();
+		m_cardTexts.clear();
 	};
 
 	auto showPhaseMessage = [&](const QString& text, int phaseToShowTree) {
@@ -414,8 +417,9 @@ void AgeTreeWidget::showAgeTree(int age)
 	const auto* nodesPtr = (age == 1) ? &board.getAge1Nodes() : (age == 2) ? &board.getAge2Nodes() : &board.getAge3Nodes();
 	const auto& nodes = *nodesPtr;
 
-	// Auto-advance: when Phase 2 has no more available cards, start Phase 3.
-	if (age == 2) {
+	// Auto-advance: when Phase2 has no more available cards, start Phase3.
+
+	if (age ==2) {
 		bool anyAvailable = false;
 		for (const auto& n : nodes) {
 			if (!n) continue;
@@ -441,11 +445,8 @@ void AgeTreeWidget::showAgeTree(int age)
 		rows = { 6,5,4,3,2 };
 	}
 	else {
-		// Backend creates 20 nodes for Age III; use the same 7-row layout.
 		rows = { 2,3,4,2,4,3,2 };
 		flipVertical = false;
-		// If you ever switch backend Age III nodes to a 12-node diamond, enable this:
-		// if (nodes.size() == 12) { rows = { 2,3,2,3,2 }; flipVertical = true; }
 	}
 
 	// Choose palette depending on age
@@ -489,8 +490,9 @@ void AgeTreeWidget::showAgeTree(int age)
 		m_scene->deleteLater();
 		m_scene = nullptr;
 	}
-	// clear any stored proxy mappings
 	m_proxyMap.clear();
+	m_cardRects.clear();
+	m_cardTexts.clear();
 
 	m_scene = new QGraphicsScene(this);
 	m_view = new QGraphicsView(m_scene, this);
@@ -575,6 +577,13 @@ void AgeTreeWidget::showAgeTree(int age)
 	for (size_t i = 0; i < nodes.size(); ++i) ptrToIndex[nodes[i].get()] = static_cast<int>(i);
 
 	std::vector<QGraphicsRectItem*> rects(nodes.size(), nullptr);
+	
+	// Clear and resize card storage for selective hiding
+	m_cardRects.clear();
+	m_cardTexts.clear();
+	m_cardRects.resize(nodes.size(), nullptr);
+	m_cardTexts.resize(nodes.size(), nullptr);
+	
 	idx = 0;
 	for (int r = 0; r < totalRows; ++r) {
 		int cols = rows[r];
@@ -610,24 +619,30 @@ void AgeTreeWidget::showAgeTree(int age)
 				item->setGradientColors(top, bottom);
 				item->setBorderColor(border);
 
+				QGraphicsTextItem* textItem = nullptr;
 				if (isVisible) {
 					QString name = QString::fromStdString(cardPtr->getName());
-					QGraphicsTextItem* t = m_scene->addText(name);
-					QFont f = t->font(); f.setBold(true); f.setPointSize(15);
-					t->setFont(f);
-					t->setDefaultTextColor(text);
-					QRectF tb = t->boundingRect();
-					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
-					t->setZValue(2);
+					textItem = m_scene->addText(name);
+					QFont f = textItem->font(); f.setBold(true); f.setPointSize(15);
+					textItem->setFont(f);
+					textItem->setDefaultTextColor(text);
+					QRectF tb = textItem->boundingRect();
+					textItem->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
+					textItem->setZValue(2);
 				}
 
 				int nodeIndexToUse = idx;
 				item->onClicked = [this, nodeIndexToUse]() {
 					this->handleLeafClicked(nodeIndexToUse, m_currentAge);
 				};
+				
+				// Store graphics items for selective hiding
+				m_cardRects[idx] = item;
+				m_cardTexts[idx] = textItem;
 			}
 			else {
 				// Non-leaf or not available: not clickable.
+				QGraphicsTextItem* textItem = nullptr;
 				if (isVisible) {
 					auto* item = new ClickableRect(rrect);
 					item->setZValue(1);
@@ -639,13 +654,13 @@ void AgeTreeWidget::showAgeTree(int age)
 					item->setBorderColor(border);
 
 					QString name = QString::fromStdString(cardPtr->getName());
-					QGraphicsTextItem* t = m_scene->addText(name);
-					QFont f = t->font(); f.setBold(true); f.setPointSize(15);
-					t->setFont(f);
-					t->setDefaultTextColor(text);
-					QRectF tb = t->boundingRect();
-					t->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
-					t->setZValue(2);
+					textItem = m_scene->addText(name);
+					QFont f = textItem->font(); f.setBold(true); f.setPointSize(15);
+					textItem->setFont(f);
+					textItem->setDefaultTextColor(text);
+					QRectF tb = textItem->boundingRect();
+					textItem->setPos(pos.x() + (cardW - tb.width()) / 2, pos.y() + (cardH - tb.height()) / 2);
+					textItem->setZValue(2);
 				}
 				else {
 					QColor bg = QColor("#EDE7E0");
@@ -653,8 +668,11 @@ void AgeTreeWidget::showAgeTree(int age)
 					ritem->setZValue(1);
 					baseItem = ritem;
 				}
+				
+				// Store graphics items even for non-selectable cards
+				m_cardRects[idx] = baseItem;
+				m_cardTexts[idx] = textItem;
 			}
-
 			rects[idx] = baseItem;
 			++idx;
 		}
@@ -752,4 +770,17 @@ bool AgeTreeWidget::eventFilter(QObject* obj, QEvent* event)
 	}
 
 	return QWidget::eventFilter(obj, event);
+}
+
+void AgeTreeWidget::hidePickedCard(int nodeIndex)
+{
+	// Defer hiding until after current event processing completes
+	QTimer::singleShot(0, this, [this, nodeIndex]() {
+		if (!m_scene) return;
+		if (nodeIndex <0 || nodeIndex >= static_cast<int>(m_cardRects.size())) return;
+		QGraphicsRectItem* rect = m_cardRects[nodeIndex];
+		QGraphicsTextItem* text = (nodeIndex < static_cast<int>(m_cardTexts.size())) ? m_cardTexts[nodeIndex] : nullptr;
+		if (rect && rect->scene() == m_scene) rect->hide();
+		if (text && text->scene() == m_scene) text->hide();
+	});
 }
